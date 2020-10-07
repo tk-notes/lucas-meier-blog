@@ -1,4 +1,4 @@
-baseURL = "https://hugo.cronokirby.vercel.app"
+baseURL = "https://hugo.cronokirby.vercel.app/"
 languageCode = "en-us"
 title = "Cronokirby's Blog"
 
