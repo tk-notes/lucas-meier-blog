@@ -3,22 +3,18 @@
 @tailwind utilities;
 
 /* purgecss start ignore */
-.base {
-  font-size: 20px;
-}
-
 .content h1 {
-  @apply text-4xl;
-  @apply font-bold;
-}
-
-.content h2 {
   @apply text-3xl;
   @apply font-bold;
 }
 
-.content h3 {
+.content h2 {
   @apply text-2xl;
+  @apply font-bold;
+}
+
+.content h3 {
+  @apply text-xl;
   @apply font-bold;
 }
 
@@ -54,6 +50,16 @@ a:visited:hover {
   border-bottom-right-radius: 8px;
   content: attr(data-lang)'\a';
   margin-left: -0.6rem;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
 }
 
 /* purgecss end ignore */

@@ -6,9 +6,11 @@ title: About
 
 And text
 
-## Test2
+# Now for some more fun stuff
 
-And text
+{{< note >}}
+  You can also do it *this* way!
+{{</ note >}}
 
 ### Text3
 
@@ -44,3 +46,4 @@ main :: IO ()
 main = do
   putStrLn "Hello World!"
 ```
+
