@@ -3,7 +3,9 @@ module.exports = {
     removeDeprecatedGapUtilities: true,
     purgeLayersByDefault: true,
   },
-  purge: [],
+  purge: [
+    './layouts/**/*.html'
+  ],
   theme: {
     fontFamily: {
       mono: ["Fira Code", "monospace"],
