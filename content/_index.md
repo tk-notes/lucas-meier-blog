@@ -1,6 +1,15 @@
 ---
 title: About
+katex: true
 ---
+
+# Math
+
+Let's try this: $x + 2$
+
+$$
+\int_{0}^{\infty} x^2 dx
+$$
 
 # Test1
 
