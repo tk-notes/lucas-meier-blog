@@ -3,10 +3,14 @@
   <head>
     <title>{{ .Title }} - Cronokirby</title>
 
-    {{ $styles := resources.Get "css/main.css" }} {{ $styles = $styles | resources.PostCSS (dict "inlineImports" true) }} {{ if hugo.IsProduction }}
-    {{ $styles = $styles | minify }} {{ end }}
+    {{ if .Site.IsServer }}
+    {{ $style := resources.Get "css/main.css" | postCSS (dict "config" "./postcss.config.js") | fingerprint }}
+    <link rel="stylesheet" href="{{ $style.Permalink }}" data>
+    {{ else }}
+    {{ $style := resources.Get "css/main.css" | postCSS (dict "config" "./postcss.config.js") | fingerprint | minify }}
+    <link rel="stylesheet" href="{{ $style.Permalink }}">
+    {{ end }}
 
-    <link href="{{ $styles.Permalink }}" rel="stylesheet" />
     <link href="{{ "css/syntax.css" | absURL }}" rel="stylesheet"/>
     <link href="{{ "css/fonts.css" | absURL }}" rel="stylesheet"/>
     <meta charset="utf-8">
