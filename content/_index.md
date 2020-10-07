@@ -6,11 +6,17 @@ title: About
 
 And text
 
+`foo + 2`
+
 # Now for some more fun stuff
 
-{{< note >}}
+{{<note>}}
   You can also do it *this* way!
-{{</ note >}}
+
+  This avoids the part of it.
+
+  Or look at: `x + 2`
+{{</note>}}
 
 ### Text3
 

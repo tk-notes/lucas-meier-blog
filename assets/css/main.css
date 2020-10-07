@@ -3,6 +3,16 @@
 @tailwind utilities;
 
 /* purgecss start ignore */
+.content p code {
+  @apply bg-gray-200;
+  @apply rounded;
+}
+
+.note p code {
+  background-color: #cde9f9;
+  @apply rounded;
+}
+
 .content h1 {
   @apply text-3xl;
   @apply font-bold;
