@@ -5,6 +5,16 @@ module.exports = {
   },
   purge: [],
   theme: {
+    fontFamily: {
+      mono: ["JetBrainsMono", "monospace"],
+      serif: [
+        "Noto Serif",
+        "Georgia",
+        "Cambria",
+        "Times New Roman",
+        "serif",
+      ],
+    },
     extend: {},
   },
   variants: {},

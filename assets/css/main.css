@@ -1,3 +1,95 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif&display=swap");
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 200;
+  src: url("assets/fonts/JetBrainsMono-SemiLight.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 200;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-SemiLight-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 500;
+  src: url("assets/fonts/JetBrainsMono-Medium.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 700;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-Bold-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 700;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-ExtraBold-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  src: url("assets/fonts/JetBrainsMono-Regular.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 700;
+  src: url("assets/fonts/JetBrainsMono-Bold.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 200;
+  src: url("assets/fonts/JetBrainsMono-Light.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 500;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-Medium-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 100;
+  src: url("assets/fonts/JetBrainsMono-ExtraLight.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 100;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-ExtraLight-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 400;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 200;
+  font-style: italic;
+  src: url("assets/fonts/JetBrainsMono-Light-Italic.woff") format(woff);
+}
+
+@font-face {
+  font-family: "JetBrainsMono";
+  font-weight: 700;
+  src: url("assets/fonts/JetBrainsMono-ExtraBold.woff") format(woff);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
