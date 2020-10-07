@@ -94,13 +94,36 @@
   font-weight: 700;
   src: url("../fonts/JetBrainsMono-ExtraBold.woff") format(woff);
 }
+
 .base {
   font-size: 20px;
 }
 
-.whyisthis {
-  color: 3;
+.content h1 {
+  @apply text-4xl;
+  @apply font-bold;
 }
+
+.content h2 {
+  @apply text-3xl;
+  @apply font-bold;
+}
+
+.content h3 {
+  @apply text-2xl;
+  @apply font-bold;
+}
+
+.content a {
+  @apply underline;
+}
+
+.content a:visited {
+  @apply text-gray-700;
+}
+
+.content a:hover, a:visited:hover {
+  @apply text-blue-500;
+}
+
 /* purgecss end ignore */
-
-

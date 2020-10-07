@@ -1,8 +1,10 @@
 {{ define "main" }}
-  <div class="lg:container mx-auto md:w-10/12 lg:w-3/4 font-serif">
-    <h1 class="text-6xl font-serif font-extrabold">
+  <div class="lg:container mx-auto md:w-10/12 font-serif sm:w-3/4 lg:w-5/12">
+    <h1 class="text-3xl md:text-6xl font-serif font-extrabold">
       Cronokirby's Blog
     </h1>
-    What's up?
+    <div class="content">
+      {{.Content}}
+    </div>
   </div>
 {{ end }}
