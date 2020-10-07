@@ -21,9 +21,20 @@ Here's a full code block:
 ```c
 #include <stdio.h>
 
+// Here's a comment
 int main() {
-  int x = 3;
-  printf("%d", x);
+  for (int i = 0; i < 10; ++i) {
+    printf("%d", i);
+  }
   return 0;
 }
+```
+
+```hs
+foo :: String
+foo = "Hello World!"
+
+main :: IO ()
+main = do
+  putStrLn "Hello World!"
 ```

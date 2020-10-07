@@ -3,98 +3,6 @@
 @tailwind utilities;
 
 /* purgecss start ignore */
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif&display=swap");
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 200;
-  src: url("../fonts/JetBrainsMono-SemiLight.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 200;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-SemiLight-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 500;
-  src: url("../fonts/JetBrainsMono-Medium.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 700;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-Bold-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 700;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-ExtraBold-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  src: url("../fonts/JetBrainsMono-Regular.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 700;
-  src: url("../fonts/JetBrainsMono-Bold.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 200;
-  src: url("../fonts/JetBrainsMono-Light.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 500;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-Medium-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 100;
-  src: url("../fonts/JetBrainsMono-ExtraLight.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 100;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-ExtraLight-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 400;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 200;
-  font-style: italic;
-  src: url("../fonts/JetBrainsMono-Light-Italic.woff") format(woff);
-}
-
-@font-face {
-  font-family: "JetBrainsMono";
-  font-weight: 700;
-  src: url("../fonts/JetBrainsMono-ExtraBold.woff") format(woff);
-}
-
 .base {
   font-size: 20px;
 }
@@ -124,6 +32,14 @@
 
 .content a:hover, a:visited:hover {
   @apply text-blue-500;
+}
+
+.highlight pre {
+  @apply border-2 border-gray-700 rounded p-2;
+}
+
+.higlight code {
+  @apply bg-red-200;
 }
 
 /* purgecss end ignore */

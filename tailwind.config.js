@@ -6,7 +6,7 @@ module.exports = {
   purge: [],
   theme: {
     fontFamily: {
-      mono: ["JetBrainsMono", "monospace"],
+      mono: ["Fira Code", "monospace"],
       serif: [
         "Noto Serif",
         "Georgia",
