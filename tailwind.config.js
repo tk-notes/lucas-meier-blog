@@ -3,19 +3,14 @@ module.exports = {
     removeDeprecatedGapUtilities: true,
     purgeLayersByDefault: true,
   },
-  purge: [
-    './layouts/**/*.html'
-  ],
+  purge: {
+    enabled: true,
+    content: ["./layouts/**/*.html"],
+  },
   theme: {
     fontFamily: {
       mono: ["Fira Code", "monospace"],
-      serif: [
-        "Noto Serif",
-        "Georgia",
-        "Cambria",
-        "Times New Roman",
-        "serif",
-      ],
+      serif: ["Noto Serif", "Georgia", "Cambria", "Times New Roman", "serif"],
     },
     extend: {},
   },
