@@ -1,3 +1,7 @@
+---
+title: About
+---
+
 # Test1
 
 And text
@@ -30,7 +34,9 @@ int main() {
 }
 ```
 
-```hs
+And then text
+
+```haskell
 foo :: String
 foo = "Hello World!"
 

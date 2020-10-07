@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{{ .Title }}</title>
+    <title>{{ .Title }} - Cronokirby</title>
 
     {{ $styles := resources.Get "css/main.css" }} {{ $styles = $styles | resources.PostCSS (dict "inlineImports" true) }} {{ if hugo.IsProduction }}
     {{ $styles = $styles | minify }} {{ end }}

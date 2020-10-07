@@ -30,16 +30,30 @@
   @apply text-gray-700;
 }
 
-.content a:hover, a:visited:hover {
+.content a:hover,
+a:visited:hover {
   @apply text-blue-500;
 }
 
 .highlight pre {
-  @apply border-2 border-gray-700 rounded p-2;
+  @apply border-2;
+  @apply border-gray-700;
+  @apply rounded;
+  @apply my-2;
+  padding-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
-.higlight code {
-  @apply bg-red-200;
+.highlight code::before {
+  @apply bg-gray-700;
+  border-top-width: 2px;
+  @apply border-gray-700;
+  @apply text-white;
+  @apply px-1;
+  border-bottom-right-radius: 8px;
+  content: attr(data-lang)'\a';
+  margin-left: -0.6rem;
 }
 
 /* purgecss end ignore */
