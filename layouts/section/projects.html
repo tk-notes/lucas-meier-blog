@@ -27,13 +27,13 @@
         </li>
         {{ end }}
       </ul>
-      <div class="flex items-center space-x-8">
+      <div class="sm:flex items-center space-x-8">
         {{ with (index (.Resources.Match "cover*") 0)}}
-          <div class="w-1/4 md:w-2/5">
-            <img src="{{.RelPermalink}}" class="rounded shadow-md"></a>
+          <div class="mx-auto w-3/4 sm:w-2/5">
+            <img src="{{.RelPermalink}}" class="rounded shadow-md" loading="lazy"></a>
           </div>
         {{ end }}
-        <div class="w-3/4 md:w-3/5 content">
+        <div class="sm:w-3/5 content no-justify">
           {{ .Content }}
         </div>
       </div>
