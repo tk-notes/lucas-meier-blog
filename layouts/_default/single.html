@@ -8,5 +8,8 @@
     <div class="content">
       {{.Content}}
     </div>
+    <div>
+      {{ .Resources.ByType "image" }}
+    </div>
   </div>
 {{ end }}

@@ -1,6 +1,7 @@
 baseURL = "https://hugo.cronokirby.vercel.app/"
 languageCode = "en-us"
 title = "Cronokirby's Blog"
+relativeURLs = true
 
 [markup]
   [markup.highlight]

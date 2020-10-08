@@ -9,4 +9,4 @@ $x + 432$
 
 Print things:
 
-![](./res/1.jpg)
+{{<img "1.jpg">}}

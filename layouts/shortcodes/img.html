@@ -1,0 +1,6 @@
+{{ $img := .Page.Resources.GetMatch (printf "res/%v" (.Get 0)) }}
+{{ with  $img }}
+<figure>
+	<img src="{{ .RelPermalink }}" alt="{{ $.Get 0 }}" class="mx-auto"/>
+</figure>
+{{ end }}
