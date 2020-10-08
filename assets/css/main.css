@@ -5,6 +5,7 @@
 /* purgecss start ignore */
 .content p {
   @apply my-2;
+  text-align: justify;
 }
 .content p code {
   @apply bg-gray-200;

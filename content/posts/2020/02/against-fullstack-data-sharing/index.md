@@ -3,7 +3,6 @@ title: "Against Fullstack Data Sharing"
 date: 2020-02-13
 description: "The unintuitive reasons why webapps written in a common language shouldn't share data formats"
 draft: false
-path: "/posts/against-fullstack-data-sharing"
 type: post
 image: "/print14.jpg"
 tags:

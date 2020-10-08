@@ -63,9 +63,9 @@ set it up in different ways.
 
 The API you need in the application is just two simple functions, essentially:
 
-```
+```scala
 send(msg, to: ID)
-onMsg(to: ID, cb: (msg) => void)
+onMsg(to: ID, cb: Msg => Unit)
 ```
 
 You need a way to send messages to some arbitrary identifier, and to listen to incoming

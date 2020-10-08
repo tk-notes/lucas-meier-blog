@@ -7,6 +7,6 @@ html, body {
 
 @media (min-width: 640px) { 
   html, body {
-    font-size: 20px;
+    font-size: 18px;
   }
 }
