@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 /* purgecss start ignore */
+.content p {
+  @apply my-2;
+}
 .content p code {
   @apply bg-gray-200;
   @apply rounded;
@@ -57,6 +60,7 @@ a:visited:hover {
   @apply border-gray-700;
   @apply text-white;
   @apply px-1;
+  @apply pb-1;
   border-bottom-right-radius: 8px;
   content: attr(data-lang)'\a';
   margin-left: -0.6rem;

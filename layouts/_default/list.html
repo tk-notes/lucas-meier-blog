@@ -2,9 +2,9 @@
 <main
   class="lg:container mx-4 sm:mx-auto md:w-7/12 font-serif sm:w-3/4 lg:w-4/12"
 >
-  <ul>
-    {{ range .Pages }}
-    <li>
+  <ul class="space-y-8">
+    {{ range .Pages.ByPublishDate.Reverse }}
+    <li class="content">
       <ul class="flex items-center justify-between">
         <li>{{ .Date.Format "January 02, 2006" }}</li>
         <li class="font-bold">
@@ -12,9 +12,12 @@
         </li>
       </ul>
       <a href="{{.RelPermalink}}" class="text-2xl font-bold">{{ .Title }}</a>
-      <p>{{ .Summary }}</p>
+      <div class="text-sm">
+        <p>{{ .Summary }}</p>
+      </div>
     </li>
     {{ end }}
   </ul>
+  {{ partial "katex.html" . }}
 </main>
 {{ end }}

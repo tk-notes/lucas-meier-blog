@@ -1,6 +1,5 @@
 /* Background */ .chroma { }
 /* Other */ .chroma .x {  }
-/* Error */ .chroma .err { color: #960050; background-color: #1e0010 }
 /* LineTableTD */ .chroma .lntd { vertical-align: top; padding: 0; margin: 0; border: 0; }
 /* LineTable */ .chroma .lntable { border-spacing: 0; padding: 0; margin: 0; border: 0; width: auto; overflow: auto; display: block; }
 /* LineHighlight */ .chroma .hl { display: block; width: 100%;background-color: #ffffcc }
@@ -23,7 +22,6 @@
 /* NameNamespace */ .chroma .nn {  }
 /* NameOther */ .chroma .nx { font-style: italic }
 /* NameProperty */ .chroma .py {  }
-/* NameTag */ .chroma .nt { color: #f92672 }
 /* NameVariable */ .chroma .nv {  }
 /* NameVariableClass */ .chroma .vc {  }
 /* NameVariableGlobal */ .chroma .vg {  }
