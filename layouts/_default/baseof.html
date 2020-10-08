@@ -21,6 +21,9 @@
     {{ if .Params.katex }}
       {{ partial "katex.html" . }}
     {{ end }}
+    {{ if .Params.lazyImages }}
+        <script async src="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@0.2.0/loading-attribute-polyfill.min.js" integrity="sha256-kX73NqVUoUbV0K44kgoqP8P8IZfU0OEjr/afCnK2Mrg=" crossorigin="anonymous"></script>
+    {{ end }}
   </head>
 
   <nav>

@@ -1,6 +1,7 @@
 ---
 title: "A Test Post"
 katex: true
+lazyImages: true
 ---
 
 # Foo
