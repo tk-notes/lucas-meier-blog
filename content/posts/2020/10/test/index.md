@@ -9,4 +9,4 @@ $x + 432$
 
 Print things:
 
-![](1.jpg)
+![](./1.jpg)
