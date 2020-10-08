@@ -1,6 +1,7 @@
 ---
 title: "A Test Post"
 katex: true
+date: 2020-10-08
 lazyImages: true
 ---
 
