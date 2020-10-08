@@ -9,4 +9,4 @@ $x + 432$
 
 Print things:
 
-![]({{<ref 1.jpg>}})
+![](1.jpg)
