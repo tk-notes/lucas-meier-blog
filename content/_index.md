@@ -3,62 +3,30 @@ title: About
 katex: true
 ---
 
-# Math
+I'm Lúcás: currently a senior BsC student in Computer Science
+at [EPFL](https://www.epfl.ch/en/).
 
-Let's try this: $x + 2$
+This is my personal website, where I write blog posts somewhat regularly, and keep a tab on
+all the projects I'm working on.
 
-$$
-\int_{0}^{\infty} x^2 dx
-$$
+I've been programming since 2017 or so, and I try to have a somewhat public profile on the things I do.
+My main interests are Functional Programming, Web Programming, Distributed Programming, and Programming Languages.
+I've programmed in a plethora of languages, from **C**, to **Go**, to **Scala**, to **Java**, **Haskell**, **Python**,
+etc. having written small to large-ish projects in each of them. I'd say I could pick up anything quickly enough though.
 
-# Test1
+I also like Math quite a bit, so that's a recurring topic in my posts as well. Interests there
+include **Algebra** and **Category Theory**.
 
-And text
+# [Posts](/posts)
 
-`foo + 2`
+I try and write a blog post every week or so, usually on either technical topics, or about some
+topic in Math. The posts often stem from ongoing work on whatever projects I'm working on at some
+point in time.
 
-# Now for some more fun stuff
+If you want to stay up to date, I'd recommend checking out the [RSS feed](/posts/index.xml).
 
-{{<note>}}
-  You can also do it *this* way!
+# [Projects](/projects)
 
-  This avoids the part of it.
-
-  Or look at: `x + 2`
-{{</note>}}
-
-### Text3
-
-Yo what's up peeps!
-
-Try **bold** text and *italic* text
-
-Let's try [links](https://github.com/cronokirby)
-
-Here's some `inline code`.
-
-Here's a full code block:
-
-```c
-#include <stdio.h>
-
-// Here's a comment
-int main() {
-  for (int i = 0; i < 10; ++i) {
-    printf("%d", i);
-  }
-  return 0;
-}
-```
-
-And then text
-
-```haskell
-foo :: String
-foo = "Hello World!"
-
-main :: IO ()
-main = do
-  putStrLn "Hello World!"
-```
-
+The vast majority of my programming work involves working on side-projects. These range from small
+weekend-projects, to games, to libraries, to programming languages! I also recommend
+checking out my [Github](https://github.com/cronokirby) for an even more complete overview.
