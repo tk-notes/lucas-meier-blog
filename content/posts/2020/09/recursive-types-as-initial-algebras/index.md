@@ -6,6 +6,7 @@ description: "Exploring how the fixed point of a functor is an initial algebra"
 path: "/posts/2020/09/recursive-types-as-initial-algebras"
 type: post
 image: "/posts/2020/09/recursive-types-as-initial-algebras/cover.jpg"
+katex: true
 tags:
   - Math
   - Category Theory
@@ -14,7 +15,7 @@ tags:
 
 Recently (well, more like a month ago), I came across this interesting observation:
 
-![](/posts/2020/09/recursive-types-as-initial-algebras/1.png)
+{{<img "1.png">}}
 
 In my head, I immediately jumped to the notion of *Algebras* in Category Theory.
 I had recently studied that notion, found it quite interesting, and was very happy to
@@ -110,6 +111,7 @@ data RoseTreeF r = Branch Int [r] deriving (Functor)
 to have the compiler do all of that work for us.
 
 If you want to understand a bit more about this, encoding, see 
+
 [[1]](/posts/2020/09/recursive-types-as-initial-algebras/#ref-1).
 
 ## What the Tweet says
@@ -137,9 +139,9 @@ Let's look at a specific example of such an object. Personally, I like Groups. A
 is a set $G$ equipped with operations:
 
 $$
-e : G \\
-\bullet : G \times G \to G \\
-(-)^{-1} : G \to G \\
+e : G \newline
+\bullet : G \times G \to G \newline
+(-)^{-1} : G \to G \newline
 $$
 
 Satisfying some additional axioms, which actually aren't important for this presentation of algebras.
@@ -151,9 +153,9 @@ Another way of looking at this that if $G$ is a group, then we can take "abstrac
 and interpret them as specific elements of $G$. So if $G$ is $(\mathbb{Z}, +)$, then we interpret the operations as:
 
 $$
-e \mapsto 0 \\
-a \bullet b \mapsto a + b \\
-a^{-1} \mapsto -a \\
+e \mapsto 0 \newline
+a \bullet b \mapsto a + b \newline
+a^{-1} \mapsto -a
 $$
 
 This is a bit of a subtle difference, but the key is that the elements on the left are not in $\mathbb{Z}$ itself,
@@ -212,7 +214,7 @@ can have morphisms between algebras over a given functor $F$.
 Given two algebras $(A, \epsilon_A : F A \to A)$ and $(B, \epsilon_B)$, a morphism $(A, \epsilon_A) \to (B, \epsilon_B)$ is a morphism $\varphi \in \mathcal{C}(A, B)$,
 satisfying:
 
-![](/posts/2020/09/recursive-types-as-initial-algebras/2.png)
+{{<img "2.png">}}
 
 So evaluating the operations and then mapping the result should be the same as replacing the elements inside of the structure, and then evaluating.
 
@@ -365,13 +367,11 @@ data Init f = Init (forall a. (f a -> a) -> a)
 
 # References
 
-<p>
-  <a id="ref-1"  href="https://www.schoolofhaskell.com/user/bartosz/understanding-algebras">
-    [1] Bartosz Milewski, Understanding F-Algebras
-  </a>
-</p>
-<p>
-  <a id="ref-2"  href="https://ncatlab.org/nlab/show/initial+algebra+of+an+endofunctor">
-    [2] nLab, Initial Algebra of An Endofunctor
-  </a>
-</p>
+{{<ref
+  "1"
+  "https://www.schoolofhaskell.com/user/bartosz/understanding-algebras"
+  "[1] Bartosz Milewski, Understanding F-Algebras"
+>}}
+{{<ref "2" "https://ncatlab.org/nlab/show/initial+algebra+of+an+endofunctor"
+  "[2] nLab, Initial Algebra of An Endofunctor"
+>}}

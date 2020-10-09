@@ -13,6 +13,7 @@ This is a review of [The New York Trilogy](https://en.wikipedia.org/wiki/The_New
 
 As the title says, this book is actually a trilogy of three shorter novels: *City of Glass*,
 *Ghosts*, and *The Locked Room*.
+<!--more-->
 
 Without spoiling the novel, I will say that it should really be taken as a whole, instead of as three
 separate books that happen to share themes. At the start of the book it may not be obvious why

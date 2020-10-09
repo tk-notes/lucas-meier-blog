@@ -1,11 +1,6 @@
 ---
 title: "Sentence Banking"
 date: 2019-07-07
-draft: false
-description: "How I used Rust, SQLite and mecab to organize Japanese sentences"
-path: "/posts/sentence-banking"
-type: post
-image: "/print9.jpg"
 tags:
   - Japanese
   - Rust
@@ -15,6 +10,7 @@ This is a post about [ginkou](https://github.com/cronokirby/ginkou), a tool I
 made recently. This tool uses Rust, SQLite, as well as
 [mecab](http://taku910.github.io/mecab/) to archive sentences, and then to
 retrieve them based on the words they contain.
+<!--more-->
 
 # Why would I need this?
 Unless you're learning Japanese, you probably won't.

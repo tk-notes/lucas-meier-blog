@@ -1,11 +1,7 @@
 ---
 title: "Empty vs NonEmpty Groups"
 date: 2020-08-17
-draft: false
-description: "Exploring what happens when you allow groups to be empty"
-path: "/posts/2020/08/empty-vs-nonempty-groups"
-type: post
-image: "/posts/2020/08/empty-vs-nonempty-groups/cover.png"
+katex: true
 tags:
   - Math
   - Category Theory
@@ -292,7 +288,7 @@ What do these categories look at as a whole?
 
 ## $\bold{Grp}$
 
-<img src="/posts/2020/08/empty-vs-nonempty-groups/1.png" width="75%" height="75%" ></img>
+{{<img "1.png">}}
 
 This is a rough sketch of what the category $\bold{Grp}$ looks like. We have a bunch of stuff in the middle,
 which isn't too important. The trivial group $1$ serves as an initial and terminal cap, on both ends of the
@@ -300,7 +296,7 @@ category. The blue arrows denote the unique morphisms involved.
 
 ## $\bold{Gr}\emptyset\bold{up}$
 
-<img src="/posts/2020/08/empty-vs-nonempty-groups/2.png" width="75%" height="75%" ></img>
+{{<img "2.png">}}
 
 All of the standard groups are preserved completely. We just have a new initial group to replace the
 old one. The empty group $\emptyset$ sits above the old category, mapping down in unique morphisms.
@@ -352,7 +348,7 @@ $$\epsilon : L \circ R \Rarr 1$$
 
 Satisfying (for any object $G$):
 
-![](/posts/2020/08/empty-vs-nonempty-groups/3.png)
+{{<img "3.png">}}
 
 Defining $\epsilon$ is simple, as we saw before. Since $L \circ R$ is *exactly*
 the identity functor, we can simply take $id_G : (L \circ R) G \to G$ as the components
@@ -377,14 +373,14 @@ And then $\epsilon$, by definition, is the identity.
 
 So we have:
 
-![](/posts/2020/08/empty-vs-nonempty-groups/4.png)
+{{<img "4.png">}}
 
 ### Right
 
 Since $RG$ will never be the empty set, $\eta$ will be the identity. But then, we have that $\epsilon$
 is the identity, so $R \epsilon$ must be the identity as well. Hence:
 
-![](/posts/2020/08/empty-vs-nonempty-groups/5.png)
+{{<img "5.png">}}
 
 So, both properties hold, and we do indeed have an adjunction.
 

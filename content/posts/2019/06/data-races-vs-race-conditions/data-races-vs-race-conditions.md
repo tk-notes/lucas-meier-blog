@@ -1,19 +1,15 @@
 ---
 title: "Data Races vs Race Conditions"
 date: 2019-06-14T20:15:10+02:00
-draft: false
-description: "The difference between data races and race conditions, illustrated in Go"
-path: "/posts/data-races-vs-race-conditions"
-image: "/print7.jpg"
-type: post
 tags:
   - Concurrency
   - Go
 ---
 
-This is a quick post about the difference between `Data Races` and
-`Race Conditions`, and how data structures or patterns providing freedom
+This is a quick post about the difference between *Data Races* and
+*Race Conditions*, and how data structures or patterns providing freedom
 from data races can fail to provide race condition freedom.
+<!--more-->
 
 The examples will be given in `Go`, since that's a language with a few
 of the concurrent constructs that come into play here, as well as the language
@@ -92,14 +88,13 @@ func main() {
 }
 ```
 We'll see some sort of random interleaving of the two messages:
-```
+```txt
 Thread A
 Thread A
 Thread B
 Thread A
 Thread B
 Thread B
-...
 ```
 This could be considered a race condition, if the exact order of the printing
 was a property we wanted our program to respect. We could use some form of

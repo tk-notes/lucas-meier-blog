@@ -1,11 +1,6 @@
 ---
 title: "Structured Immersion"
 date: 2019-12-28T13:13:00+01:00
-draft: false
-description: "What if you could automatically keep track of what you know in a language, and use that to progress even faster?"
-path: "/posts/structured-immersion"
-type: post
-image: "/print4.jpg"
 tags:
   - "Japanese"
   - "Programming"
@@ -14,6 +9,7 @@ When it comes to language learning, one approach that I really subscribe to is i
 This means trying to absorb as much of the language as possible, as often as possible.
 It's often said that "speaking with locals" is a good way to accelerate the learning process,
 and there's a lot of truth with that statement.
+<!--more-->
 
 ### Comprehensible Input
 

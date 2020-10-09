@@ -1,22 +1,17 @@
 ---
 title: "Poline"
 date: 2019-08-31T19:18:13-04:00
-draft: false
-description: "This is a post about [Poline](https://github.com/cronokirby/poline), a tiny programming language I wrote recently."
-path: "/posts/poline"
-image: "/print6.jpg"
-type: post
 tags:
   - Rust
   - Programming Languages
   - Concurrency
 ---
-*(Note: this is a first draft)*
 
 This is a post about [Poline](https://github.com/cronokirby/poline), a tiny
 programming language I wrote recently. The main "gimmick" of Poline is
 a feature called *Green Threads*. In fact, Poline doesn't have many other
 features besides them.
+<!--more-->
 
 # Green what?
 [Green Threads](https://en.wikipedia.org/wiki/Green_threads) are a way of

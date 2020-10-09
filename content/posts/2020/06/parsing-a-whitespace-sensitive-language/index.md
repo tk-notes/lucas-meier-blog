@@ -1,11 +1,6 @@
 ---
 title: "Parsing A Whitespace-Sensitive Language"
 date: 2020-06-03
-draft: false
-description: "How to parse a language taking whitespace into account, with a functional language as an example"
-path: "/posts/parsing-a-whitespace-sensitive-language"
-image: "/posts/parsing-a-whitespace-sensitive-language/cover.jpg"
-type: post
 tags:
   - "Parsing"
   - "Programming Languages"
@@ -14,6 +9,7 @@ tags:
 This post is about how to parse programming languages which define blocks using indentation,
 instead of braces and semicolons. We'll end up learning how to infer these blocks based on the indentation,
 using [Typescript](https://www.typescriptlang.org/) to parse a toy functional language.
+<!--more-->
 
 ## Background Knowledge
 
@@ -38,7 +34,7 @@ With that said, let's get on to the meat of this post.
 
 Here's an example program in the language we'll be working with in this post:
 
-```
+```txt
 f = x => x * x
 
 y =
@@ -61,7 +57,7 @@ is sensitive to whitespace.
 What the let expression allows us to do is define intermediate values that we use in another
 expression. We can also nest multiple let expressions:
 
-```
+```txt
 let
   z =
     let
@@ -84,7 +80,7 @@ or manipulating the program in other programmatic ways.
 This representation usually takes the form of a [Syntax Tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
 For example, if we take the first program we took as an example, we have:
 
-```
+```txt
 f = x => x * x
 
 y =
@@ -95,7 +91,7 @@ y =
 
 After parsing, we end up with a tree like structure representing the program:
 
-![](/posts/parsing-a-whitespace-sensitive-language/1.png)
+{{<img "1.png">}}
 
 We start with the top level definitions, with one branch for each of them. Then we
 have a node for the definition / `=` construct, with a branch for the name, and a
@@ -115,14 +111,14 @@ tree.
 
 For example, we might define expressions like:
 
-```
+```txt
 expr := expr + expr | expr - expr | expr * expr | expr / expr | number
 ```
 
 This says that an expression is formed by adding one of `+`, `-`, `*`, or `/` between
 two expressions, or simply having a number. This would give us:
 
-```
+```txt
 1+1+3-4
 
 1*3-4
@@ -136,7 +132,7 @@ defining these kinds of rules.
 
 Here we defined parsing rules as operating strictly on characters. So:
 
-```
+```txt
 1 + 2
 ```
 
@@ -154,7 +150,7 @@ language as well. We usually call these "words" **Tokens** or **Lexemes**.
 
 Going back to the same example program:
 
-```
+```txt
 f = x => x * x
 
 y =
@@ -165,7 +161,7 @@ y =
 
 One way to tokenize this would be:
 
-```
+```txt
 f
 =
 x
@@ -195,7 +191,7 @@ much simpler as well.
 
 To us humans, it doesn't seem hard to understand what
 
-```
+```txt
 let
   x = f
   y = f
@@ -205,12 +201,12 @@ in x + y
 means. It's difficult for us to *not* notice the indentation structure, and align
 things together. Visually, we basically see:
 
-![](/posts/parsing-a-whitespace-sensitive-language/2.png)
+{{<img "2.png">}}
 
 without even thinking about it. A parser might not see this so easily without making it
 aware of indentation. If we look at the token stream, we have:
 
-```
+```txt
 let x = f y = f in x + y
 ```
 
@@ -236,7 +232,7 @@ for it.
 
 The very first program we saw now becomes:
 
-```
+```txt
 {
 f = x => x * x;
 
@@ -250,7 +246,7 @@ y =
 A bit ugly (in my view), but it explicitly marks when statements end, and what the
 block structure looks like. Because of the semicolons, there's no issue with parsing
 
-```
+```txt
 x = f;
 y = 2
 ```
@@ -267,7 +263,7 @@ We need a type to represent the different tokens our lexer will output. Thankful
 Typescript comes equipped has [enums](https://www.typescriptlang.org/docs/handbook/enums.html)
 which fit the bill perfectly.
 
-```ts
+```typescript
 enum TokenType {
   Equal = '=',
   Plus = '+',
@@ -289,7 +285,7 @@ to know what exactly the token contains, to distinguish `Number(1)` from `Number
 
 Our full token structure will thus be:
 
-```ts
+```typescript
 interface Token {
   readonly type: TokenType;
   readonly data?: string;
@@ -308,7 +304,7 @@ be to make this concrete, through an actual function.
 What is a "stream" anyways? How do we represent this in Typescript? One choice would be
 to have a function like this
 
-```ts
+```typescript
 function lex(input: string): Token[]
 ```
 
@@ -323,7 +319,7 @@ are a better way of providing a "stream" of data from a function.
 
 Here's a simple generator returning integers:
 
-```ts
+```typescript
 function* numbers() {
   for (let i = 0; i < 100; ++i) {
     yield i;
@@ -334,7 +330,7 @@ function* numbers() {
 Instead of just returning a single value, we can instead yield many values. This function
 will yield all the integers up to 100. We can consume this generator like this:
 
-```ts
+```typescript
 for (const n of numbers()) {
   console.log(n);
 }
@@ -344,7 +340,7 @@ And we'll end up printing all the numbers that this generator yields.
 
 One function that's very useful, is a generator over all the characters of a string:
 
-```ts
+```typescript
 function *iterString(input: string) {
   for (const c of input) {
     yield c;
@@ -358,13 +354,13 @@ This actually yields *strings* since we don't have a character type in TS.
 
 Generators can also be seen as iterators. Given a generator, we can call it's `next` method,
 and get either:
-```ts
+```typescript
 { done: false, value: v }
 ```
 
 when there's a value that can be yielded, or:
 
-```ts
+```typesecript
 { done: true }
 ```
 
@@ -373,7 +369,7 @@ when we've reached the end of the stream.
 Another primitive we'd like to have is an iterator where we can look at the next item
 without consuming it. We need this for lexing, since we might want to do different things
 based on the input without consuming it. For example, we need to be able to look at:
-```
+```txt
 abc;
 ```
 And parse out the name `abc` as well as the semicolon `;`. To do this we need to be able
@@ -381,7 +377,7 @@ to *peek* at the upcoming input, to decide whether to add it to the name or not.
 
 Let's make a class that allows us to do that (feel free to gloss over it):
 
-```ts
+```typescript
 type Peeked<T> = { ready: true; value: T } | { ready: false };
 
 class Peekable<T> implements IterableIterator<T> {
@@ -428,7 +424,7 @@ We define this as an `IterableIterator` because an instance has a `next` method 
 call, making it an `Iterator`, but also a way to get an `Iterator` by calling `[Symbol.iterator]`,
 making it an `Iterable`. Making something an `Iterable` is nice, because then we can do
 
-```ts
+```typescript
 for (const thing of new Peekable(...))
 ```
 
@@ -437,7 +433,7 @@ for (const thing of new Peekable(...))
 Let's create a Lexer class that will contain the state we need when lexing, along
 with a few different methods.
 
-```ts
+```typescript
 class Lexer implements Iterable<string> {
   private _iter: Peekable<string>;
 
@@ -452,7 +448,7 @@ over it. This will allow us to look at the next character in our input without c
 
 The next method we'll write is:
 
-```ts
+```typescript
 *[Symbol.iterator]() {
   yield { type: Token.Equal };
 }
@@ -460,7 +456,7 @@ The next method we'll write is:
 
 This allows us to write things like:
 
-```ts
+```typescript
 for (const token of new Lexer('a + b')) {
 }
 ```
@@ -469,7 +465,7 @@ for (const token of new Lexer('a + b')) {
 
 The one character operators are very easy to lex:
 
-```ts
+```typescript
 *[Symbol.iterator]() {
   for (let peek = this._iter.peek(); !peek.done; peek = this._iter.peek()) {
     switch (peek.value) {
@@ -504,7 +500,7 @@ so far.
 
 Let's add support for numbers now:
 
-```ts
+```typescript
 *[Symbol.iterator]() {
   for (let peek = this._iter.peek(); !peek.done; peek = this._iter.peek()) {
     switch (peek.value) {
@@ -546,7 +542,7 @@ character. It *doesn't* consume that character, so it's available for parsing.
 
 We'll be doing names similarly to numbers:
 
-```ts
+```typescript
 *[Symbol.iterator]() {
   for (let peek = this._iter.peek(); !peek.done; peek = this._iter.peek()) {
     switch (peek.value) {
@@ -586,7 +582,7 @@ We have the same thing as we do for numbers, except that we're accepting `abc...
 of `012..`. For the sake of simplicity, I haven't included the full character range. In
 practice you'd want to tweak this code slightly so that things like:
 
-```
+```txt
 a22
 aA3
 snake_case
@@ -597,7 +593,7 @@ are also allowed by the function.
 The only tokens we have left are `let` and `in`. One problem we didn't have previously
 is that these tokens are currently recognized, but as names:
 
-```ts
+```typescript
 { type: TokenType.Name, data: 'let' }
 { type: TokenType.Name, data: 'in' }
 ```
@@ -605,7 +601,7 @@ is that these tokens are currently recognized, but as names:
 We just need to check that the name we've just parsed doesn't correspond to one
 of the keywords, in which case we return the specialized token:
 
-```ts
+```typescript
 const data = this.string();
 if (data === 'let') {
   yield { type: TokenType.Let };
@@ -618,7 +614,7 @@ if (data === 'let') {
 
 Finally, let's throw an error if we don't recognize a character, instead of just stalling:
 
-```ts
+```typescript
 *[Symbol.iterator]() {
   for (let peek = this._iter.peek(); !peek.done; peek = this._iter.peek()) {
     switch (peek.value) {
@@ -642,7 +638,7 @@ We can lex `a+3`, but we can't lex `a + 3` yet. This is because we're not handli
 any of the whitespace characters yet. We just need to add another case to our
 matching:
 
-```ts
+```typescript
 function isWhitespace(char: string): boolean {
   return /[\n\r\s]/.char(string);
 }
@@ -664,7 +660,7 @@ function isWhitespace(char: string): boolean {
 
 At this point, we have a complete lexer:
 
-```ts
+```typescript
 function isNumber(char: string): boolean {
   return /[0-9]/.test(char);
 }
@@ -760,7 +756,7 @@ class Lexer implements Iterable<Token> {
 
 We can test the program like, this:
 
-```ts
+```typescript
 for (const token of new Lexer('a + 45')) {
   console.log(token);
 }
@@ -768,7 +764,7 @@ for (const token of new Lexer('a + 45')) {
 
 This should print out:
 
-```
+```json
 { type: "Name", data: "a" }
 { type: "+" }
 { type: "Number", data: "45" }
@@ -778,13 +774,13 @@ This should print out:
 
 Right now our language ignores all whitespace betwen characters:
 
-```
+```txt
 let x = a + b in x + x
 ```
 
 Lexes the exact same way as
 
-```
+```txt
 let x
 = a +
 b     in x +
@@ -795,7 +791,7 @@ Additionally, we require explicit semicolons and braces to be able to handle the
 of our program. If we had written the parser, it would be working on semicolon tokens
 and brace tokens:
 
-```
+```txt
 {
 f = x => x * x;
 
@@ -815,7 +811,7 @@ at the indentation, and emit the corresponding semicolons and braces.
 
 For example, the following program:
 
-```
+```txt
 y =
   let
     z = 4
@@ -824,14 +820,14 @@ y =
 
 Will give us the following token stream (right now):
 
-```
+```txt
 y = let z = 4 in z
 ```
 
 What we want is for our lexer to see that `z = 4` is indented to the right of `let`, and
 insert the missing braces, to get:
 
-```
+```txt
 y = let { z = 4 } in z
 ```
 
@@ -840,13 +836,13 @@ y = let { z = 4 } in z
 More concretely, what we want is to take our existing lexer, and have it output tokens
 annotated with indentation information. So instead of
 
-```ts
+```typescript
 function lex(): Stream<Token> {}
 ```
 
 we'll have:
 
-```ts
+```typescript
 function lex(): Stream<Annotated<Token>> {}
 ``` 
 
@@ -860,7 +856,7 @@ There are two pieces of information that we want to keep track of with our token
 
 For example, if we have:
 
-```
+```txt
   a b
 ```
 
@@ -868,7 +864,7 @@ then `a` appears at the start of a line, and `b` doesn't. `a` appears at column 
 and `b` appears at index 4. It's clear that to be indentation sensitive, we need to keep track
 of the column. We also need to look at newlines, since we want to be able to look at:
 
-```
+```txt
 let
   x = 2
   y = 3
@@ -881,7 +877,7 @@ to do that.
 
 Let's create a new type to wrap our tokens:
 
-```ts
+```typescript
 enum LinePos {
   Start,
   Middle,
@@ -901,7 +897,7 @@ This adds the extra information we wanted to have from earlier.
 Now let's write a little class that will annotate characters with this information. We'll
 use this stream to feed into our old lexer.
 
-```ts
+```typescript
 function* annotate(input: Iterable<string>) {
   let linePos = LinePos.Start;
   let col = 0;
@@ -926,7 +922,7 @@ a newline character: `\n`.
 
 Now we just need to update the lexer class:
 
-```ts
+```typescript
 class Lexer implements Iterable<Annotated<Token>> {
   private _iter: Peekable<Annotated<string>>;
 
@@ -939,7 +935,7 @@ class Lexer implements Iterable<Annotated<Token>> {
 We also need to update the resut of the class to yield the additional
 metadata as well. For example, we have:
 
-```ts
+```typescript
         case '=':
           this._iter.next();
           yield { ...peek.value, item: { type: TokenType.Equal } };
@@ -952,7 +948,7 @@ at the end of this post if you want all of the details.
 This way of implementing things means that the position of a token
 is based on its first character. So:
 
-```
+```txt
 let
 ```
 
@@ -974,7 +970,7 @@ that maps to.
 One core idea is to keep track of the current indentation level.
 For example, if we've just seen:
 
-```
+```txt
 let
   x = 3
 ```
@@ -982,7 +978,7 @@ let
 Then currently we're in a block indented by 2 columns, and we expect
 tokens that continue the block to appear at the same indentation:
 
-```
+```txt
 let
   x = 3
   y = 4
@@ -990,7 +986,7 @@ let
 
 We can also have an explicit indentation, via an explicit `{`:
 
-```
+```txt
 let { x = 3
 ```
 
@@ -1001,7 +997,7 @@ we see an explicit `}`.
 To keep track of what kind of layout we're currently in, we need
 to create a type representing a layout context:
 
-```ts
+```typescript
 type Layout = { type: 'Explicit' } | { type: 'IndentedBy'; amount: number }
 ```
 
@@ -1011,7 +1007,7 @@ we're currently observing.
 
 We also need a couple of useful functions:
 
-```ts
+```typescript
 function indentedMore(layout: Layout, than: Layout) {
   if (than.type === 'Explicit') {
     return layout.type !== 'Explicit';
@@ -1030,7 +1026,7 @@ at how much things are indented.
 
 The second useful function is:
 
-```ts
+```typescript
 function sameIndentation(layout: Layout, comparedTo: Layout) {
   if (layout.type !== comparedTo.type) {
     return false;
@@ -1049,13 +1045,13 @@ This checks if two layouts are identical.
 With the way our language works, only certain tokens can start layouts.
 Specifically, after `let`, we expect a layout to start, either explicitly:
 
-```
+```txt
 let { x = 2; y = 3 } in x + y`
 ```
 
 or implicitly, via indentation and newlines
 
-```
+```txt
 let
   x = 2
   y = 3
@@ -1064,7 +1060,7 @@ in x + y
 
 So we create a function:
 
-```ts
+```typescript
 function startsLayout(typ: TokenType) {
   return typ === TokenType.Let;
 }
@@ -1073,7 +1069,7 @@ function startsLayout(typ: TokenType) {
 Depending on our language, there might be more tokens here. For example
 if we added a `where` keyword, that worked similarly to let:
 
-```
+```txt
 f = x
   where
     x = 3
@@ -1081,7 +1077,7 @@ f = x
 
 which could also be written:
 
-```
+```txt
 f = x
   where { x = 3 }
 ```
@@ -1093,7 +1089,7 @@ We'd add that to the tokens that start layouts as well.
 What we want to do is to iterate over our stream of annotated tokens,
 and insert `{`, `;` and `}` at the right moments:
 
-```ts
+```typescript
 function* layout(input: Iterable<Annotated<Token>>) {
   let layouts: Layout[] = [];
   const topLayout = () => (layouts.length > 0 ? layouts[0] : null);
@@ -1114,7 +1110,7 @@ token. At the start of a file, we're expecting a layout.
 
 Now we go through the items tokens in the input stream:
 
-```ts
+```typescript
   for (const { col, linePos, item } of input) {
     yield item;
   }
@@ -1129,7 +1125,7 @@ braces at the right spots.
 
 Let's say we see an indented token `z`:
 
-```
+```txt
 let
   y = let
     x = 3
@@ -1140,7 +1136,7 @@ What we want to do in this case is end all the layouts that are further
 indented than this current token. If we're continuing the current layout,
 we want to make sure to insert a semicolon as well.
 
-```ts
+```typescript
     let shouldHandleIndent = linePos === LinePos.Start;
 
     if (shouldHandleIndent) {
@@ -1183,7 +1179,7 @@ otherwise throw an error.
 
 We have:
 
-```ts
+```typescript
     let shouldHandleIndent = linePos === LinePos.Start;
 
     if (item.type === TokenType.RightBrace) {
@@ -1204,7 +1200,7 @@ before. We throw an error whenever the top layout is not explicit.
 When we encounter a token like `let`, we need to expect a layout, and not
 handle that token as continuing an implicit layout.
 
-```ts
+```typescript
     } else if (startsLayout(item.type)) {
       shouldHandleIndent = false;
       expectingLayout = true;
@@ -1217,7 +1213,7 @@ Now, if we're expecting to see a layout, we need to look at the current
 token's indentation (regardless of if it's at the start of a line or not),
 and start an explicit or implicit layout based on that:
 
-```ts
+```typescript
     } else if (expectingLayout) {
       expectingLayout = false;
       shouldHandleIndent = false;
@@ -1226,7 +1222,7 @@ and start an explicit or implicit layout based on that:
 If we see a `{`, then that matches the expected layout, and starts
 an explicit layout:
 
-```ts
+```typescript
       if (item.type === TokenType.LeftBrace) {
         layouts.push({ type: 'Explicit' });
       }
@@ -1240,7 +1236,7 @@ we'll need to handle the token again later.
 
 So we have:
 
-```ts
+```typescript
       } else {
         const newIndentation: Layout = { type: 'IndentedBy', amount: col };
         const currentIndentation = topLayout() ?? { type: 'Explicit' };
@@ -1260,7 +1256,7 @@ with inserting an empty layout `{ }`. This makes sense because we still
 need to have these characters in the layout, it's just that it's empty,
 because this token belongs to the layouts surround it. It's like seeing:
 
-```
+```txt
 let
   x = let
   y = 2

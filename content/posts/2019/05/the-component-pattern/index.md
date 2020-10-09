@@ -2,10 +2,6 @@
 title: "The Component Pattern"
 date: 2019-05-14T13:57:24+02:00
 description: "A common architectural pattern for organising stateful code"
-draft: false
-path: "/posts/component-pattern"
-image: "/print11.jpg"
-type: post
 tags:
   - "Software Architecture"
   - "Functional Programming"
@@ -13,7 +9,7 @@ tags:
 
 This post details a useful pattern for organizing stateful components in functional code.
 This post assumes knowledge of **Haskell**, up to **Monad-Transformers**.
-
+<!--more-->
 
 ## The Problem
 
@@ -75,13 +71,13 @@ and it has a file that it logs to.
 
 First we'd create a module to contain this, say `Logger.hs`:
 
-```hs
+```haskell
 module Logger () where
 -- imports ommitted
 ```
 
 The next step is to define a type that contains all the information the logger needs to run:
-```hs
+```haskell
 data LoggerInfo = LoggerInfo
     { loggerQueue :: TBQueue Message
     , loggerFile  :: FilePath
@@ -89,12 +85,12 @@ data LoggerInfo = LoggerInfo
 ```
 
 Then we create a new effect type, which is just a Reader with access to that information:
-```hs
+```haskell
 newtype LoggerM a = LoggerM (ReaderT LoggerInfo IO a)
 ```
 
 Now inside the module itself, we write the functions we need as `LoggerM a`, for example:
-```hs
+```haskell
 latestMessage :: LoggerM Message
 
 logMessages :: LoggerM ()
@@ -102,7 +98,7 @@ logMessages :: LoggerM ()
 
 We also have a main function that contains all the things a component needs to do, sort of like
 a "main loop" for that component:
-```hs
+```haskell
 main :: LoggerM ()
 ```
 
@@ -114,7 +110,7 @@ component to the outside world.
 
 We'd have functions to construct `LoggerInfo` as well as run `LoggerM`:
 
-```hs
+```haskell
 makeLoggerInfo :: File -> IO LoggerInfo
 
 runLoggerM :: LoggerM a -> LoggerInfo -> IO a
@@ -124,7 +120,7 @@ runLoggerM :: LoggerM a -> LoggerInfo -> IO a
 
 With this choice, we'd only export a function that constructs and runs the main logger computation:
 
-```hs
+```haskell
 runLoggerMain :: File -> IO ()
 ```
 
@@ -140,7 +136,7 @@ function in a new thread after passing it all the prerequisite information.
 ## Summary
 In summary, the component pattern looks something like this:
 
-```hs
+```haskell
 module Component (startComponent) where
 
 data ComponentInfo

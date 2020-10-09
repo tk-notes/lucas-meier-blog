@@ -2,23 +2,18 @@
 title: "Integrating Notes and SRS"
 description: "Some rough ideas on how to join integrated notes and spaced repetition"
 date: 2020-01-10
-draft: false
-path: "/posts/integrating-notes-and-srs"
-image: "/print3.jpg"
 type: post
 tags:
   - Learning
   - SRS
 ---
 
-This is a rough braindump about a project I've been thinking about recently.
-
-# A better way of using notes?
-
-So i've been tinkering around with better systems for taking notes recently. I'm not a big
+So I've been tinkering around with better systems for taking notes recently. I'm not a big
 fan of keeping notes, around because I don't find myself actually revisiting them, and when I do,
 I don't get much value out of it. On the other hand, my experience with language learning has definitely
 showed me how effective spaced repetition is when it comes to keeping things in your head.
+
+<!--more-->
 
 So it's not that notes are completely useless, but rather that the main value I get out of
 them is in making them. Making notes, especially after having followed a lecture, forces me
@@ -93,7 +88,7 @@ A lot of markdown files include a header section allowing YAML (this one include
 
 ### Sections
 
-```md
+```markdown
 ---
 title: "Integrating Notes and SRS"
 ---
@@ -111,7 +106,7 @@ We keep treating the content we see as part of that section until we reach
 
 A section header might end up looking like this:
 
-```md
+```markdown
 ---
 section: "My beautiful section"
 description: "This is a summary about computational mechanics"
@@ -126,7 +121,7 @@ tags:
 For the SRS snippets, you want a way of specifying the prompt and information / extra sections.
 I've been thinking of doing it like this:
 
-```md
+```markdown
 --?
 # This is valid markdown
 

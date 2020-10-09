@@ -1,11 +1,7 @@
 ---
 title: "Categorical Graphs"
 date: 2020-10-02
-draft: false
-description: "An introduction to Graphs from a Categorical point of view"
-path: "/posts/2020/10/categorical-graphs"
-type: post
-image: "/posts/2020/10/categorical-graphs/cover.png"
+katex: true
 tags:
   - Math
   - Graph Theory
@@ -29,7 +25,7 @@ We need a list to be able to have multiple edges between two vertices.
 
 So, this graph:
 
-![](/posts/2020/10/categorical-graphs/1.png)
+{{<img "1.png">}}
 
 could be represented as $(\{A, B, C\}, [(A, B), (A, C)])$. Each of the points in the diagram
 becomes an element of the set of vertices, and each edge in the graph becomes a pair $(v, v')$.
@@ -49,12 +45,10 @@ and $s, t$ are functions assigning each edge to its source and target vertex, re
 Going back to our example graph, this is encoded as $(\{A, B, C\}, \{1, 2\}, s, t)$ with:
 
 $$
-\begin{aligned}
-s(1) &= A \\
-s(2) &= A \\
-t(1) &= B \\
-t(2) &= C
-\end{aligned}
+s(1) = A \newline
+s(2) = A \newline
+t(1) = B \newline
+t(2) = C
 $$
 
 The standard encoding of edges as ordered pairs fits perfectly into this paradigm. $s$ and $t$ become
@@ -67,7 +61,7 @@ Now we're going to turn up our level of abstraction *slightly*. Instead of think
 the larger category of sets $\bold{Set}$. This category has objects *sets*, and as morphisms
 *functions* between them. A graph then becomes a *diagram* in this category, or a small piece of it:
 
-![](/posts/2020/10/categorical-graphs/2.png)
+{{<img "2.png">}}
 
 A given graph picks out two objects in $\bold{Set}$, and two parallel arrows connecting one object
 to the other. These arrows are the source and target functions, respectively.
@@ -78,7 +72,7 @@ This definition of a diagram as a "small piece" is a bit inaccurate, really. A w
 is use the notion of a *Functor* from a template category, with the right shape. The shape we want is
 two objects, and two parallel arrows between them. We'll call our template category $\text{ST}$ (for source / target):
 
-![](/posts/2020/10/categorical-graphs/3.png)
+{{<img "3.png">}}
 
 A Graph is then nothing more than a Functor $\text{ST} \to \bold{Set}$!
 
@@ -93,14 +87,14 @@ There's already a notion of a *morphism* between Functors: the *natural transfor
 $F \Rarr G$ consists of of a morphism $\alpha_x : F x \to G x$ in the *target* category, for each object
 in the *source* category. Furthermore, this morphism *commutes* with other morphisms originating in the source category:
 
-![](/posts/2020/10/categorical-graphs/4.png)
+{{<img "4.png">}}
 
 This diagram commutes for any objects $x, y$ and morphisms $f : x \to y$ between them.
 
 A graph homomorphism between two Graphs (Functors) $G, H$ is then a *natural transformation* between them.
 Because the template category $\text{ST}$ only has two objects and morphisms, we actually only need two commuting diagrams:
 
-![](/posts/2020/10/categorical-graphs/5.png)
+{{<img "5.png">}}
 
 Where $\varphi$ is our natural transformation, and $s, t$ are the targets of the two morphisms in $\text{ST}$. We can make this definition
 much more concrete:
@@ -109,17 +103,15 @@ A *Graph Homomorphism* $\varphi : (E_G, V_G, s_G, t_G) \to (E_H, V_H, s_H, t_H)$
 $\varphi_E : E_G \to E_H$ and $\varphi_V : V_G \to V_H$ satisfying:
 
 $$
-\begin{aligned}
-\varphi_V \circ s_G &= s_H \circ \varphi_E \\
-\varphi_V \circ t_G &= t_H \circ \varphi_E
-\end{aligned}
+\varphi_V \circ s_G = s_H \circ \varphi_E \newline
+\varphi_V \circ t_G = t_H \circ \varphi_E
 $$
 
 In other words, the source and target of an edge must map to the source and target of where the edge itself maps to.
 
 As an example, consider these two homomorphisms:
 
-![](/posts/2020/10/categorical-graphs/6.png)
+{{<img "6.png">}}
 
 Here the image of the homomorphism is reflected in blue in the new graph. The top homomorphism
 reflects the entire source graph faithfully, so it's easy to see how this is a valid homomorphism.
@@ -130,7 +122,7 @@ of a homomorphism end up being satisfied.
 
 On the other hand, something like this is not allowed:
 
-![](/posts/2020/10/categorical-graphs/7.png)
+{{<img "7.png">}}
 
 The problem in this case is that the new edge has a different source and target then the one
 we need to have.
@@ -165,18 +157,16 @@ a new vertex is either a vertex from $G$, or a vertex from $H$. Similarly, the e
 and target functions are defined in the natural way:
 
 $$
-\begin{aligned}
-s(G(e)) &= s_G(e) \\
-s(H(e)) &= s_H(e) \\
-t(G(e)) &= t_G(e) \\
-t(H(e)) &= t_H(e)
-\end{aligned}
+s(G(e)) = s_G(e) \newline
+s(H(e)) = s_H(e) \newline
+t(G(e)) = t_G(e) \newline
+t(H(e)) = t_H(e)
 $$
 
 they simply use the source and target functions from the right side. Concretely, this means that this new graph is simply both
 previous graphs joined together with no interaction:
 
-![](/posts/2020/10/categorical-graphs/8.png)
+{{<img "8.png">}}
 
 If the circles are $G$, and the squares are $H$, then $G + H$ is simply the entire picture.
 
@@ -185,15 +175,13 @@ If the circles are $G$, and the squares are $H$, then $G + H$ is simply the enti
 Products are defined in the same way, but a bit more complicated to visualize. We have $E = E_G \times E_H$ and $V = V_G \times V_H$ and then:
 
 $$
-\begin{aligned}
-s(a, b) &= (s_G(a), s_H(b)) \\
-t(a, b) &= (t_G(a), t_H(b))
-\end{aligned}
+s(a, b) = (s_G(a), s_H(b)) \newline
+t(a, b) = (t_G(a), t_H(b))
 $$
 
 A picture of this is a bit more complicated. The product of our previous two graphs looks like this:
 
-![](/posts/2020/10/categorical-graphs/9.png)
+{{<img "9.png">}}
 
 The idea is that for each vertex in $G$ (the circles), we have an entire copy of $H$. Then for an edge to exist
 between two vertices, there needs to be both an edge connecting the copies in $G$, and an edge connecting the internal nodes
@@ -212,7 +200,7 @@ There are analogous graphs allowing us to study the vertices and edges of graphs
 
 Consider this single object graph:
 
-![](/posts/2020/10/categorical-graphs/10.png)
+{{<img "10.png">}}
 
 Let's call this $1$. Graph homomorphisms $1 \to H$ simply pick one of the vertices of $H$. Because of this
 nice property, we can study the objects of $H$ by instead studying morphisms $1 \to H$. This is analogous
@@ -220,7 +208,7 @@ to the situation we saw earlier in $\bold{Set}$.
 
 Now, consider this graph, which we'll call $2$:
 
-![](/posts/2020/10/categorical-graphs/11.png)
+{{<img "11.png">}}
 
 This is the graph with a single arrow connecting two vertices. Homomorphisms from this graph simply pick
 out one edge of the target graph. Thus, we can study the edges of a graph $H$ through the morphisms

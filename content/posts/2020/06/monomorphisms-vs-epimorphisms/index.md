@@ -1,15 +1,16 @@
 ---
 title: "Monomorphisms vs Epimorphisms"
 date: 2020-06-18
-draft: false
-description: "What are they, and how to remember which is which"
-path: "/posts/monomorphisms-vs-epimorphisms"
-type: post
-image: "/posts/monomorphisms-vs-epimorphisms/cover.png"
+katex: true
+lazyImages: true
 tags:
   - Math
   - Category Theory
 ---
+
+The concepts of *monomorphism* and *epimorphism* are very important in *Category Theory*. I always
+had a hard time remembering which one was which until I thought about a good mnemonic.
+<!--more-->
 
 Put briefly, a *monomorphism* is the generalization of the concept of an *injective*
 function, and an *epimorphism* is the generalization of the concept of a *surjective* morphism.
@@ -17,12 +18,12 @@ Monomorphisms and Epimorphisms are very important in Category Theory. Whenever y
 have a category where multiple paths or morphisms can exist between objects, it's usually
 interesting to ask what these special morphisms correspond to.
 
-In the familiar category $$\mathcal{Set}$$ of sets and functions, monomorphisms are injective,
+In the familiar category $\mathcal{Set}$ of sets and functions, monomorphisms are injective,
 and epimorphisms are surjective, as we started off with.
 
 But in an arbitrary category, these may not be the case, even if we're working with structured
-sets. In the category of rings, for example, $$\mathbb{Z}$$ is initial, which allows us to
-have epimorphisms despite the possibility of those not being surjective (take $$\mathbb{Z} \to \mathbb{Q}$$).
+sets. In the category of rings, for example, $\mathbb{Z}$ is initial, which allows us to
+have epimorphisms despite the possibility of those not being surjective (take $\mathbb{Z} \to \mathbb{Q}$).
 
 # Formally
 
@@ -34,7 +35,7 @@ $$
 \forall \alpha, \beta. \quad \alpha ; f = \beta ; f \implies \alpha = \beta
 $$
 
-Dually, an *epimorphism* $$f$$ is a morphisms such that **pre-composition** preserves equality.
+Dually, an *epimorphism* $f$ is a morphisms such that **pre-composition** preserves equality.
 
 $$
 \forall \alpha, \beta. \quad f ; \alpha = f ; \beta \implies \alpha = \beta
@@ -53,13 +54,13 @@ that a bit, to get a bit more of an idea of what these definitions mean, and how
 Let's say we have some epimorphism from $A \to B$, along with other morphisms going outwards
 from $B$.
 
-![](/posts/monomorphisms-vs-epimorphisms/1.png)
+{{<img "1.png">}}
 
 (I like thinking of epimorphisms as red, and monorphisms as blue, as we'll see later)
 
 We can pre-compose with the epimorphism to induce the following:
 
-![](/posts/monomorphisms-vs-epimorphisms/2.png)
+{{<img "2.png">}}
 
 So in some sense, we have a mapping from the morphisms in the inner diagram to the
 morphisms in the outer diagram. Roughly speaking, an epimorphism must induce an injective
@@ -70,7 +71,7 @@ and distinct inner bits yield distinct outer bits.
 
 The idea with monomorphisms is the same:
 
-![](/posts/monomorphisms-vs-epimorphisms/3.png)
+{{<img "3.png">}}
 
 # Remembering
 
@@ -95,7 +96,7 @@ What does it even mean for two functions to not be equal?
 
 At a minimum, it means that there's a single point where they diverge:
 
-![](/posts/monomorphisms-vs-epimorphisms/4.png)
+{{<img "4.png">}}
 
 Here I use the thick arrows to represent points where the two functions agree, i.e. are equal,
 and the thin arrows to represent the disagreeing mappings at points where they're unequal.
@@ -112,7 +113,7 @@ So, how do we had the discrepancy at the top point?
 
 Simple. We just map the two places where the arrows diverge to the same point later:
 
-![](/posts/monomorphisms-vs-epimorphisms/5.png)
+{{<img "5.png">}}
 
 Now if we look at the whole diagram, we don't see any points where the two outer
 functions disagree, it looks as if they're equal, even though internally there's a point
@@ -137,7 +138,7 @@ How do we hide the discrepancy through pre-composition?
 
 Simple. We just don't reach the point that's a problem!
 
-![](/posts/monomorphisms-vs-epimorphisms/6.png)
+{{<img "6.png">}}
 
 We can hide the discrepancy by not covering all the points in our range, and thus never encountering
 the problem.
@@ -155,14 +156,14 @@ Sometimes you might see injective and surjective characterised in terms of the e
 certain inverse functions. This isn't as general as the notion of monomorphism and epimorphism we developed earlier,
 but it's easy to remember how things work out.
 
-A morphism that has a *post-inverse* i.e. a morphism $$f^{-1}$$ such that
+A morphism that has a *post-inverse* i.e. a morphism $f^{-1}$ such that
 
 $$
 f ; f^{-1} = 1
 $$
 
 is a monomorphism
-(where $1$ is the identity morphism, $$1 ; g = g ; 1$$ for every function $g$)
+(where $1$ is the identity morphism, $1 ; g = g ; 1$ for every function $g$)
 
 Dually, epimorphisms arise from morphisms with a  *pre-inverses*, i.e. a morphism $f^{-1}$ such that
 

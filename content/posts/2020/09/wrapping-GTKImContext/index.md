@@ -26,7 +26,7 @@ for this is twofold:
 It's been pretty smooth sailing so far, although right now the only thing the editor can do is display a string,
 and let the user tack on more characters at the end:
 
-![](/posts/2020/09/wrapping-GTKImContext/1.png)
+{{<img "1.png">}}
 
 For the most part, the gtkmm bindings turn the awkward GObject system into a nice C++ class hierarchy.
 Regardless of your opinions on class hierarchies, they do work nicely for GUIs. Having

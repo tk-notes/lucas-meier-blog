@@ -1,11 +1,6 @@
 ---
 title: "What I like about Roam (so far)"
 date: 2020-04-13
-description: "The things I'm liking about Roam after 2 weeks or so"
-draft: false
-path: "/posts/what-i-like-about-roam-so-far"
-type: post
-image: "/posts/what-i-like-about-roam-so-far/cover.jpg"
 tags:
   - "Productivity"
   - "Notes"
@@ -15,6 +10,7 @@ I read a lot of stuff, mainly on the internet. One problem I've always had is ke
 of the important bits of the things that I read. The most important information sticks with
 you, but it's not easy to remember everything. There's always a nagging fear that there's some
 importing bit you might be missing, or that you might forget something useful.
+<!--more-->
 
 This is a common problem. The common cure is to take notes. In this digital age, I wanted to
 find a way to take notes on my computer, using my keyboard. I do enjoy pen and paper for
@@ -45,7 +41,7 @@ In Roam, you can create new notes very easily, and you can link to other notes b
 You can see which notes the current one links to, but you can also see which notes link back to this one!
 You can see the entirety of your notes as a big web of connections:
 
-![](/posts/what-i-like-about-roam-so-far/graph.png)
+{{<img "graph.png">}}
 
 The biggest advantage, and "unblocker" for me is the fact that Roam does away with a strict hierarchy.
 A lot of other note taking apps look like your standard file directory. You have the root,

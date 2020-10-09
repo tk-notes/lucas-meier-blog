@@ -1,11 +1,6 @@
 ---
 title: "From Interfaces to Traits"
 date: 2019-08-17T08:32:00-04:00
-draft: false
-description: "What makes the concept of traits different from interfaces? Why would you want traits in the first place?"
-path: "/posts/interfaces-to-traits"
-image: "/print8.jpg"
-type: post
 tags:
   - "Software Architecture"
   - "Programming Languages"
@@ -15,6 +10,7 @@ This is a post about how different languages
 handle the concept of *interfaces*. We'll go over the classical
 *OO* way of handling them, with *Java*, to the more recent
 approaches of languages like *Rust*, as well as others in between.
+<!--more-->
 
 # Why do we want interfaces?
 The problem interfaces address is *polymorphism*.

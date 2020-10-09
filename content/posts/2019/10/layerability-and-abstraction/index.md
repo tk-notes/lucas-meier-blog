@@ -1,15 +1,15 @@
 ---
 title: "Layerability and Abstraction"
 date: 2019-10-27T17:07:40+01:00
-draft: false
-path: "/posts/layerability"
-image: "/print5.jpg"
-type: post
-description: "Why do I think layerability is the most important aspect of Networking?"
 tags:
   - Networking
   - Programming
 ---
+
+This is a post about one of my favorite aspects of networking: how different protocols
+and concepts are layered together. I go over the concept of *Layerability* and how
+it applies to networking and programming more generally.
+<!--more-->
 
 # Layerability and Networking
 

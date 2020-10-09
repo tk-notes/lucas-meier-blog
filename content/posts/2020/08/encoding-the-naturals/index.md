@@ -6,6 +6,7 @@ description: "Exploring 3 different ways of encoding the natural numbers"
 path: "/posts/2020/08/encoding-the-naturals"
 type: post
 image: "/posts/2020/08/encoding-the-naturals/cover.jpg"
+katex: true
 tags:
   - Math
   - Category Theory
@@ -113,14 +114,14 @@ It's easy to see the correctness of these equations if we translate them to the 
 arithmetic. For addition, we have:
 
 $$
-0 + m = m \\
-(1 + m) + n = 1 + (m + n) \\
+0 + m = m \newline
+(1 + m) + n = 1 + (m + n)
 $$
 
 And for multiplication, we have:
 
 $$
-0 * m = 0 \\
+0 * m = 0 \newline
 (1 + m) * n = n + m * n 
 $$
 
@@ -370,13 +371,13 @@ So by relabelling $x \to 1$, we can interpret this abstract monoidal equation
 into a concrete equation that might mean something interesting.
 
 More formally, if we have a set function $S \to M$, with $M$ a monoid, then
-this induces a morphism $\varphi : [S] \to M$, (where $[S]$ is the free monoid over a set of generators $S$)
-which respects the monoidal structure of $[S]$.
+this induces a morphism $\varphi : \langle S \rangle \to M$, (where $\langle S \rangle$ is the free monoid over a set of generators $S$)
+which respects the monoidal structure of $\langle S \rangle$.
 i.e. $\varphi(xy) = \varphi(x) \bullet \varphi(y)$
-There's a canonical way of making a set function $S \to [S]$, simply mapping each symbol to the list containing
+There's a canonical way of making a set function $S \to \langle S \rangle$, simply mapping each symbol to the list containing
 that symbol by itself, so we end up with the following commuting diagram:
 
-![](/posts/2020/08/encoding-the-naturals/1.png)
+{{<img "1.png">}}
 
 This induced morphism simply takes a list of symbols, replaces them using the mapping $S \to M$, and
 then connectes them using $\bullet$, the operation belonging to $M$.
@@ -385,8 +386,8 @@ So, if we take $\{x, y\}$ as a set of generators, and $\mathbb{N}$ as our monoid
 would mean that:
 
 $$
-xxyy \mapsto 2 + 2 + 5 + 5 \\
-xyx \mapsto 2 + 5 + 2 \\
+xxyy \mapsto 2 + 2 + 5 + 5 \newline
+xyx \mapsto 2 + 5 + 2 \newline
 \mapsto 0
 $$
 
@@ -398,7 +399,7 @@ If we take the set with a single element $\{1\}$ (up to isomorphism :)), then a 
 $\{1\} \to M$ is nothing more than an element $m \in M$. The induced morphism then works like this:
 
 $$
-1 + 1 \mapsto m \bullet m \\
+1 + 1 \mapsto m \bullet m \newline
 1 + \cdots + 1 \mapsto m \bullet \cdots \bullet m
 $$
 

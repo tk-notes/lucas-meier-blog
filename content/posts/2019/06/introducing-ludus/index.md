@@ -1,11 +1,6 @@
 ---
 title: "Introducing Ludus"
 date: 2019-06-13T21:35:12+02:00
-draft: false
-description: "Introducing Ludus, a little NES emulator I wrote recently, using Rust"
-path: "/posts/introducing-ludus"
-image: "/print10.jpg"
-type: post
 tags:
   - Rust
   - Emulation
@@ -14,6 +9,7 @@ tags:
 This is a short post about a crate I recently published:
 https://crates.io/crates/ludus. This crate provides the core logic of an NES
 emulator, and can be used to build independent GUI applications.
+<!--more-->
 
 Ludus started out as a standalone NES emulator, back in October of 2018.
 At that point, I had gotten a completely working emulator, aside from

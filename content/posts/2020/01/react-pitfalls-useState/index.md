@@ -1,11 +1,6 @@
 ---
 title: "React Pitfalls: useState initialization"
 date: 2020-01-09T10:10:11+01:00
-draft: false
-description: "A common pitfall in React is to initialize useState with a dynamic value, this leads to a bunch of weird bugs"
-path: "/posts/react-pitfalls-useState"
-type: post
-image: "/print1.jpg"
 tags:
   - "React"
   - "Hooks"
@@ -13,11 +8,10 @@ tags:
   - "Javascript"
 ---
 
-# Summary
-
 This is a quick post about a "gotcha" I encountered recently in a React application.
 This involved the use of React's `useState` hook, which had a subtle difference
 between how I thought the hook worked, and how it actually worked.
+<!--more-->
 
 # React Hooks
 

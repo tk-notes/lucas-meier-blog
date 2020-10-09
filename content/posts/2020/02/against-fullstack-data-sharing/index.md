@@ -1,10 +1,6 @@
 ---
 title: "Against Fullstack Data Sharing"
 date: 2020-02-13
-description: "The unintuitive reasons why webapps written in a common language shouldn't share data formats"
-draft: false
-type: post
-image: "/print14.jpg"
 tags:
   - "Programming"
   - "Frontend"
@@ -15,6 +11,7 @@ tags:
 
 This is a post about how I work with data in fullstack development. Specifically, I share what I think are
 good patterns for sharing data and logic between the frontend and the backend of an application.
+<!--more-->
 
 Initially, I was for sharing a lot of logic, classes, and data formats between a frontend and backend
 written in the same language, but I've come to change my mind after trying it out on a real project.

@@ -2,10 +2,6 @@
 title: "Simple WebRTC Video Chat"
 date: 2020-06-10
 draft: false
-description: "How I wrote a simple video chat app using WebRTC"
-path: "/posts/simple-webrtc-video-chat"
-type: post
-image: "/posts/simple-webrtc-video-chat/cover.png"
 tags:
   - Typescript
   - React
@@ -18,6 +14,7 @@ The difference between this and something like zoom is that there's no central s
 responsible for routing video calls between the participants. Instead,
 I used [WebRTC](https://webrtc.org/) in order to set up peer-to-peer (P2P) calls between
 all of the members of a group.
+<!--more-->
 
 This app was a good excuse for me to learn the basics of WebRTC, something I had been
 wanting to do for quite a while.
@@ -90,7 +87,7 @@ I just used the API WebRTC provides, instead of using a helper library.
 
 The process of setting up a connection is somewhat involved, but each step is pretty simple.
 
-![](/posts/simple-webrtc-video-chat/1.png)
+{{<img "1.png">}}
 
 ## Getting Ready
 
@@ -107,7 +104,7 @@ An ICE candidate is more or less just a way of describing a channel we can use a
 connection. Each peer proposes ICE candidates to the other, until they managed to settle
 on a single candidate that will work out for both of them:
 
-![](/posts/simple-webrtc-video-chat/2.png)
+{{<img "2.png">}}
 
 ## Code for this
 
@@ -135,12 +132,12 @@ since other applications have been reliably built on it.
 At this point I've gone over how it works in the simple case, where you're just setting
 up a single video stream with another person:
 
-![](/posts/simple-webrtc-video-chat/3.png)
+{{<img "3.png">}}
 
 My approach for setting up multiple streams was the simplest, but works decently enough.
 The idea is to setup a video call for each other peer you want to stream with, like so:
 
-![](/posts/simple-webrtc-video-chat/4.png)
+{{<img "4.png">}}
 
 This scales with `O(n^2)`, so not as well as a central server, where each peer
 only needs a single connection. On the other hand, this is much easier to implement.
@@ -160,7 +157,7 @@ you need to contact with the first message.
 
 The exchange look likes this:
 
-![](/posts/simple-webrtc-video-chat/5.png)
+{{<img "5.png">}}
 
 As before (although I didn't mention it) you make sure to annotate your messages with
 your identifier, so that the other peers know how to reply to you.
@@ -189,11 +186,11 @@ by setting the `.enabled` property.
 
 Another tricky thing was the "hide camera" button:
 
-![](/posts/simple-webrtc-video-chat/6.png)
+{{<img "6.png">}}
 
 Clicking this button replaces your video stream with a cute anime girl:
 
-![](/posts/simple-webrtc-video-chat/7.png)
+{{<img "7.png">}}
 
 The way I got this to work was by having a video element with `cuteanimegirl.mp4`
 as its source always present on the page. I gave it a width of 0, so you can't actually
