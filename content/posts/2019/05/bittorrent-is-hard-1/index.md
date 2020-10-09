@@ -1,22 +1,21 @@
 ---
 title: "Bittorrent Is Hard - 1"
 date: 2019-05-03T16:54:09+02:00
-description: "An algorithm for piece serialization"
 draft: false
-path: "/posts/bittorrent-the-hard-parts"
-type: post
-image: "/print2.jpg"
 tags:
   - "Distributed Systems"
   - Networking
 ---
 
+Having worked on a [bittorrent client](https://github.com/cronokirby/haze) in Haskell recently,
+I wanted to write about a few tricky aspects of the implementation that I encountered:
+managing the concurrent piece downloads, and saving them to files.
+
+<!--more-->
+
 ## About these posts
 
-I've been working on a [bittorrent client](https://github.com/cronokirby/haze) in haskell
-recently. It's now at the point where it can download torrents in the wild.
-
-The [protocol itself](https://wiki.theory.org/index.php/BitTorrentSpecification)
+The [protocol](https://wiki.theory.org/index.php/BitTorrentSpecification) for Bittorrent
 is well specified, although it takes a few read-throughs to get the hang of it.
 The first time I read through the protocol I didn't understand much. But as I started
 implementing different parts of the protocol, those parts of the document started making
@@ -240,7 +239,7 @@ as how many bytes of the piece should be saved in that file.
 This algorithm is better expressed using an imperative formulation,
 but a functional fold would be able to accomplish the same thing:
 
-```py
+```python
 def save(piece, mappings):
     bits = mappings(piece)
     offset = 0
