@@ -1,6 +1,6 @@
 ---
 title: "My Blog: Version 4"
-date: 2020-10-02
+date: 2020-10-10
 katex: true
 tags:
   - Frontend
