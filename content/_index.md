@@ -3,7 +3,7 @@ title: About
 katex: true
 ---
 
-I'm Lúcás: currently a senior BsC student in Computer Science
+I'm Lúcás: currently a senior BSc student in Computer Science
 at [EPFL](https://www.epfl.ch/en/).
 
 This is my personal website, where I write blog posts somewhat regularly, and keep a tab on
