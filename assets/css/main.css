@@ -77,4 +77,7 @@ a:visited:hover {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+/* VERY IMPORTANT: fractions are borked otherwise in katex */
+*, ::after, ::before { border-color: #000 }
+
 /* purgecss end ignore */
