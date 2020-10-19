@@ -8,7 +8,7 @@
       <ul class="flex items-center justify-between">
         <li>{{ .Date.Format "January 02, 2006" }}</li>
         <li class="font-bold">
-          {{ .ReadingTime }} <span class="text-sm font-normal">minutes</span>
+          {{ .ReadingTime }} <span class="text-sm font-normal">{{ if eq .ReadingTime 1 }}minute{{ else }}minutes{{ end }}</span>
         </li>
       </ul>
       <ul class="flex flex-wrap items-center space-x-3 mb-2">
