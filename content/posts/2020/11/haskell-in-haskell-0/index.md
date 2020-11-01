@@ -1,6 +1,6 @@
 ---
 title: "(Haskell in Haskell) 0. Introduction"
-date: 2020-11-1
+date: 2020-11-01
 draft: false
 tags:
   - Haskell
