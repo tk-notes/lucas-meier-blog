@@ -12,6 +12,11 @@
   @apply rounded;
 }
 
+.content ul {
+  list-style-type: disc;
+  list-style-position: inside;
+}
+
 .note p code {
   background-color: #cde9f9;
   @apply rounded;
