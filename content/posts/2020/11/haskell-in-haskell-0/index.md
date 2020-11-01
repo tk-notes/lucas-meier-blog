@@ -23,12 +23,12 @@ The goal of the series is not to make
 a reference compiler for the Haskell language, nor try to rival with GHC
 in terms of compilation speed our output quality.
 Instead, I want to provide a good introduction to the concepts that go into
-writing a compiler, and provide an understandable bridge the world of
+writing a compiler, and provide an understandable bridge into the world of
 programming language implementations.
 
 One great joy in programming is learning that *you too* can implement
-some application that seems impenatrable. At first writing a compiler might
-seem like a daunting task, but it's actually more approachable than you'd think.
+some application that seems impenatrable. At first, writing a compiler might
+seem daunting, but it's actually more approachable than you'd think.
 
 A simple compiler is not going to rival the engineering effort behind
 a production compiler like GHC. However, going from understanding
@@ -42,22 +42,23 @@ stepping stone towards the wonderful world of compilers.
 # Why implement Haskell?
 
 If you pick a compiler book off the shelf, you're going to be starting from an imperative language.
-You'll go from something like C, and then end up with some kind of machine code. Ironically,
-C will be the ending point of our journey, where we'll hand off our work to some other compiler.
+You'll go from something like C, and then end up with some kind of machine code.
+
+Ironically, C will be the ending point of our journey, where we'll hand off our work to some other compiler.
 
 ## High Level languages
 
 This book will focus on a much higher level of abstraction, instead of worrying about the intricacies
-of code generation. Don't get me wrong, this *is* an interesting topic, but turning
-imperative languages into good machine code is a much better studied topic, and has much
-better books written about it than I ever could.
+of code generation. Don't get me wrong, this *is* an interesting topic,
+but also a *well studied* topic. There are much better books written about this than
+this series ever will be.
 
 Our main focus will instead be on working with a higher level language, slowly peeling
 off the functional bits until we can get to an imperative language, and make use of
-the existing infrastructure for getting down to the machine level.
+existing infrastructure for getting to the machine level from there.
 
-This allows us to spend more time on practical issues of transforming a realistic language,
-although in very simple ways, as opposed to working with an example language, transformed in
+This allows us to spend more time on the practical issues of a realistic language,
+as opposed to working with a more trivial language, transformed in
 difficult ways. The problems you encounter when transforming imperative code to machine code
 can be quite tricky, and are quite a bit different from what you encounter when working
 with a high level language.
@@ -66,14 +67,14 @@ with a high level language.
 
 Laziness is also not referenced at all in traditional literature on compilers. Haskell is
 basically the only language in use that's *lazy* by default. This is an interesting choice,
-but leads to quite a few tricky problems in code generation.
+but leads to quite a few interesting problems in code generation.
 
 We'll go over what laziness means exactly at a later point in this series, but the core idea
-is that when you call a function, you don't evaluate all of the arguments first. Instead
+is that when you call a function, you don't evaluate all of the arguments first. Instead,
 Haskell will only end up evaluating those arguments when and if they actually
 need to be inspected inside of the function.
 
-Haskell will also not take the simple but incredibly inefficient call-by-value. This means
+Haskell does not use the simple but incredibly inefficient call-by-value. This means
 essentially passing the unevaluated AST as an argument, instead of an evaluated value. This
 works, and is lazy, but will evaluate some arguments multiple times in certain situations.
 
@@ -94,11 +95,11 @@ use another dialect of ML, a more common language like Java, something new like 
 The first motivation is that it's fun to implement a language using itself! We can
 look at the kind of code we've written in our compiler, and then imagine what our
 compiler might do looking at itself! Unfortunately, our compiler *will not* be
-able to compile itself at the end of this series. This would've been far too complicated
-an undertaking, and even limiting the subset we use to *write* the compiler wouldn't have helped.
+able to compile itself at the end of this series. This would've been far too complicated,
+and even limiting the subset we use to *write* the compiler wouldn't have helped.
 
 I think Haskell would be an excellent choice for any other compiler though. There are
-a handful of features that make Haskell simply excellent in this domain.
+many features that make Haskell simply excellent in this domain.
 
 ## Algebraic Data Types
 
@@ -116,13 +117,13 @@ data Expr
 
 Haskell allows us to plainly represent the different variants that make up our syntax tree,
 and we can easily support a recursive data structure without even breaking a sweat.
-Combine this with great support for recursion, and you almost have a programming language built
+Combine this with great support for recursion, and you basically have a programming language built
 for working with syntax trees!
 
 ## Purity
 
 Haskell encourages you to avoid side-effects in most of the functions you write, although
-they still exist. We'll be writing side-effects to read the file we want to compile, of course!
+they still exist. We'll be writing side-effects to read the file we want to compile, for example!
 
 A compiler is great domain for Haskell though, or any other pure language, because the vast
 majority of it is internal logic! You do a bit of IO at the start to read a file, but then you're
@@ -140,18 +141,18 @@ we won't even be arriving at a complete subset of Haskell. The glaring omissions
 
 Type Classes could easily have been added to the subset we're supporting. On the other hand,
 I don't think they add that much complexity to the type checker, and the approach we would've
-used to compile them would have removed them before we get to code generation, so it's in effect
-orthogonal to the rest of the compiler.
+used to compile them would have removed them before we get to code generation.
+In practice, they're a simple addition to our compiler.
 
 As for Modules, these aren't very Haskellish, but add a very large amount of complexity, that's
 well covered by other languages. Haskell's module system isn't very difficult in *depth* but it
-does have quite a lot of *breadth*, and that breadth is not novel compared to how other languages
-do things. I don't think spending a lot of time about cross-module name resolution and things like
-that would've explained the things that make Haskell different to compile compared to other languages.
+does have quite a lot of *breadth*, and that breadth isn't novel compared other languages.
+I don't think spending a lot of time worrying about cross-module name resolution and things like
+that would help explain the difficulties of Haskell.
 
 Finally, if you want to make a subset that conforms to the a Haskell specification, you need to add
-a *lot* of things. I mean a **lot**. This would've been a lot of boilerplate implementations of
-primitive types and functions, for not much pedagogical again. Once again, my goal here is to explain
+a *lot* of things. I mean a **lot**. This would've included a lot of boilerplate implementations of
+primitive types and functions, not really explaining anything new. Once again, my goal here is to explain
 the things that seem a bit mysterious about implementing Haskell. I think that implementing a full subset
 is, for the most part, a straightforward extension of the foundation this series tries to cover.
 
