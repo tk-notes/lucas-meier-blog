@@ -1,6 +1,7 @@
 ---
 title: "(Haskell in Haskell) 1. Setup"
 date: 2020-11-17
+draft: true
 tags:
   - Haskell
   - Programing
