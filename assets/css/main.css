@@ -60,17 +60,6 @@ a:visited:hover {
   padding-right: 0.5rem;
 }
 
-.highlight code::before {
-  @apply bg-gray-700;
-  border-top-width: 2px;
-  @apply border-gray-700;
-  @apply text-white;
-  @apply px-1;
-  @apply pb-1;
-  border-bottom-right-radius: 8px;
-  content: attr(data-lang)'\a';
-  margin-left: -0.6rem;
-}
 
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
