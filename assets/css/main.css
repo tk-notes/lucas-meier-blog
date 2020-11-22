@@ -55,9 +55,11 @@ a:visited:hover {
   @apply border-gray-700;
   @apply rounded;
   @apply my-2;
-  padding-bottom: 0.5rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  overflow: auto;
 }
 
 
