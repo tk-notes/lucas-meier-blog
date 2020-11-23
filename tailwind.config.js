@@ -8,7 +8,7 @@ module.exports = {
   },
   theme: {
     fontFamily: {
-      mono: ["Fira Code", "monospace"],
+      mono: ["JetBrains Mono", "monospace"],
       serif: ["Noto Serif", "Georgia", "Cambria", "Times New Roman", "serif"],
     },
     extend: {},
