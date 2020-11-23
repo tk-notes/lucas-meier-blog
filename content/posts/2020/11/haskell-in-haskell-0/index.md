@@ -340,3 +340,5 @@ And that's about it! Stay tuned for updates! I hope you'll enjoy this series (I'
 writing it, so far), and I'll post the link to the first part here once I finish writing it. Right now
 I have 4 parts queued up, in terms of written code, and I plan to try and release one part a week,
 so expect cool stuff over the coming month.
+
+(Update: 2020-11-23, the [next part](/posts/2020/11/haskell-in-haskell-1/) is now available)

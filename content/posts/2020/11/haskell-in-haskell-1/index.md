@@ -1,29 +1,27 @@
 ---
 title: "(Haskell in Haskell) 1. Setup"
-date: 2020-11-22
-draft: true
+date: 2020-11-23
 tags:
   - Haskell
   - Programing
   - Compiler
 ---
 
-This is the first "real" post in the [Haskell in Haskell](https://cronokirby.com/series/haskell-in-haskell/)
-that I've been working on.
+This is the first "real" post in the [Haskell in Haskell](/series/haskell-in-haskell/)
+series.
 
 In this post we'll go over setting up a basic project in Haskell.
-We'll build on this foundation in subsequent posts in order to create our compiler.
-
-The code for this part is available [here](https://github.com/cronokirby/haskell-in-haskell/tree/part-1)
+We'll be building our compiler on top of this foundation in the next posts.
 
 <!--more-->
 
-Our final goal, by the end of this series, is to have an executable program which reads in Haskell
-files, and spits out C files. As the name of this series indicates, we'll be writing this program
-in Haskell.
+(The code for this part is available [here](https://github.com/cronokirby/haskell-in-haskell/tree/part-1))
+
+By the end of this series, we'll have written a Haskell program that reads in Haskell source code,
+and then spits out C code.
 
 We could write all of our code in a big Haskell file, compile that, and then call it a day, but
-we want a more manageable solution for our code. This is why we want to make a _project_,
+this isn't a manageable solution. This is why we want to make a _project_,
 which will allow us to easily combine multiple source files into a single program.
 
 # Haskell Tools
@@ -33,30 +31,30 @@ If you're already familiar with setting up Haskell projects, and already have a 
 environment set up, feel free to skim over this section, or skip it entirely.
 {{</note>}}
 
-Haskell, unlike other languages, doesn't come with "out of the box" support for building projects.
-At least, not adequate support for what we'd like to do. This is why we're going to need
+Haskell, unlike other languages, doesn't come with "out of the box" support for building projects;
+at least, not adequate support for what we'd like to do. We're going to need
 some additional tooling to help us.
 
 ## Compiler
 
-I've been saying "Haskell" when referring to the compiler, but what I really mean is
+I've been saying "Haskell", when talking about the compiler, but what I really mean is
 [GHC](https://www.haskell.org/ghc/). In theory, there's a Haskell specification, so you
 could use a different compiler. In practice, GHC is so good, and so entrenched,
-that nobody bothers to use anything different. Every single project basically depends
-on details specific to how GHC works, like its numerous extensions, so you can't even use
+that nobody bothers to use anything different. Almost every single project depends
+on details specific to how GHC works, including its numerous extensions, so you couldn't even use
 another compiler if you wanted to.
 
-We could've limited ourselves to a subset of Haskell small enough that our compiler
-would be able to process ourselves, but ultimately this is too much of a limitation.
-We'll be making judicious use of GHC's features to make our life easier.
+We could've limited ourselves to a small subset of Haskell, so that our compiler
+could process _itself_, but this is too much of a limitation.
+We'll be making use of GHC's features to make our work easier.
 
 ## Build Tools
 
-As mentioned before, we need a build tool, outside of the compiler itself, that allows
-us to manage the many source files in our project. The build tool will also be responsible
-for collecting the libraries that are project depends on, making sure the versions are compatible,
-etc. We won't be relying on very many libraries, just a handful that are in the "standard
-canon" of Haskell.
+Next, we need a build tool, outside of the compiler itself, that allows
+us to manage the source files in our project. This tool will also be responsible
+for collecting the libraries that our project depends on, making sure the versions are compatible.
+We won't be relying on very many libraries. We just need a handful, belonging to the "standard
+canon" of Haskell anyway.
 
 At the time of writing, there are basically two build tools for Haskell,
 [Cabal](https://www.haskell.org/cabal/),
@@ -64,7 +62,7 @@ and [Stack](https://docs.haskellstack.org/en/stable/README/).
 
 {{<note>}}
 [Nix](https://nixos.org/) is also a possibility for managing dependencies and doing builds,
-but is far more encompassing compared to these tools.
+but goes far beyond the simple needs we have for this project.
 {{</note>}}
 
 The difference between Cabal and Stack is mainly historical. In practice, they're more
@@ -74,21 +72,21 @@ Stack will use [Stackage](https://www.stackage.org/). Stackage pulls its package
 from Hackage, but a group of maintainers make sure that the packages build together.
 This delays the accessibility of packages, but provides more stability for programmers.
 
-If you're familiar with Linux distributions, Hackage is a bit like _Arch_ with community
+If you're familiar with Linux distributions, Hackage is a bit like _Arch_, with community
 provided packages, and minimal vetting, whereas Stackage is a bit like _Ubuntu_, where you
 have maintainers curating the versions of packages in the repository, and providing
 stable LTS releases.
 
 Back in the day, Cabal would install packages globally, unless you explicitly created
-a project for each Sandbox. Stack was created to address this concern, as well as to use
+a Sandbox for each project. Stack was created to address this concern, as well as to use
 _Stackage_ which was seen as providing advantages over using Hackage directly.
-Stack installs packages only locally for each project, allowing different projects you have
+Stack only installed packages *locally* for each project, allowing different projects you have
 to use different versions of packages. Eventually, Cabal created the `new-build`, `new-run`, etc.
 commands to provide this behavior. Since these commands are now the default, Cabal essentially
 acts like Stack nowadays.
 
-All this to say that the tools are basically equivalent, but if you like having the
-LTS snapshots that Stackage provides, you probably want to use Stack.
+All this to say that these tools are basically equivalent, but if you like having the
+LTS snapshots that Stackage provides, you may want to use Stack.
 
 For our purposes, we'll be using Cabal. In practice involving Stack involves installing
 Cabal _anyways_, and ultimately Cabal works very well nowadays, and I _personally_ find
@@ -101,18 +99,18 @@ what's the easiest way to install them? On Linux and macOS, at least, the
 answer is probably [ghcup](https://www.haskell.org/ghcup/).
 
 This isn't just an installer for GHC and Cabal, but rather a tool that you install
-once, and then lets you _update_ your version of GHC and Cabal as often as you want.
-This way you can just run this setup process a single time, and then you have
+once, and that then lets you _update_ your version of GHC and Cabal as often as you want.
+This way you can just run this setup process a single time, and then have
 an easy way to follow the new releases of GHC as they come out.
 
 The website for ghcup has very simple installation instructions for Linux and macOS,
-which just involves fetching and running a bash script. Unfortunately, for Windows
+which just involve fetching and running a bash script. Unfortunately, for Windows
 this tool doesn't seem to be available, but the website also provides
 instructions towards setting up the [Haskell Platform](https://www.haskell.org/platform/),
-which seems to be the preferred method of installation on this Operating System.
+which seems to be the preferred method of installation here.
 
-Regardless, if you'd like to install GHC and Cabal through other means, go right ahead,
-as long as you have recent versions of both of these tools, there shouldn't be any
+Regardless, if you'd like to install GHC and Cabal through other means, go right ahead.
+As long as you have recent versions of both of these tools, there shouldn't be any
 problems following along with this project.
 
 # Cabal Project
@@ -120,9 +118,9 @@ problems following along with this project.
 All right, now that we have the tools of our craft, it's time to start putting
 them to good use!
 
-The first thing we want to do is to create a project using Cabal. As we saw
-earlier, a project will allow us to easily work across multiple source files,
-and integrate a few useful libraries into our build process. Furthermore,
+The first thing we want to do is to create a project using Cabal.
+A project will allow us to easily work across multiple source files,
+and use a handful of useful libraries in our program. Furthermore,
 by providing this series through a project, it should hopefully work
 in the future, because the dependencies will be pinned to specific versions
 known to work. Even if the packages release new versions, the ones we use for
@@ -135,9 +133,9 @@ run:
 cabal init
 ```
 
-This will create a project in that directory, setting generating some files automatically.
-You can go ahead and delete the `CHANGELOG.md`, if you'd like. The `.cabal`
-file contains the information about our project for Cabal. This includes where our source
+This will create a project in that directory, sgenerating some files automatically.
+You can go ahead and delete `CHANGELOG.md`, if you'd like. The `.cabal`
+file contains information about our project. This includes where our source
 files are, what libraries we depend on, etc.
 
 After removing some of the superfluous comments, and other irrelevant stuff, you should
@@ -158,7 +156,7 @@ executable haskell-in-haskell
   default-language:    Haskell2010
 ```
 
-Most of this is pretty straightforward metadata. We than create an _executable_ named
+Most of this is pretty straightforward metadata. We then have an _executable_ named
 `haskell-in-haskell`. When we run `cabal build` this builds that executable, with the same name.
 Running `cabal install` will build the executable, and then put it in your path, so you can
 run `haskell-in-haskell` in your terminal to access the compiler you've written.
@@ -174,7 +172,7 @@ Hello, Haskell!
 Hello Haskell indeed.
 
 In the _executable_ section. You can see that we've specified the libraries
-we're depending on, in this case, just the standard library, and a main source file for
+we're depending on. In this case, just the standard library, and a main source file for
 our program: `Main.hs`.
 
 Looking at `Main.hs`, we see:
@@ -192,16 +190,16 @@ and run the command again, you'll see the output changed to match.
 
 # Library
 
-So, right now we have a _program_, but it doesn't do much besides print a
+So, right now we do have a _program_, but it doesn't do much besides print a
 little message. We're going to eventually turn this program into a full fledged
 compiler. We could do this by adding more and more code to `Main.hs`, but this
-isn't exactly very pretty or modular. We could add more source files
-to our `executable` section, telling Cabal to use this to build our program as well.
+isn't exactly very pretty nor modular. We could add more source files
+to our `executable` section, telling Cabal to use them to build our program as well.
 This would work, but a more common practice is to create a separate `library` section,
 exporting a package containing the main functions your program needs,
 and then using that library inside of a small `Main.hs` to create an actual program.
 
-The idea behind this seperation is that it makes it easier to expose the functionality
+The idea behind this separation is that it makes it easier to expose the functionality
 behind a program to other Haskell users, since you can provide a library doing the
 same thing as your command line program. Furthermore, by forcing yourself to write
 code in the form of a library, you have to think a bit more about modularity and
@@ -230,7 +228,7 @@ exceptions, but also to read from some store of information we've gathered previ
 or to keep track of a little bit of state as we do our compiler work.
 
 `hs-source-dirs` says that we'll have our source files in the `src` directory. We
-also have a single module exported by our library, `Example`. Because `src` is our source
+also have a single module exported by our library: `Example`. Because `src` is our source
 directory, Cabal expects to find this module in `src/Example.hs`. Let's go ahead and
 add some simple code there:
 
@@ -241,7 +239,7 @@ example :: String
 example = "This is an example"
 ```
 
-This module does nothing more than export the string `example`. With this our
+This module does nothing more than export the string `example`. With this, our
 library is "complete", even thought it doesn't really do anything yet. Later we'll
 expand this library section until it has a complete compiler!
 
@@ -264,12 +262,12 @@ executable haskell-in-haskell
 ```
 
 We've added a dependency on `haskell-in-haskell`, the library we've just
-created, as well as a dependency on `pretty-simple`. `pretty-simple` is a library
-that allows us to pretty print data structures without having to write
-any extra code! This is very useful to us, because we want to allow
-users of our compiler to stop early, and print out the intermediate results
-of compilation. This library allows us to print those data structures in a nice way,
-without having to spend any time and the boilerplate for pretty printing them.
+created, as well as a dependency on `pretty-simple`. This is a library
+that allows us to pretty print data structures without
+any extra code! This is very useful, because we want to allow
+users of our compiler to stop it midway, and print out the intermediate results.
+This library allows us to print those data structures in a nice way,
+without having to add the boilerplate for formatting them.
 
 We don't need this dependency right away, but we might as well set this up, so
 that we won't even need to touch the Cabal file in the next parts of this series.
@@ -285,7 +283,7 @@ main :: IO ()
 main = putStrLn example
 ```
 
-Running the whole project with `cabal run haskell-in-haskell`, we now see:
+Running the whole project with `cabal run haskell-in-haskell`, you should now see:
 
 ```txt
 This is an example
@@ -299,14 +297,14 @@ stuff soon enough.
 
 We are going to add one piece of _useful_ code in this part: a **Custom Prelude**!
 
-The Haskell Prelude consists of all a subset of a standard library, and
+The Haskell Prelude consists of a subset of the standard library that
 is imported into every file, and available by default in the REPL. So
 if you fire up `ghci`, and type out `sum [1, 2, 3]`, this works because `sum`
 is in the module `Prelude`.
 
-A custom Prelude allows us to provide our _own module_ that will be imported by default,
-thus replacing the standard one. This is a piece of code that we can write now at the beginning
-of the project, and basically never touch.
+A custom Prelude allows us to provide our _own module_
+to replace the standard one. This is a piece of code that we can write now, at the beginning
+of the project, and never really touch again.
 
 ## Why a Custom Prelude
 
@@ -317,20 +315,20 @@ some of the advantages of using a custom Prelude are very useful for this projec
 Haskell's Prelude hasn't changed much over the years. Because
 of this, it has accumulated some cruft to it. One of the biggest problems
 is the pervasive use of `String` over `Text`. `String` provides a linked list
-of characters (literally `type String = [Char]`), and `Text` provides a much
-more efficient byte array based representation. Basically, you should always
+of characters (literally `type String = [Char]`), but `Text` provides a much
+more efficient byte-array based representation. Basically, you should always
 use `Text` if you can.
 
 Unfortunately, because Haskell's Prelude makes this choice a bit of a pain, in practice
-you end up having to go through `String` to do a lot of things you'd rather do.
+you end up having to go through `String` to do a lot of things.
 In fact, for this project, we'll be using `String` throughout, rather than `Text`,
 because this is ultimately simpler, and avoids a good amount of boilerplate. Furthermore,
 we're not working on a production compiler, and we're cutting corners in plenty
 of places already. This project is about learning a simple, but complete approach
 to implementing a reasonable subset of Haskell, so I feel ok papering over things like this.
 
-The standard Prelude is also lackluster in the sense that many commonly used functions
-aren't provided. For example `foldl` has the wrong strictness, and performs
+Many commonly used functions are also missing from the standard Prelude.
+For example, `foldl` has the wrong strictness, and performs
 much worse compared to the strict `foldl'`. Unfortunately `foldl` is in the Prelude,
 while you need to import `foldl'` from `Data.List`. This kind of thing is pervasive,
 and the line between what does and doesn't get included seems quite arbitrary at times.
@@ -352,7 +350,7 @@ often enough to warrant being in our Prelude.
 
 # Creating Ourlude
 
-So we'll be creating a file `src/Ourlude.hs`, to contain our custom Prelude. Let's
+So, we'll be creating a file `src/Ourlude.hs` to contain our custom Prelude. Let's
 go ahead and add this to our Cabal file:
 
 ```txt
@@ -477,18 +475,19 @@ The other two provide _forward composition_. So `f >>> g` is nothing other than
 or complicated expressions like `f $ 2 + 2`).
 
 The reason I include forward composition operators is because I find forward composition
-_better_ in _most cases_, than backwards composition. What I mean by "forward", is
-that if I take an expression like `f (g (x))`, `f $ g $ x`, or `f <| g <| x`, has
-the value first "entering" `g`, and then "entering" `f`. So the data moves
+_better in most cases_, compared to backwards composition. What I mean by "forward", is
+that if we take an expression like `f (g (x))`, i.e. `f $ g $ x`, or `f <| g <| x`, we 
+have `x`
+first "entering" `g`, and then "entering" `f`. So the data moves
 from right to left, which is _backwards_ relative to the left to right order
-you're reading this text, and code in.
+you're reading this text in.
 
 By contrast `x |> g |> f` has the data moving _forwards_, or left to right.
 
 Similarly `\x -> f (g x)` becomes `f <<< g`, or `g >>> f`, and the same remarks apply.
 
 I think forward composition is better in most cases, simply because it matches the standard reading
-order. For example, take this expression
+order. For example, take this expression:
 
 ```haskell
 Matrix . map stripHead . filter isDefault $ rows
@@ -498,16 +497,16 @@ Now, when I read this, I have to first move my attention all the way to the end 
 and then crane going backwards from right to left, in order to see how `rows` is transformed
 into the final result.
 
-This is bog standard Haskell, and wouldn't really look strange to most Haskellers,
+This wouldn't look all that strange to many Haskellers,
 since we're so used to reading things in this order. But if you use `<|`, as
-we will, this looks kind of strange:
+we will, this *does* look a bit odd:
 
 ```haskell
 Matrix <| map stripHead <| filter isDefault <| rows
 ```
 
-It looks strange, because **it is**. You're taking a piece of data, and transforming it,
-but you're doing so by telling us the transformations in the opposite order in
+It looks odd, because **it is**. You're taking a piece of data, and transforming it,
+but you're doing so by describing transformations in the opposite order in
 which they happen. It's much more natural (at least in English) to say
 
 "take the rows, then filter using isDefault, then map stripHead, then wrap that in Matrix"
@@ -564,15 +563,13 @@ return <| case x of
 map <| \case
 
 runMonadM <| do
-...
 
+...
 ```
 
-etc.
-
-What we're doing here is making use of the low precedence of `<<<` to neatly avoid wrapping
+What we're doing here is making use of the low precedence of `<|` to neatly avoid wrapping
 things in parentheses. This is especially important in front of block expressions, because
-wrapping a block in parentheses looks weird:
+wrapping a block in parentheses is a bit awkward:
 
 ```hs
 f (case x of
@@ -583,7 +580,7 @@ f (case x of
 
 # Making Ourlude Default
 
-So, we now have a module `Ourlude`, which contains the functions we want in
+So, now we have a module `Ourlude`, which contains the functions we want in
 our custom Prelude, but we haven't actually made it _the Prelude_. In fact,
 `Prelude` is still imported by default in every file, and this will conflict
 with `Ourlude` when we try to import it as well.
@@ -635,7 +632,7 @@ import Prelude
 -- ...
 ```
 
-Then let's change `Main.hs` to import `Ourlude` now:
+Let's change `Main.hs` to import `Ourlude` now:
 
 ```haskell
 module Main where
@@ -666,4 +663,3 @@ The code for this part is available [here](https://github.com/cronokirby/haskell
 
 Stay tuned for the next part of this series, where we'll finally get into compiler goodness,
 by writing our own lexer for Haskell, and all of its whitespace trickery!
-
