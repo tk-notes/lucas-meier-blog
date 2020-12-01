@@ -3,7 +3,7 @@ title: "(Haskell in Haskell) 1. Setup"
 date: 2020-11-23
 tags:
   - Haskell
-  - Programing
+  - Programming Languages
   - Compiler
 ---
 
