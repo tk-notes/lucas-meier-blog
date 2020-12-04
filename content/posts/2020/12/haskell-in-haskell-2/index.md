@@ -254,7 +254,7 @@ data LexerError
   = UnimplementedError
   deriving (Eq, Show)
 
-data Token = NoTokensYet
+data Token = NoTokensYet deriving (Eq, Show)
 
 lexer :: String -> Either LexerError [Token]
 lexer _ = Left UnimplementedError
@@ -349,7 +349,7 @@ along with the name together.
 We can then use it like so:
 
 ```haskell
-printStagedError :: IO ()
+printStagedError :: StagedError -> IO ()
 printStagedError (StagedError name err) = do
   putStr name
   putStrLn " Error:"
@@ -475,7 +475,8 @@ Now we can actually write a function to parse our all the arguments:
 
 ```haskell
 parseArgs :: [String] -> Maybe Args
-parseArgs (stageName : file : _) = Args file <$> readStage (map toLower stageName)
+parseArgs (stageName : file : _) =
+  Args file <$> readStage (map toLower stageName)
 parseArgs _ = Nothing
 ```
 
@@ -634,7 +635,7 @@ into creating a little framework in Haskell for building up our lexer. The idea 
 we want to be able to build up a large lexer for Haskell source code from lexers
 for smaller parts.
 
-To do this we'll use *Lexer Combinators*, a topic I've already talked about
+To do this we'll use _Lexer Combinators_, a topic I've already talked about
 [previously](/posts/20202/10/lexical-combinators).
 See that post if you want even more detail and explanation after what we see here.
 
@@ -711,11 +712,11 @@ newtype Lexer a = Lexer {
 ```
 
 So a `Lexer` is nothing more than a wrapper around a function taking in some input,
-and either failing with a `LexerError`, or  producing a value of type `a`, and the remaining
+and either failing with a `LexerError`, or producing a value of type `a`, and the remaining
 string that we have yet to consume.
 
 {{<note>}}
-We could've defined `Lexer` to be a *type synonym*, rather than an entirely new type. The reason we want
+We could've defined `Lexer` to be a _type synonym_, rather than an entirely new type. The reason we want
 a newtype is the be able to easily define new instances of different typeclasses for the
 `Lexer` type.
 {{</note>}}
@@ -837,7 +838,7 @@ then sequences them to recognize the entire string, one character at a time.
 ## Alternative
 
 We can create somewhat sophisticated lexers parsing long strings by chaining them sequentially with
-`<*>`, but one thing that's sorely missing is the ability to *choose* between different options.
+`<*>`, but one thing that's sorely missing is the ability to _choose_ between different options.
 I can take two lexers, and say "I want to lex `A`, followed by `B`", but I can't say "I want to lex `A`, or
 `B`. Our tokens are going to be a big example of this. Each token is going to be one of the options we
 can choose from.
@@ -880,9 +881,9 @@ instance Alternative Lexer where
         if length restA <= length restB then a else b
 ```
 
-So, we simply pattern match on *both* the results given the same input, at the same time. If one of them failed,
+So, we simply pattern match on _both_ the results given the same input, at the same time. If one of them failed,
 we rely on the other result. If both succeed, we need to dive in a bit more, and compare the lengths of
-the remaining inputs. We pick the result that has less input remaining, i.e. that has consumed *more* input,
+the remaining inputs. We pick the result that has less input remaining, i.e. that has consumed _more_ input,
 i.e. that is the longest match. Because on ties, with equal lengths, we still choose `a`, we're biased
 towards the left lexer, as we decided earlier.
 
@@ -891,7 +892,7 @@ a lexer choosing one out of many options:
 
 ```haskell
 oneOf :: Alternative f => [f a] -> f a
-oneOf = foldl' (<|>)
+oneOf = foldl1' (<|>)
 ```
 
 This will work with other `Alternative` types, and not just `Lexer`, although we won't
@@ -909,7 +910,345 @@ but better libraries should be used in a production compiler.
 
 # Implementing the Lexer
 
-- Go over the basic structure
+Alright, we've created a bit of a framework for building lexers, which might seem a bit
+abstract right now. This will all fit into place very quickly as we start to actually
+put all of that framework into practice.
+
+## Tokens
+
+The first thing we need to do is actually define the type of tokens we want our lexer to return.
+
+We need a couple classes of tokens basically:
+
+1. Keywords. Things like `where`, `let`, `case`
+2. Operators, like `+`, `->`, `::`
+3. Litterals, which we have for `Bool`, `Int`, and `String`
+4. Hardcoded primitive types, in our case `Bool`, `Int`, and `String`
+5. Identifiers, which come in two flavors in Haskell.
+
+I apologize for the information dump, but it's easier to just write them
+all out, since most of them are just dumb labels:
+
+```haskell
+data Token
+  = Let -- `let`
+  | Where -- `where`
+  | In -- `in`
+  | Data -- `data`
+  | Type -- `type`
+  | If -- `if`
+  | Then -- `then`
+  | Else -- `else`
+  | Case -- `case`
+  | Of -- `of`
+  | Underscore -- `_`
+  | OpenParens -- `(`
+  | CloseParens -- `)`
+  | OpenBrace -- `{`
+  | CloseBrace -- `}`
+  | Semicolon -- `;`
+  | DoubleColon -- `::`
+  | ThinArrow -- `->`
+  | VBar -- `|`
+  | BSlash -- `\`
+  | FSlash -- `/`
+  | Plus -- `+`
+  | PlusPlus -- `++`
+  | Dash -- `-`
+  | Asterisk -- `*`
+  | Equal -- `=`
+  | Dollar -- `$`
+  | LeftAngle -- `<`
+  | Dot -- `.`
+  | LeftAngleEqual -- `<=`
+  | RightAngle -- `>`
+  | RightAngleEqual -- `>=`
+  | EqualEqual -- `==`
+  | FSlashEqual -- `/=`
+  | VBarVBar -- `||`
+  | AmpersandAmpersand -- `&&`
+  -- An Int litteral
+  | IntLitt Int -- An Int litteral
+  -- A String litteral
+  | StringLitt String
+  -- A Bool litteral
+  | BoolLitt Bool
+  -- The type `Int`
+  | IntTypeName
+  -- The type `String`
+  | StringTypeName
+  -- The type `Bool`
+  | BoolTypeName
+  -- A name starting with an uppercase letter
+  | UpperName String
+  -- A name starting witha lowercase letter
+  | LowerName String
+  deriving (Eq, Show)
+```
+
+The litterals for `Int`, `String`, and `Bool` have values of the corresponding types, as
+we might expect. Haskell is this peculiarity where identifiers come in two flavors, the _upper case_
+identifiers, like `Foo230` and `Baz240`, which are used to indicate types, and _lower case_, like `fooA343`,
+or `bazB334`.
+
+## A lexer for tokens
+
+Now, we can write a `Lexer` that produces these tokens!
+
+{{<note>}}
+We'll actually be writing a `Lexer (Token, String)`, which includes the parsed string, along
+with the token. We'll need this in a bit once we want to handle whitespace and layouts,
+but for not it is entirely superfluous. I've decided to go ahead and do it this way so we
+can avoid having to spend time rewriting 40 lines of code later.
+{{</note>}}
+
+We have:
+
+```haskell
+token :: Lexer (Token, String)
+token = keyword <|> operator <|> litteral <|> name
+  where
+    with :: Functor f => b -> f a -> f (b, a)
+    with b = fmap (b,)
+
+    ...
+```
+
+`with` is nothing more than a little helper we'll be using shortly. Our lexer is defined
+in terms of a handful of sub-lexers we'll also be defining in that `where` block. The
+high-level idea is that we're saying that a token is either a keyword,
+an operator, a litteral, or a name. Notice that we put `keyword` to the _left_
+or `name`, so that keywords have priority over identifiers!
+
+Keywords are defined as lexers accepting exactly the right string:
+
+```haskell
+    keyword :: Lexer (Token, String)
+    keyword =
+      oneOf
+        [ Let `with` string "let",
+          Where `with` string "where",
+          In `with` string "in",
+          Data `with` string "data",
+          Type `with` string "type",
+          If `with` string "if",
+          Then `with` string "then",
+          Else `with` string "else",
+          Case `with` string "case",
+          Of `with` string "of",
+          Underscore `with` string "_"
+        ]
+```
+
+Here we're using `with` in infix notation, in order to include the string along with the token, which we'll
+be needing later. Another fun detail is that we consider `_` to be a keyword. Whether or not
+something is a keyword is more so about making the parser's job easier, rather than reflecting the
+semantics of the language. We could've made `_` just a normal identifier, but then we would have had
+to do extra work to separate out the class in the parser.
+
+Anyhow, let's look at operators:
+
+```haskell
+    operator :: Lexer (Token, String)
+    operator =
+      oneOf
+        [ OpenParens `with` string "(",
+          CloseParens `with` string ")",
+          OpenBrace `with` string "{",
+          CloseBrace `with` string "}",
+          Semicolon `with` string ";",
+          DoubleColon `with` string "::",
+          ThinArrow `with` string "->",
+          VBar `with` string "|",
+          BSlash `with` string "\\",
+          FSlash `with` string "/",
+          Plus `with` string "+",
+          PlusPlus `with` string "++",
+          Dash `with` string "-",
+          Asterisk `with` string "*",
+          Equal `with` string "=",
+          Dot `with` string ".",
+          Dollar `with` string "$",
+          LeftAngle `with` string "<",
+          LeftAngleEqual `with` string "<=",
+          RightAngle `with` string ">",
+          RightAngleEqual `with` string ">=",
+          FSlashEqual `with` string "/=",
+          EqualEqual `with` string "==",
+          VBarVBar `with` string "||",
+          AmpersandAmpersand `with` string "&&"
+        ]
+```
+
+Once again, we're just mapping strings to labels. All of the code to do the lexing work
+is taken care of by the framework we set up before!
+
+{{<note>}}
+For parsing the operator `\`, we need to create an escaped slash inside of the string,
+hence `"\\"`.
+{{</note>}}
+
+Now let's move on to something a bit more interesting: litterals:
+
+```haskell
+    litteral :: Lexer (Token, String)
+    litteral = intLitt <|> stringLitt <|> boolLitt
+      where
+        ...
+```
+
+So, a litteral is either an integer litteral, a string litteral, or a bool litteral, as we
+went over above.
+
+For integers, we have:
+
+```haskell
+        intLitt :: Lexer (Token, String)
+        intLitt =
+          some (satisfies isDigit)
+            |> fmap (\x -> (IntLitt (read x), x))
+```
+
+So, `some` accepts one or more of a given lexer. It's actually defined for any `Alternative`!
+We accept one or more digits, and then use `read` to parse that string of digits as an actual `Int`
+
+For strings, we have:
+
+```haskell
+        stringLitt :: Lexer (Token, String)
+        stringLitt =
+          char '"' *> many (satisfies (/= '"')) <* char '"'
+            |> fmap (\x -> (StringLitt x, x))
+```
+
+The idea is that we require a `"`, followed by many characters that
+are _not_ the closing `"`, and then that closing `"`. Our manipulation with
+`*>` and `<*` just makes sure that we don't include the delimiters in our string litteral.
+
+And finally, we have boolean litterals:
+
+```haskell
+        boolLitt :: Lexer (Token, String)
+        boolLitt =
+          (BoolLitt True `with` string "True")
+            <|> (BoolLitt False `with` string "False")
+```
+
+This approach is the same we used for keywords and operators before, and makes sense
+since we only have two values for `Bool`.
+
+Now the only remaining "sub-lexer" is for names, where we'll also be including
+the names of primitive types:
+
+```haskell
+    name :: Lexer (Token, String)
+    name = primName <|> upperName <|> lowerName
+      where
+        ...
+```
+
+A name is either the name for a primitive type (with priority), a name starting with an upper case alpha,
+or a name starting with lower case alpha.
+
+For primitive names, we use the same approach as with keywords:
+
+```haskell
+        primName :: Lexer (Token, String)
+        primName =
+          (IntTypeName `with` string "Int")
+            <|> (StringTypeName `with` string "String")
+            <|> (BoolTypeName `with` string "Bool")
+```
+
+For normal names, we want a few helpers as well:
+
+```haskell
+        continuesName :: Lexer Char
+        continuesName = satisfies isAlphaNum <|> char '\''
+
+        followedBy :: Lexer Char -> Lexer Char -> Lexer String
+        followedBy l1 l2 = liftA2 (:) l1 (many l2)
+
+        upperName :: Lexer (Token, String)
+        upperName =
+          (satisfies isUpper `followedBy` continuesName)
+            |> fmap (\x -> (UpperName x, x))
+
+        lowerName :: Lexer (Token, String)
+        lowerName =
+          (satisfies isLower `followedBy` continuesName)
+            |> fmap (\x -> (LowerName x, x))
+```
+
+`continuesName` is a class of characters that can appear after the first character of an identifier,
+allowing us to "continue" that identifier. This includes any alphanumeric character, as well as the `'`,
+which Haskell also allows.
+
+We then have a helper, `followedBy`, which parses the first class of things, followed by
+zero or more occurrences of the second thing. `many`, is like `some`, except it allows zero occurrences
+as well.
+
+With these in hand, are two different kinds of name are simple to define. the difference is that
+one starts with an upper case character, and the other starts with a lower case character.
+
+## An actual lexer
+
+Now, let's actually replace our `lexer` function to use this framework:
+
+```haskell
+lexer :: String -> Either LexError [Token]
+lexer = runLexer (some token)
+```
+
+instead of `token`, which only parses a single token, we use `some` to parse one or more occurrences of a token.
+At this point, we should be able to lex out some interesting things, although we won't be handling
+whitespace between tokens until then.
+
+Let's try out a few examples.
+
+You can actually run these at this point, creating a file `foo.hs` to contain
+the examples, and then using:
+
+```bash
+cabal run haskell-in-haskell -- lex foo.hs
+```
+
+And then running this on:
+
+```haskell
+x=2+2
+```
+
+should output
+
+```haskell
+[ LowerName "x"
+, Equal
+, IntLitt 2
+, Plus
+, IntLitt 2
+]
+```
+
+We can also accept things that make no sense syntactically:
+
+```haskell
+x->::Int
+```
+
+which outputs:
+
+```haskell
+[ LowerName "x"
+, ThinArrow
+, DoubleColon
+, IntTypeName
+]
+```
+
+We can already have a lot of fun doing things like this right now!
+It's satisfying to start to see a bit of vim from our compiler. But
+we really need to be able to handle spaces, and also infer semicolons and braces!
 
 # Handling Whitespace
 

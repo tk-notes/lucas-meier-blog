@@ -152,7 +152,7 @@ build-type:          Simple
 
 executable haskell-in-haskell
   main-is:             Main.hs
-  build-depends:       base >=4.13 && <4.14
+  build-depends:       base >=4.13 && <5
   default-language:    Haskell2010
 ```
 
