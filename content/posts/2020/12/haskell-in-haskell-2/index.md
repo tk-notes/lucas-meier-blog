@@ -10,11 +10,12 @@ tags:
 
 This is the second post in the [Haskell in Haskell](/series/haskell-in-haskell) series.
 
-In this post, we'll go over creating a *lexer* for our subset of Haskell. This stage
+In this post, we'll go over creating a _lexer_ for our subset of Haskell. This stage
 of the compiler goes from the raw characters in our a source file, to a more
-structured stream of *tokens*.
+structured stream of _tokens_.
 
 We'll really be diving into some code this time, so get your editor ready!
+
 <!--more-->
 
 # 1 mile overview
@@ -32,7 +33,7 @@ more useful.
 
 As a reminder, the Parser is going to take our tokens, and then produce
 a complete representation of the source code, in a tree-like structure.
-The Parser *could* work directly on characters, but this would make
+The Parser _could_ work directly on characters, but this would make
 it more complicated than necessary. Having a separate lexing phase
 gives us a kind of separation of concerns here.
 
@@ -40,18 +41,18 @@ The Parser will be needing quite a bit of context to do its job.
 For example, when parsing an expression, it knows not to try
 and read out things related to types. On the other hand,
 the lexer (at least the part that spits out tokens) can
-be made to work *without* context.
+be made to work _without_ context.
 
 The lexer just reads in characters, and spits out tokens. After spitting
 out a token, the lexer is in the exact same "state" that it started with.
-The lexer doesn't, or at least *shouldn't* have any knowledge about context.
+The lexer doesn't, or at least _shouldn't_ have any knowledge about context.
 
 ## What tokens?
 
 So far we've talked about "tokens", or "clusters". A good analogy is that
 our source code is like a sentence in English: the sentence is composed
 of raw characters, ditto for source code. The words in the sentence make
-up the *tokens* in our source code. And finally, the parse tree gives us
+up the _tokens_ in our source code. And finally, the parse tree gives us
 the meaning of the sentence, or the source code.
 
 So, we want to split up our source code into the tokens that compose it.
@@ -79,16 +80,16 @@ myDefinition
 y2
 ```
 
-Here, we've first separated out an *identifier*, that must be taken as a whole.
+Here, we've first separated out an _identifier_, that must be taken as a whole.
 It makes no sense to process `myDefinition` as anything but a single unit
 in the parser. We also have two operators, `=`, and `+`. Naming these helps
-make our parser a bit more abstract. We also have a *literal*, `232`. It
+make our parser a bit more abstract. We also have a _literal_, `232`. It
 also doesn't make sense to treat a literal as anything but a unit.
 
 We'll be going over the details of what tokens we'd like to define, and how
 exactly we're going to go about lexing them out of our source code later.
 But keep this idea in mind: we're trying to separate out our source
-code into little *units*, all to make our Parser much simpler.
+code into little _units_, all to make our Parser much simpler.
 
 ## Generating Whitespace
 
@@ -116,9 +117,9 @@ let x = 2
 in x + y
 ```
 
-and they may not even be *aware* that you could use the braces and semicolons instead.
-In fact, not only is the braced version an *option*, but the whitespaced
-version is nothing more than *syntax sugar* for this way of doing things.
+and they may not even be _aware_ that you could use the braces and semicolons instead.
+In fact, not only is the braced version an _option_, but the whitespaced
+version is nothing more than _syntax sugar_ for this way of doing things.
 
 When Haskell sees:
 
@@ -128,7 +129,7 @@ let x = 2
 in x + y
 ```
 
-It understands that you *really* mean:
+It understands that you _really_ mean:
 
 ```haskell
 let {
@@ -148,7 +149,7 @@ y = 3
 z = 4
 ```
 
-This is also *lingo* for a braced version:
+This is also _lingo_ for a braced version:
 
 ```haskell
 {
@@ -159,19 +160,19 @@ z = 4
 ```
 
 As hinted by this way of explaining things, what we're going
-to be doing in our compiler is adding an extra *mini-stage* that
+to be doing in our compiler is adding an extra _mini-stage_ that
 is going to look at the whitespace in our program, and insert
 the correct semicolons and braces to reflect the meaning of the programmer's
 indentation.
 
-We could do this as part of the parser, but this would make the parser *much more complicated*
+We could do this as part of the parser, but this would make the parser _much more complicated_
 than it otherwise needs to be. Doing this as an extra step between the more traditional
 lexer and the parser makes things much cleaner, and much more maintainable.
 
 If you don't understand exactly what constructs end up using
 indentation to insert braces and semicolons, that's normal: I haven't explained it yet :).
 We'll be going over this whole business in much more detail when it comes time
-to *implement* this system, so that it's fresh in our heads.
+to _implement_ this system, so that it's fresh in our heads.
 
 # Our First Stage
 
@@ -207,7 +208,7 @@ module Lexer (Token(..), lexer) where
 import Ourlude
 ```
 
-We're using two *extensions* here to add some extra features to the code in this module.
+We're using two _extensions_ here to add some extra features to the code in this module.
 
 The first [LambdaCase](https://typeclasses.com/ghc/lambda-case), allows us to
 replace expressions like:
@@ -229,7 +230,7 @@ with:
 which explains the naming of this feature.
 
 The second, [TupleSections](https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/guide-to-ghc-extensions/basic-syntax-extensions#tuplesections)
-allows us to use partially apply *tuples*, in the same way you can do operators.
+allows us to use partially apply _tuples_, in the same way you can do operators.
 For example, you can do:
 
 ```haskell
@@ -266,7 +267,7 @@ error, of type `LexerError`, or the list of tokens we managed to lex.
 Right now, we just have a dummy token type, and an error indicating that our lexer
 has not been implemented yet.
 
-## A Stage Abstraction
+## Making a CLI program
 
 Before we actually implement these functions, we're first going to integrate the
 lexer into our command line program, so that the user can run it on an actual file.
@@ -274,7 +275,31 @@ We're going to go ahead and write some boilerplate we can reuse for the other st
 of our compiler as well. We can get this out of the way now, to focus on the guts
 of the compiler as we move forward.
 
-What we'd like is a bit of an abstraction over the concept of a *stage*.
+First, let's add some imports we'll be needing in `Main.hs`:
+
+```haskell
+import Control.Monad ((>=>))
+import Data.Char (toLower)
+import qualified Lexer
+import Ourlude
+import System.Environment (getArgs)
+import System.Exit (exitFailure)
+import Text.Pretty.Simple (pPrint, pPrintString)
+```
+
+We import our `Lexer` module, since we'll be using that here.
+We also import our prelude, of course, as well as some small helpers like `(>=>)`, and `toLower`.
+We have some IO stuff we'll be using like `getArgs :: IO [String]` for getting the arguments passed
+to our program, as well as `exitFailure :: IO ()`, to quit the program if an error happens.
+
+`pPrint` and `pPrintString` come from
+the library we mentioned
+[last time](/posts/2020/11/haskell-in-haskell-1/)
+, which can format any given string in a nice way.
+
+### Stages: The Idea
+
+What we'd like is a bit of an abstraction over the concept of a _stage_.
 Our compiler will be composed of various stages, such as the lexer,
 the parser, etc. Each stage takes in some input, and produces some output,
 potentially failing with an error. Our lexer takes in a `String` is input,
@@ -294,6 +319,8 @@ The first thing we need is some kind of opaque error type. We want this so that 
 stage abstraction doesn't have to keep track of the error type, for one, and also
 so that we can annotate the errors produced by that stage with some metadata, like
 the name of that stage.
+
+### Stages: The Implementation
 
 So, in `Main.hs`, let's create:
 
@@ -318,15 +345,6 @@ stageEither name m = case m of
 Given a name (which is presumably that of a given stage), we can massage the
 error into a `StagedError` by showing the error, and then putting that
 along with the name together.
-
-We also need to print this `StagedError`. First, we need to add an imports for pretty printing:
-```haskell
-import Text.Pretty.Simple (pPrint, pPrintString)
-```
-
-This uses the library we mentioned
-[last time](/posts/2020/11/haskell-in-haskell-1/)
-, which can format any given string in a nice way.
 
 We can then use it like so:
 
@@ -353,6 +371,162 @@ So, `Stage` is parameterized over an input type `i`, and an output type `o`.
 We use this to create a function taking input `i`, and producing output `o`,
 potentially failing with a `StagedError`. We also have the name of the stage
 as an extra bit of metadata.
+
+So, we might have `Stage String [Token]` for our Lexer `Stage [Token] SyntaxTree` for our
+Parser, etc.
+
+Our lexer is of the form `String -> Either LexerError [Token]`. If we squint at this a bit,
+we see `i -> Either e o`. We want to make this function into a `Stage`, so let's create
+a little helper:
+
+```haskell
+makeStage :: Show e => String -> (i -> Either e o) -> Stage i o
+makeStage name r = Stage name (r >>> stageEither name)
+```
+
+We can work on any function `i -> Either e o`, so long as it has an error we can use `show` with,
+as explained earlier. We also include the name of the stage here.
+
+We can go ahead and define a stage for our lexer:
+
+```haskell
+lexerStage :: Stage String [Lexer.Token]
+lexerStage = makeStage "Lexer" Lexer.lexer
+```
+
+Everything works out nicely, because we took care to design our little Stage abstraction around
+how the different parts of our compiler actually work.
+
+We'd also like to be able to compose our stages together; that's why we're creating this whole abstraction.
+Let's make a little helper operator:
+
+```haskell
+(>->) :: Stage a b -> Stage b c -> Stage a c
+(>->) (Stage _ r1) (Stage n2 r2) = Stage n2 (r1 >=> r2)
+```
+
+See the similarity here with:
+
+```haskell
+(>>>) :: (a -> b) -> (b -> c) -> (a -> c)
+```
+
+One detail we do here is that the name of the composed stage is just the name of the second stage. We could've
+opted to make a new name, like "Lexer >-> Parser" or something, but this option actually makes more sense, sense each stage
+depends on the previous one, and we never run one half of the stages without the other half, we only
+_stop early_, sometimes.
+
+Now, let's add some code to create an `IO` action from a given Stage:
+
+```haskell
+printStage :: Show b => Stage a b -> a -> IO ()
+printStage (Stage name r) a = case r a of
+  Left err -> do
+    printStagedError err
+    exitFailure
+  Right b -> do
+    putStrLn (name ++ ":")
+    pPrint b
+```
+
+The idea is that we create a function accepting the Stage's input, and then printing out whatever
+output it produces, or printing the error, and terminating the program with `exitFailure`, indicating that a failure occurred.
+
+### Parsing Arguments
+
+We're getting close to having a little program we can run! The next thing we'll be doing is defining
+a type for the _arguments_ our program accepts from the command line:
+
+```haskell
+data Args = Args FilePath (String -> IO ())
+```
+
+The first part will be path to the Haskell code we're handling, but the second part is a bit unorthodox.
+The idea is that it represents the stage we've parsed. We could have created an enum for which stage the user
+wants to go up to, and then interpreted that to make an IO action, but it's easier to just parse
+out an action directly. The reason we have this `String -> IO ()` representation is that every single
+stage is able to hide behind it. We'll be creating `Stage String b` for each of our "go up to this part"
+stages. They all take in the source code as input, but the output varies. We can use `printStage`
+to get around this, and store all of the stages in the same way.
+
+Here's how we'll be reading the stages:
+
+```haskell
+readStage :: String -> Maybe (String -> IO ())
+readStage "lex" = lexerStage |> printStage |> Just
+readStage _ = Nothing
+```
+
+For now, we just accept a single stage "lex", which runs the only stage we have, and prints out
+the results.
+
+Then, to use the args we've produced, we just read in the source file, and then run the action:
+
+```haskell
+process :: Args -> IO ()
+process (Args path stage) = do
+  content <- readFile path
+  stage content
+```
+
+Since we've already read in the stage as `String -> IO ()`, this works out just fine.
+
+Now we can actually write a function to parse our all the arguments:
+
+```haskell
+parseArgs :: [String] -> Maybe Args
+parseArgs (stageName : file : _) = Args file <$> readStage (map toLower stageName)
+parseArgs _ = Nothing
+```
+
+This takes in the list of arguments as passed in to the program, and returns the parsed arguments.
+The only trick here is that we lower case the stage name, so that "lex", "LEX", "lEx", etc. refer
+to the same stage.
+For example for:
+
+```bash
+haskell-in-haskell lex file.hs
+```
+
+We would have:
+
+```haskell
+["lex", "file.hs"]
+```
+
+as our arguments.
+
+### Remaining Glue
+
+And finally, we can modify `main` to glue all of these functions together:
+
+```haskell
+main :: IO ()
+main = do
+  stringArgs <- getArgs
+  case parseArgs stringArgs of
+    Nothing -> putStrLn "Unrecognized arguments"
+    Just args -> process args
+```
+
+`getArgs :: IO [String]` returns the command line arguments passed to us. We then use parse out `Args`,
+printing out a failure message, or proceeding with the `process` function we defined earlier.
+
+Now we can actually run the parser, to see something like
+
+```bash
+> cabal run haskell-in-haskell -- lex foo.hs
+Lexer Error:
+UnimplementedError
+```
+
+{{<note>}}
+Here we have to do a little Cabal-fu to correctly pass the arguments we want to our program. Everything
+after the `--` belongs to _our program_, everything before is read by `cabal`.
+{{</note>}}
+
+Oof, that was a mouthful, but now all of this boilerplate is out of our way for the rest of the compiler.
+Adding new stages is going to be a breeze!
 
 # How do you make a Lexer?
 
