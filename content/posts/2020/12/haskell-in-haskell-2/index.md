@@ -530,19 +530,382 @@ Adding new stages is going to be a breeze!
 
 # How do you make a Lexer?
 
+So that was a dive into some practical Haskell, although mostly boilerplate. Now let's go back
+up a layer of abstraction, and think a bit about what a lexer really is, and how it works in theory.
+
+At the end of the day, our lexer will be scanning over our input string character by character,
+outputting tokens as it goes.
+
+**TODO: Illustration?**
+
+For simple operators, it's easy to understand how our lexer is going to work. For example, if we have
+some operators like:
+
+```haskell
++*-
+```
+
+the lexer can see the `+`, and then immediately spit out a `Plus` token, or something like that.
+When it sees the `*`, it spits out `Times`, with `-`, we get `Sub`, etc.
+
+**TODO: Illustration?**
+
+If our lexer sees a character it doesn't know, it can blow up with an error or something:
+
+**TODO: Illustration?**
+
+For some other characters, the lexer will simply ignore them:
+
+**TODO: Illustration?**
+
+If we only need to lex out single characters, then an interesting thing to notice is
+that our lexer keeps track of no state whatsoever. After seeing a single character, the lexer
+is straight back to the same state it started with, ready to accept another character.
+
 ## Character Classes
+
+Obviously, our lexer will have to produce tokens composed of more than just a single character
+of input. For example, integers. We want to accept things like `3`, `234`, `2239034`. Integer litterals
+can be arbitrary strings of digits. To handle this, our lexer needs to enter a different "mode",
+or "state" as soon as it sees a digit. Instead of immediately producing some output, it instead shifts
+to a mode where it tries to consume the digits that remain, and only "breaks out" once it sees something that
+isn't a digit. At that point, it can produce the token for that integer litteral, and return back to its
+initial state.
+
+Many more of the tokens we produce will involve multiple characters. For example, to match out against a string
+litteral like `"Hello World"`, we need to realize that a string litteral is happening when we see
+Athe `"`, and then keep on consuming characters for that litteral until we see the closing `"`.
+
+Quite a few tokens in our language will be keywords. For example, `let`, `where`, `data`, `type`. These can be
+consumed using "modes" or "states" as well. For example, when we see an `l`, our lexer could enter a mode
+expecting to see `e`, followed by `t` to finish out the keyword.
+
+So far we're developing a vision of a lexer as a "finite state machine". The idea is that at any point
+in time, our lexer is in a given state, and we can move to different states as we see different characters,
+potentially spitting out some tokens along the way. For example, a state machine that accepts arithmetic tokens
+like `2 + 23 * 44` would look like:
+
+**TODO: Illustration**
+
+This state machine idea is also intimately connected to _regular expressions_, and in fact all
+the different classes of characters that make up our tokens correspond to regular expressions, and we
+should be able to recognize whether or not our source code is lexically valid with a giant regex.
+
+There's a rich theory around the connection between lexers, regular expressions, and state machines,
+so I'll refer you to other resources if you're interested in that.
+
+**TODO: references**
 
 ## Longest Match
 
+Another issue we've completely glossed over is that of conflicts between different classes of characters.
+We've specifically looked at nice examples where everything is in a completely different bubble, with no
+interaction between the different characters.
+
+**TODO: Illustration**
+
+Now, the biggest source of ambiguity is between identifiers and keywords. For example,
+if we see `where`, then that is the keyword `where`. No ambiguity whatsoever, but if we add just
+one character, to get `where2` then suddenly that's an identifier, and `where2 = 3` is a valid bit
+of Haskell. So our previous idea of seeing a `w`, and jumping straight towards assuming we've seen
+the start of the keyword `where` is not going to work. In fact, if we have some kind of rule like:
+"an identifier is a lower case alpha character followed by any number of alphas and digits", then it
+conflicts with every single keyword!
+
+How do we choose which to pick?
+
+The idea is that we should keep applying a rule _greedily_. That is, if there are two possible ways
+of pulling out a token from some string, we pick out the one that consumes more input. So if we see
+`wherefoo`, we can parse this in two ways:
+
+```txt
+where (Keyword) foo
+wherefoo (Identifier)
+```
+
+But we should clearly accept the second one, because it consumed more of the input. This rule is
+enough to disambiguate keywords and identifiers, as long as we give priority to keywords, for
+when we have an exact match.
+
 # Lexer Combinators
+
+So, that was a quick overview of some of the abstract ideas around lexing, and now let's dive
+into creating a little framework in Haskell for building up our lexer. The idea is that
+we want to be able to build up a large lexer for Haskell source code from lexers
+for smaller parts.
+
+To do this we'll use *Lexer Combinators*, a topic I've already talked about
+[previously](/posts/20202/10/lexical-combinators).
+See that post if you want even more detail and explanation after what we see here.
 
 ## The Basic Definition
 
+The basic idea of a Lexer Combinator is that a lexer is nothing more than a function
+taking in some input, in our case, a `String`, and then either throwing an error, because
+it does not recognize what it sees, or consuming part of the input, returning a value,
+along with the remaining part of the input it hasn't touched.
+
+So, something like `String -> Either LexerError (a, String)` in Haskell syntax. In fact,
+let's go ahead and go back to `src/Lexer.hs`.
+
+### Imports
+
+As is going to become a custom throughout this series, we're going to get all of the imports we'll
+need for the rest of this post out of the way:
+
+```haskell
+import Control.Applicative (Alternative (..), liftA2)
+import Control.Monad.Except (ExceptT, MonadError (throwError), runExceptT)
+import Control.Monad.State (State, gets, modify', runState)
+import Data.Char (isAlphaNum, isDigit, isLower, isSpace, isUpper)
+import Data.List (foldl', foldl1')
+import Data.Maybe (listToMaybe)
+import Ourlude
+```
+
+We have some utilities for checking properties of cahracters, some convenient list
+folds that sadly aren't in the default Prelude, and the helper `listToMaybe`. The other
+monadic stuff will be introduced in due time as we get to using these utilities
+
+### Errors
+
+Let's go ahead and redefine the type of errors that our lexer will be producing:
+
+```haskell
+data LexerError
+  = Unexpected Char
+  | UnexpectedEOF
+  | UnmatchedLayout
+  deriving ()
+```
+
+The first `Unexpected char`, is used when we encounter a character that we don't know
+what to do with. `UnexpectedEOF` is when we reach the end of the input string before
+we're doing lexing some token. For example, if you start a string litteral,
+but never end it, like `"abbbbb`, then you'll get an `UnexpectedEOF` when all
+of the input has been consumed.
+
+The last error is related to whitespace inference, and will be explained more once
+we reach that part.
+
+We can go ahead create a utility function to throw the right error given the remaining input:
+
+```haskell
+unexpected :: String -> LexerError
+unexpected [] = UnexpectedEOF
+unexpected (c : _) = Unexpected c
+```
+
+If there's no input left, and we're in an unexpected situation, then we weren't expecting
+the input to end so early, and should produce an `UnexpectedEOF` error, otherwise seeing
+whatever character is at the front of our input was the problem
+
+### The Core Type
+
+Now let's define the actual data type for lexers:
+
+```haskell
+newtype Lexer a = Lexer {
+  runLexer :: String -> Either LexerError (a, String)
+}
+```
+
+So a `Lexer` is nothing more than a wrapper around a function taking in some input,
+and either failing with a `LexerError`, or  producing a value of type `a`, and the remaining
+string that we have yet to consume.
+
+{{<note>}}
+We could've defined `Lexer` to be a *type synonym*, rather than an entirely new type. The reason we want
+a newtype is the be able to easily define new instances of different typeclasses for the
+`Lexer` type.
+{{</note>}}
+
+We can go ahead and write a few basic "building blocks" we'll be needing later.
+
+The first lexer we'll make is one that accepts a single character matching a predicate,
+producing whatever character was accepted:
+
+```haskell
+satisfies :: (Char -> Bool) -> Lexer Char
+satisfies p =
+  Lexer <| \case
+    c : cs | p c -> Right (c, cs)
+    rest -> Left (unexpected rest)
+```
+
+This inspects the input we've been given, and only consumes the first character if it can
+pull it out of the string, and it satisfies the predicate we've been given.
+
+An immediate application of this lexer is:
+
+```haskell
+char :: Char -> Lexer Char
+char target = satisfies (== target)
+```
+
+which will match an exect character. So we might do `char '+'`, for example.
+
+Now we need to implement some fundamental typeclasses for `Lexer`, which will be
+used for composing them together.
+
 ### Functor
+
+The first is the venerable `Functor` class:
+
+```haskell
+instance Functor Lexer where
+  fmap f (Lexer l) = Lexer (l >>> fmap (first f))
+```
+
+Here we have
+
+```haskell
+fmap :: (a -> b) -> Lexer a -> Lexer b
+```
+
+as the concrete type for this function. All this does really is do some plumbing
+to change the output our lexer produces; `fmap` has no effect whatsoever on
+what characters a lexer accepts.
+
+**TODO: Illustration?**
+
+This also gives us access to other functions that use `Functor`, for example,
+we could now transform `fmap (const Plus) (char '+')` into something like
+`Plus <$ char '+'`, since `<$ :: Functor f => a -> f b -> f a` is defined for
+any type implementing `Functor`.
 
 ### Applicative
 
+The next type class is `Applicative`, which in concrete terms, requires us to define
+two functions:
+
+```haskell
+pure :: a -> Lexer a
+
+(<*>) :: Lexer (a -> b) -> Lexer a -> Lexer b
+```
+
+The concrete idea here is that `pure` will create a `Lexer` that produces
+a value with consuming any input whatsoever. `<*>` will allow us to combine
+two lexers sequentially, using the function output by the first,
+and the value output by the second to produce a final result.
+
+{{<note>}}
+A function equivalent
+in power would be:
+
+```haskell
+both :: Lexer a -> Lexer b -> Lexer (a, b)
+```
+
+which expresses the idea a bit more clearly, in my opinion
+{{</note>}}
+
+So, let's implement it:
+
+```haskell
+instance Applicative Lexer where
+  pure a = Lexer (\input -> Right (a, input))
+  Lexer lF <*> Lexer lA =
+    Lexer <| \input -> do
+      (f, rest) <- lF input
+      (a, s) <- lA rest
+      return (f a, s)
+```
+
+`pure` is pretty self-explanatory, we simply pass along the input without consuming anything,
+as explained before.
+
+For `<*>`, things are a bit more interesting. Notice how we're making use of `do` for `Either LexerError`
+here. Another important detail is the we use the remaining input of the first lexer to
+feed to the second lexer. This might seem like a bit of an arbitrary choice, but it's actually important.
+
+For example, `(,) <$> char 'A' <*> char 'B'` should accept the string `"AB"`. To do this, we need
+to have consumed the character `A` before "moving on" to the second lexer.
+
+In fact, now that we have `Applicative`, we can get a lexer recognizing an entire string "for free"
+
+```haskell
+string :: String -> Lexer String
+string = traverse char
+```
+
+This uses the very cool `traverse :: Applicative f => (a -> f b) -> [a] -> f [b]`, which in our case,
+first makes a bunch of lexers recognizing each respective character in a given string, and
+then sequences them to recognize the entire string, one character at a time.
+
 ## Alternative
+
+We can create somewhat sophisticated lexers parsing long strings by chaining them sequentially with
+`<*>`, but one thing that's sorely missing is the ability to *choose* between different options.
+I can take two lexers, and say "I want to lex `A`, followed by `B`", but I can't say "I want to lex `A`, or
+`B`. Our tokens are going to be a big example of this. Each token is going to be one of the options we
+can choose from.
+
+Thankfully, there's a type class for this: `Alternative`.
+Concretely, requires us to implement:
+
+```haskell
+empty :: Lexer a
+
+(<|>) :: Lexer a -> Lexer a -> Lexer a
+```
+
+`<|>` implements the intuitive notion of choice we want, and `empty` acts as the identity for this operation,
+that is to say:
+
+```haskell
+empty <|> lexerA = lexerA = lexerA <|> empty
+```
+
+Now, `<|>` is going to have to run both of the parsers. If one of them fails, then we have to rely
+on the result of the other one. If both succeed, then we have to implement the longest match rule
+we talked about earlier. If this results in a tie, then we want to give priority to the left one.
+
+{{<note>}}
+Prioritizing the left lexer over the right lexer is a completely arbitrary choice,
+but a choice that needs to be made, and will result in fun bugs if you forget that it was made.
+{{</note>}}
+
+Let's implement the class:
+
+```haskell
+instance Alternative Lexer where
+  empty = Lexer (Left <<< unexpected)
+  Lexer lA <|> Lexer lB =
+    Lexer <| \input -> case (lA input, lB input) of
+      (res, Left _) -> res
+      (Left _, res) -> res
+      (a@(Right (_, restA)), b@(Right (_, restB))) ->
+        if length restA <= length restB then a else b
+```
+
+So, we simply pattern match on *both* the results given the same input, at the same time. If one of them failed,
+we rely on the other result. If both succeed, we need to dive in a bit more, and compare the lengths of
+the remaining inputs. We pick the result that has less input remaining, i.e. that has consumed *more* input,
+i.e. that is the longest match. Because on ties, with equal lengths, we still choose `a`, we're biased
+towards the left lexer, as we decided earlier.
+
+We can once again put this to use, and create a helper letting us create
+a lexer choosing one out of many options:
+
+```haskell
+oneOf :: Alternative f => [f a] -> f a
+oneOf = foldl' (<|>)
+```
+
+This will work with other `Alternative` types, and not just `Lexer`, although we won't
+be exercising that option here.
+
+With that done, we now have all of the building blocks and combinators we need
+to make a real lexer for Haskell!
+
+{{<note>}}
+This implementation of Lexer Combinators is actually somewhat inefficient. There
+are ways to improve the performance without changing the interface completely,
+keeping the same core approach. I don't go over these here, for the sake of simplicity,
+but better libraries should be used in a production compiler.
+{{</note>}}
 
 # Implementing the Lexer
 
