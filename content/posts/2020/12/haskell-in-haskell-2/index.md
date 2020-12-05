@@ -1252,9 +1252,211 @@ we really need to be able to handle spaces, and also infer semicolons and braces
 
 # Handling Whitespace
 
+Right now we have a lexer for all of the basic building blocks of Haskell, except
+that it can't handle whitespace whatsoever! There are two aspects of whitespace that
+we're going to be tackling in this section.
+
+The first is that Haskell, like basically every language, allows you to put plenty of space
+between tokens. For example, what we can now lex:
+
+```haskell
+x=2+2*2
+```
+
+could also be written in the prettier form:
+
+```haskell
+x = 2 + 2 * 2
+```
+
+or even:
+
+```haskell
+x   = 2    +    *    2
+```
+
+if you'd like.
+
+These should all generate the same tokens. The bits of whitespace contribute no tokens,
+they're simply ignored.
+
+In C, for example, everything is delimited using braces and semicolons, so arbitrary
+amounts of both vertical and horizontal whitespaces are simply completely ignored when
+lexing. You could remove all whitespace from your program and get the same result.
+
+{{<note>}}
+Actually, whitespace *does* matter in C because of the preprocessor, but you get the idea.
+{{</note>}}
+
+In Haskell, on the other hand, whitespace *can be significant*, when it's used to create layouts
+where braces and semicolons should be inferred. This layout inference is the second aspect that we'll be
+working on, and is much more complicated than simply ignoring whitespace. In fact,
+because of this aspect, we *can't* just take the easy approach of filtering out whitespace characters
+as a whole, we instead need to be quite picky about what whitespace we see, since vertical
+whitespaces acts differently than horizonal whitespace.
+
 ## Haskell's layout structure
 
+This series assumes you've programmed a reasonable amount in Haskell before, so you're probably
+familiar on an intuitive level with how you can use whitespace to layout blocks.
+In fact, you probably haven't used braces and semicolons in your programs,
+and maybe you didn't even know they were an option. Let's try to go from our
+intuition about how things should work to a bit more rigid of an understanding.
+
+As an example, consider something like:
+
+```haskell
+x = foo + bar
+  where
+    foo = 3
+    bar = 4
+    
+y = 3
+```
+
+The first rule you've likely internalized is that everything
+at the same level of indentation *continues* whatever the current block is.
+Because `foo` and `bar` are at the same level of indentation, we expect
+them to be in the same block.
+
+Similarly, `x` and `y` are in the same block. This rule also makes it so that
+we have to indent the `where`, so that it belongs to `x`, and is not seen
+as continuing the same layout that `x` and `y` belong to.
+
+We also require that `foo` and `bar` are further indented than the `where`.
+
+With explicit braces and semicolons, we have:
+
+```haskell
+{
+x = foo + bar
+  where {
+    foo = 3;
+    bar = 4
+  }
+;
+  
+y = 3
+}
+```
+
+This is just the realization of our implicit intuition about where scopes should be,
+and how they work.
+
+A final rule we've all internalized is that layouts only happen after certain keywords.
+
+
+When we see:
+
+```haskell
+x =
+  2 + 3
+  * f x
+```
+
+everything after the `=` is just a single expression, all bound to `x`. This all belong
+to `x` because they're further indented, but no layout has been introduced after the `=`.
+
+If we generate semicolons like this:
+
+```haskell
+x = {
+  2 + 3;
+  * f x
+}
+```
+
+that would obviously not be correct.
+
+on the other hand, from a lexical point of view, if we had:
+
+```haskell
+x = a
+  where
+    2 + 3
+    * f x
+```
+
+then we should insert a layout, and end up with:
+
+```haskell
+{
+x = a
+  where {
+   2 + 3;
+   * f x
+  }
+}
+```
+
+The presence of a `where` keyword causes us to be ready to see this kind of whitespace
+sensitive layout of code. The other keywords like this (for our subset) include `let`, and `of`.
+
+{{<note>}}
+This program might like odd, because it isn't a program! This is not syntactically valid
+Haskell, our parser will reject it. On the other hand, from a perspective of whitespace sensitivity,
+nothing fishy is going on, and it's not the lexer's job to decide that `2 + 3` is not a valid
+term in the bindings after `where`.
+{{</note>}}
+
 ## Position Information
+
+So, given our intuitive understanding, we've realized that it's very important
+to keep track of "where" a token is, both "vertically", and "horizontally".
+
+```haskell
+x = y
+```
+
+does not yield the same layout as:
+
+```haskell
+x =
+
+y
+```
+
+and
+```haskell
+let
+  x = 1
+  y = 2 
+in
+```
+
+should not yield the same layout as:
+
+```haskell
+let
+  x = 1
+    y = 2
+in
+```
+
+What column a token appears at is quite important. Another bit of information that's
+quite important is whether or not a token is at the start of a given line or not.
+What we want is to annotate our tokens with this position information.
+
+So, in `Lexer.hs`, let's create some types to represent this information:
+
+```haskell
+data LinePosition = Start | Middle deriving (Eq, Show)
+
+data Positioned a = Positioned a LinePosition Int deriving (Eq, Show)
+```
+
+We can annotate something with positioning information by specifying whether
+or not it's the first token on a given line, and the column at which it appears.
+This will be sufficient to implement our layout rules.
+
+What we'll be doing soon enough is going from `[Positioned Token] -> [Token]`,
+using that extra position information to infer the braces and semicolons which
+we add to the tokens we output.
+
+Right now though, we just have `[Token]`, without any position information,
+and no braces and semicolons.
+
+### Raw Tokens
 
 ## An Imperative Layout algorithm
 
