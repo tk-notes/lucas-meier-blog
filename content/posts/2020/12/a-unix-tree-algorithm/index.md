@@ -1,7 +1,7 @@
 ---
 title: "A simple algorithm for UNIX's Tree"
 date: 2020-12-05
-draft: true
+draft: false
 tags:
   - Algorithms
   - Command Line
