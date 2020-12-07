@@ -660,7 +660,7 @@ import Control.Monad.Except (ExceptT, MonadError (throwError), runExceptT)
 import Control.Monad.State (State, gets, modify', runState)
 import Data.Char (isAlphaNum, isDigit, isLower, isSpace, isUpper)
 import Data.List (foldl', foldl1')
-import Data.Maybe (listToMaybe)
+import Data.Maybe (listToMaybe, maybeToList)
 import Ourlude
 ```
 
@@ -1457,6 +1457,174 @@ Right now though, we just have `[Token]`, without any position information,
 and no braces and semicolons.
 
 ### Raw Tokens
+
+Right now, our lexer simply blows up if it encounters any whitespace tokens,
+and we can't handle comments either. The next order of business is being
+able to lex whitespace and comments along with normal tokens.
+
+If we weren't whitespace sensitive, we'd still need to do this. We would
+simply collect all of these tokens, and then filter them out from
+the final output. This way, we could allow arbitrary spacing between tokens,
+as well as comments in the source code, without affecting the semantics.
+
+For our purposes, it's important to keep these tokens, so we can annotate the
+other "normal" tokens with position information. We'll be using the whitespace
+and comment tokens around them to figure out how they're positioned within the file.
+
+So, let's define a new token type that adds these extra variants:
+
+```haskell
+data RawToken
+  = Blankspace String
+  | Comment String
+  | Newline
+  | RawToken Token String
+```
+
+`Blankspace` represents "horizontal" whitespace, i.e whitespace containing no newlines. For
+newlines, we have the `Newline` token. We also have comments, with the `Comment`
+constructor, and then finally a little wrapper for normal tokens, along with their string contents.
+
+Let's go ahead and create a lexer for these raw tokens:
+
+```haskell
+-- A Lexer for raw tokens
+rawLexer :: Lexer [RawToken]
+rawLexer = some (whitespace <|> comment <|> rawToken)
+  where
+    rawToken = fmap (uncurry RawToken) token
+    ...
+```
+
+So, our raw lexer parses at least one occurrence of a raw token, which is either
+whitespace, a comment, or a normal token.
+
+For comments, we need to parse a `--`, and then the rest of the line:
+
+```haskell
+    comment = Comment <$> (string "--" *> many (satisfies (/= '\n')))
+```
+
+We allow empty comments, hence why we pick `many`, instead of `some`.
+
+
+Now, for whitespace, we can either have horizontal whitespace, or a single newline:
+
+```haskell
+    whitespace = blankspace <|> newline
+```
+
+If we have multiple newlines, we'll end up generating multiple tokens.
+
+Horizontal whitespace is just one or more whitespace characters that are *not*
+newlines:
+
+```haskell
+    blankspace = Blankspace <$> some (satisfies (\x -> isSpace x && x /= '\n'))
+```
+
+And a newline is generated when we see a `\n`:
+
+```haskell
+    newline = Newline <$ char '\n'
+```
+
+With that, we can now parse out the whitespaces and comments. If we wanted to,
+we could replace `some token` with `rawLexer` in our `lexer` function,
+and then filter out just the normal tokens, and get a lexer for a version of Haskell
+that doesn't infer layouts.
+
+### Positioning Tokens
+
+The next step is using all of this information to annotate
+the normal tokens using the `Positioned` type we defined earlier.
+We want to have a function `[RawToken] -> [Positioned Token]`, where given the
+list of raw tokens, we produce a list of tokens with positions. In the process,
+all of the superfluous whitespace and comment tokens are discarded, since they've served their purpose
+
+The basic idea of the algorithm is going to be a somewhat imperative one.
+We'll keep track of `(LinePosition, Int)`, which will serve as the position of the next token,
+when we end up producing it. As we see raw tokens, we'll update this state,
+or actually produce a token positioned with this information.
+
+In practice, we have this:
+
+```haskell
+type PosState = (LinePosition, Int)
+
+position :: [RawToken] -> [Positioned Token]
+position = foldl' go ((Start, 0), []) >>> snd >>> reverse
+  where
+    go :: (PosState, [Positioned Token]) -> RawToken -> (PosState, [Positioned Token])
+```
+
+So, we're folding from the left, and the accumulator will hold the current position information,
+as well as a list of tokens we're producing. After the fold is done, we simply discard this position information,
+and use the tokens we produced. We produce a new token by adding it the front of the list, so we
+want to *reverse* this order after we're finished.
+
+{{<note>}}
+We use `foldl'` here, the strict version of `foldl`, since this is better for memory consumption.
+{{</note>}}
+
+Before we define `go`, we need a little helper function `eat`:
+
+```haskell
+eat :: PosState -> RawToken -> (PosState, Maybe (Positioned Token))
+```
+
+`eat` will take in the current position information, and a raw token, and then
+adjust the current position. It may also produce a token with position information,
+when we come across an actual token, and not one of the extra whitespace or comment
+tokens.
+
+The implementation looks like this:
+
+```haskell
+    eat :: PosState -> RawToken -> (PosState, Maybe (Positioned Token))
+    eat (pos, col) = \case
+      Newline -> ((Start, 0), Nothing)
+      Comment _ -> ((Start, 0), Nothing)
+      Blankspace s -> ((pos, col + length s), Nothing)
+      RawToken t s ->
+        let token = Positioned t pos col
+        in ((Middle, col + length s), Just token)
+```
+
+When we see a newline, regardless of what position we had earlier, the new position will be at the first column,
+at the start of the next line.
+
+A comment acts in the same way, since a comment is effectively like a new line, in terms of positioning.
+
+When we see blank space, that simply advances the current column, while keeping
+the information about whether or not we're at the start of a line. If we were previously
+at the start of a line, and then see some blank space, we're still at the start of the line,
+since we haven't seen a "real" token yet.
+
+When we see an actual token, we're going to produce that token, along with the current position information.
+We then adjust the position information to now be in the middle of that line, and
+we move the column forward based on how long the string contents of that token were.
+
+{{<note>}}
+This is the reason why we had to include the raw string of each token. We needed
+to be able to adjust the position information using the length of that token.
+{{</note>}}
+
+With that done, the implementation of `go` is straightforward:
+
+```haskell
+    go :: (PosState, [Positioned Token]) -> RawToken -> (PosState, [Positioned Token])
+    go (p, acc) raw =
+      let (p', produced) = eat p raw
+      in (p', maybeToList produced <> acc)
+```
+
+We adjust the position information according to `eat`, and add a token to our accumulator
+if `eat` happened to produce one.
+
+Alrighty, now we have a little function to produce the position information
+for our tokens, all we need is to make an algorithm that uses all of this
+information to insert braces and semicolons in the right places!
 
 ## An Imperative Layout algorithm
 
