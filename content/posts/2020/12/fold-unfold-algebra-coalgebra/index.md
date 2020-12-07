@@ -1,7 +1,7 @@
 ---
 title: "(Un)fold as (Co)algebra"
 date: 2020-12-07
-draft: true
+draft: false
 katex: true
 tags:
   - Algebra
