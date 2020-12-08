@@ -98,7 +98,7 @@ The commutative diagram becomes:
 
 {{<img "2.png">}}
 
-Now, my claim is that by *duality*, `\text{Fix} F` is going to be a concrete representation
+Now, my claim is that by *duality*, $\text{Fix} F$ is going to be a concrete representation
 of the *terminal object* in this category. That is to say, there is a morphism $A \to \text{Fix} F$
 for any $F$-CoAlgebra $A$.
 
