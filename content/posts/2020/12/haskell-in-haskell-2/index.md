@@ -1,6 +1,6 @@
 ---
 title: "(Haskell in Haskell) 2. Lexing"
-date: 2020-11-24
+date: 2020-12-08
 draft: true
 tags:
   - Haskell
@@ -1626,10 +1626,784 @@ Alrighty, now we have a little function to produce the position information
 for our tokens, all we need is to make an algorithm that uses all of this
 information to insert braces and semicolons in the right places!
 
-## An Imperative Layout algorithm
+## A Stateful Algorithm
+
+The algorithm we're going to be working on is an imperative one.
+The idea is that we'll be iterating over the positioned tokens, while
+keeping track of some bits of state, and then yielding tokens as we go.
+In response to the position information, we might modify our current state,
+or yield some extra semicolon or brace tokens. We also want
+to yield all of the original tokens from the source code.
+
+### Layouts
+
+One of the things we'll need to keep track of are *layouts*:
+
+```haskell
+data Layout = Explicit | Implicit Int
+```
+
+Let's say we have some code like:
+
+```haskell
+let {
+  x = 3
+} in x
+```
+
+When we see a `{`, we've entered an `Explicit` layout, and we need to keep track of this information,
+because we will *not* be inserting any semicolons while we remain in this layout,
+and we'll also need an explicit closing brace.
+
+On the other hand, if we have:
+
+```haskell
+let
+  x = 3
+in x
+```
+
+then this is an `Implicit` layout, in fact `Implicit 2`, since the (zero-based) column
+where the layout is at is `2`. This number matters, as we've seen before.
+This is because:
+
+```haskell
+let
+  x = 3
+  y = 2
+in x + y
+```
+
+has a very different meaning from
+
+```haskell
+let
+  x = 3
+    y = 2
+in x + y
+```
+
+The former should see a semicolon inserted between the two definitions, whereas
+the second will have us end up with `x = 3 y = 2`, as if they were on one line.
+Syntactically, this will get rejected by our parser, but our lexer isn't going
+to bat an eye yet.
+
+Since we want to be able to nest these layouts:
+
+```haskell
+let {
+  x = let
+    y = 3
+  in y
+} in x
+```
+
+We'll be needing a *stack* of layouts. This will allow us to push and pop layouts as
+we enter and exit them.
+
+### Expecting Layouts
+
+Another rule we mentioned in passing before is that `let`, `where` and `of`
+all places where a layout can start. For example, when you have:
+
+```haskell
+let
+  x = 2
+in x
+```
+
+After seeing `let`, we need to keep our eyes peeled for the next token, since that token
+might trigger the start of a new implicit layout. The column where that token is
+positioned becomes the column for that new layout as well.
+
+On the other hand if we see a `{` after a `let`, that indicates that
+we're actually not going to be starting an implicit layout, in which case
+the indentation of that `{` doesn't matter at all.
+
+Our way of managing all this will be to keep track of whether or not
+we're currently expecting a layout. When we see `let`, `where` or `of`,
+we'll set that to true, and then set it back once we've found the next token.
+
+### The Full State
+
+The final thing we'll need, mainly for convenience, is a way to yield tokens.
+Since we might want to yield extra tokens at certain points, it'd be nice to
+have a way to modify the state to have an extra few tokens in its "output buffer".
+We'll simply have a `[Token]`, and then use `:` to add new items. Once we've
+traversed all of the positioned tokens, we can reverse this list, and return it,
+and this will become the final output for the lexer.
+
+{{<note>}}
+We have to reverse the list since we add new tokens by putting them at the front
+of the list, but the later we add a token, the later we want it to appear in the
+output as well.
+{{</note>}}
+
+So, our full state looks like this:
+
+```haskell
+data LayoutState = LayoutState
+  { layouts :: [Layout],
+    tokens :: [Token],
+    expectingLayout :: Bool
+  }
+```
+
+`layouts` is the stack of layouts we mentioned earlier, `expectingLayout` the flag
+for `let`, `where`, and `of`, and `tokens` is the "output buffer" we've just talked about.
+Our code will be inspecting this state, and modifying it, as it scans through
+the positioned tokens we feed it.
+
+## Contextual Computation
+
+In this section, we'll have our first use of Monad Transformers to
+create a little context, or DSL, in which to do some kind of operation.
+We'll be seeing plenty more of these throughout the rest of this series, so I think
+it's a good idea to explain the general idea here. If you're already familiar
+with some of the practical applications of Monad Transformers and
+the `mtl` library, then feel free to skim, or skip over this section.
+
+In normal Haskell code, you're just working with plain old values, and
+function application. When you add some definitions with `let`, say:
+
+```haskell
+let x = f a b c
+    y = g a b c
+in x + y
+```
+
+There's no code "in between" those two definitions. The order in which we
+defined things doesn't matter. This is somewhat obvious,
+but consider a slightly different version of this code:
+
+```haskell
+do
+x <- f a b c
+y <- g a b c
+return (x + y)
+```
+
+This bit of code is quite similar to the first version, but something very important
+has changed: we're now in a do block. Because we're in such a block,
+it becomes important not only to consider each line, but also the order in which
+the lines occurr, as well as what kind of Monad, or *context* the `do` block is for.
+
+What `do` enables us to go from strictly pure computations, to computations
+in a given context, or augmented with some kind of effectful capability.
+One of the contexts we use recently was `Maybe`. `Maybe` allows us to do some computation
+with the possibility of failure. `do` does the job of
+sequencing together all of the code, using the `>>=` function that `Maybe` implements.
+In the above example, if `f` were to return `Nothing`, then the result of the whole block
+would be `Nothing`.
+
+There are other kinds of contexxts that will be useful to us quite soon.
+One example would be `State s`. `State s` allows us to have some computations
+that manipulate some state of type `s`. We can query for the current state,
+and also modify it. It's as if we embedded a little imperative DSL into our Haskell code.
+Of course, `State s` is essentially sugar for `s -> (a, s)`, and `>>=` does the drudge
+work of passing the correct state around as new states are returned. No mutation
+actually **happens**, but plenty of mutation is certainly **expressed**
+in the DSL provided by `State s`.
+
+Where transformers come into play is in their ability to let us *combine*
+multiple contexts together. If we want the ability to fail with an error,
+and to manipulate a given state, we'll need to combine both `State s` and
+`Either e`. This is where things like `StateT` and `ExceptT`
+are useful.
+
+## LayoutM
+
+We can use these raw combinations directly, or encapsulate them behind
+a `newtype`. We'll be using `newtypes` later on. The idea behind wrapping
+a stack of transformers behind a `newtype` is that the DSL we want to provide is
+quite different than that of the different transform contexts. The transformers
+are just an implementation detail for the little imperative language
+we want to embed.
+
+In this case, we'll be using a "naked" stack, but later on we'll mostly be using `newtype`
+stacks.
+
+We'll be needing a context / stack for our algorithm, which we'll aptly call, `LayoutM`:
+
+```haskell
+type LayoutM a = ExceptT LexerError (State LayoutState) a
+```
+
+We're combining two Monads here, `Except LexerError`, which allows to fail with errors
+of type `LexerError`, and `State LayoutState`, which allows us to inspect
+and manipulate the `LayoutState` type that we defined earlier.
+
+We can go ahead and create a little helper that will run a computation in `LayoutM`,
+returning the tokens it produced, in the right order:
+
+```haskell
+runLayoutM :: LayoutM a -> Either LexerError [Token]
+runLayoutM =
+  runExceptT >>> (`runState` LayoutState [] [] True) >>> \case
+    (Left e, _) -> Left e
+    (Right _, LayoutState _ ts _) -> Right (reverse ts)
+```
+
+The idea behind running the stack is that you need to unwrap the layers
+from outside to inside. So first we unwrap the `ExceptT` layer,
+and then unwrap the `State` layer. We need to provide a starting state, of course.
+That starting state indicates that no layouts have been seen yet, no tokens have been produced
+but, we *are* expecting a layout at the start of a file!
+
+Finally, we'll look at the output result, which will be `(Either LexerError a, LayoutState)`,
+We don't care about the output itself, only the tokens in the state,
+which we need to reverse, as explained before.
+
+We expect a layout at the start of a file, because our source
+code will consist of multiple definitions:
+
+```haskell
+x :: Int
+x = y
+
+y :: Int
+y = 2
+```
+
+and we want to be able to infer the semicolons between the different statements,
+and thus the braces surrounding all of the code.
+
+## Basic Operations
+
+As a bit of a warmup, let's write a few of the fundamental operations
+we'll be using. These make up a bit more of the "DSL" we've
+created with `LayoutM`.
+
+### Yielding Tokens
+
+The first operation we need is the ability to produce a token:
+
+```haskell
+yieldToken :: Token -> LayoutM ()
+yieldToken t = modify' (\s -> s {tokens = t : tokens s})
+```
+
+We do nothing more than modify the current state, where the new state has
+a new token at the front of its buffer.
+
+{{<note>}}
+We use `modify'`, the strict version of `modify`, since we have no
+use for laziness in our state, which we're going to consume completely,
+and so it's better to avoid creating needless thunks.
+{{</note>}}
+
+### Layout Operations
+
+We'll be needing an operation to a push a new layout onto the stack:
+
+```haskell
+pushLayout :: Layout -> LayoutM ()
+pushLayout l = modify' (\s -> s {layouts = l : layouts s})
+```
+
+This one operates in the same way as `yieldToken`, except on `layouts`,
+instead of `tokens`.
+
+And then we'll need an operation to remove a layout from the stack:
+
+```haskell
+popLayout :: LayoutM ()
+popLayout = modify' (\s -> s {layouts = drop 1 (layouts s)})
+```
+
+{{<note>}}
+We use `drop 1`, instead of `tail`, since we want don't want to do anything
+if the stack of layouts is already empty.
+{</note>}
+
+We also want to be able to inspect the current layout:
+
+```haskell
+currentLayout :: LayoutM (Maybe Layout)
+currentLayout = gets layouts |> fmap listToMaybe
+```
+
+If `layouts` ends up being empty, then we'll end up returning `Nothing` here.
+
+An immediate application of this little helper is a function:
+
+```haskell
+compareIndentation :: Int -> LayoutM Ordering
+```
+
+Which tells us whether or not an implicit layout starting at a given column would
+be considered less than (`LT`), equal to (`EQ`), or greater than (`GT`)
+than the current layout:
+
+```haskell
+compareIndentation :: Int -> LayoutM Ordering
+compareIndentation col =
+  let cmp Nothing = GT
+      cmp (Just Explicit) = GT
+      cmp (Just (Implicit n)) = compare col n
+   in fmap cmp currentLayout
+```
+
+The idea is that any implicit layout is greater than no layout at all,
+or an explicit layout. On the other hand, if we have another implicit layout,
+we need to compare the columns. We'll be seeing how we use this comparison soon enough.
+
+## The Algorithm Itself
+
+Alrighty, we've built in the background knowledge and some of the basic building
+blocks to actually start dissecting the layout algorithm itself. Here's what it looks like:
+
+```haskell
+layout :: [Positioned Token] -> Either LexerError [Token]
+layout inputs =
+  runLayoutM <| do
+    mapM_ step inputs
+    closeImplicitLayouts
+  where
+    ...
+```
+
+So `layout` takes in the positioned tokens we made earlier, and then
+converts them into a list of normal tokens, including the generated semicolons
+and braces. We might also fail with a `LexerError`.
+
+What we do is run a layout action, which loops over the inputs using the `step` function,
+which will modify the state, and produce tokens, and then we have a function `closeImplicitLayouts`.
+The idea behind this operation is that at the end of a file, if any implicit layouts are still open,
+we need to generate the explicit closing braces for them.
+
+For example, if we have something like:
+
+```haskell
+x = y
+  where
+    y = z
+      where
+        z = 3
+```
+
+Then we want to end up with:
+
+```haskell
+{
+x = y where {
+  y = z where {
+    z = 3
+  }
+}
+}
+```
+
+So we need to generate all of those closing braces when we reach
+the end of the token stream. Thankfully, since we keep a stack of the layouts
+we've entered, we'll have 3 pending implicit layouts: one for the start of the file,
+and 2 others for the wheres.
+
+So, we have the following definition:
+
+```haskell
+    closeImplicitLayouts :: LayoutM ()
+    closeImplicitLayouts =
+      currentLayout >>= \case
+        Nothing -> return ()
+        Just Explicit -> throwError UnmatchedLayout
+        Just (Implicit _) -> do
+          yieldToken CloseBrace
+          popLayout
+          closeImplicitLayouts
+```
+
+We loop until there are no layouts left on the stack. If at any point,
+we see an explicit layout, then that's an error. It means that we have something like:
+
+```haskell
+{
+x = 2
+```
+
+and we *never* close explicit braces ourselves. This we have an unmatched `{`
+by the time we're at the end of the file, and that's an error.
+
+Whenever we see an implicit layout, we generate the necessary closing `}`,
+and then remove that layout from the stack.
+
+Another helper we have here is `startsLayout`:
+
+```haskell
+    startsLayout :: Token -> Bool
+    startsLayout = (`elem` [Let, Where, Of])
+```
+
+This encodes the fact we've talked about a few times, where `let`, `where`,
+and `of` are the tokens that start a layout.
+
+### The Step
+
+The crux of the algorithm is the `step` function, which contains all of
+the core rules behind how layouts work in our subset of Haskell:
+
+```haskell
+    step :: Positioned Token -> LayoutM ()
+    step (Positioned t linePos col) = do
+      expectingLayout' <- gets expectingLayout
+      case t of
+        CloseBrace -> closeExplicitLayout
+        OpenBrace | expectingLayout' -> startExplicitLayout
+        _
+          | startsLayout t -> modify' (\s -> s {expectingLayout = True})
+          | expectingLayout' -> startImplicitLayout col
+          | linePos == Start -> continueImplicitLayout col
+          | otherwise -> return ()
+      yieldToken t
+```
+
+In certain situations, whether or not we're expecting a layout matters,
+so we first retrieve that from the state.
+
+Regardless of how we process that token, we will add it to the output
+buffer afterwards, hence the `yieldToken t` at the end of the `case`.
+We want to look at the token to decide what extra handling needs to be done though.
+
+If we see `}`, that means that the user is intending to close
+a layout that they created explicitly using a `{`, and we handle that case
+in the `closeExplicitLayout` operation.
+
+If we see a `{`, *and* we're at a point in the stream where a layout can be started,
+because we're after `let`, `where` or `of`, then we start an explicit layout, using
+`startExplicitLayout`.
+
+Otherwise, the token itself doesn't matter, but other properties and conditions do.
+
+If that token starts a layout, then we need to set this flag to true in our state.
+
+Otherwise, if we're expecting a layout, then we should start an implicit layout
+at the column where this token appears.
+
+So if we have:
+
+```haskell
+let
+  x =
+```
+
+After seeing `let`, we're now expecting a layout. Then when we see `x`, we decide
+to start an implicit layout at column 2.
+
+If we're not expecting a layout, and we see the first token on a given line, then we're
+continuing a layout that already exists, knowing that whatever layout we're continuing
+is at the column `col`. This actually handles a few different cases, as we'll see.
+
+### Closing Explicit Layouts
+
+For `closeExplicitLayout`, the idea is that after seeing `}`, this
+must close an explicit layout started with `{`, and this layout must be
+at the top of the stack. The reason for this is that we don't allow `}`
+to close implicit layouts itself.
+
+```haskell
+{
+let
+  x = 2 }
+```
+
+This would be an error, for example, because we start an implicit layout after
+the `x`, and `}` isn't allowed to close that implicit layout itself.
+
+Concretely, we have:
+
+```haskell
+    closeExplicitLayout :: LayoutM ()
+    closeExplicitLayout =
+      currentLayout >>= \case
+        Just Explicit -> popLayout
+        _ -> throwError (Unexpected '}')
+```
+
+If the current layout is explicit, that's we expect, and we remove
+it from the stack, since the `}` has closed it. Otherwise, we throw an error,
+for the reasons mentioned above.
+
+### Starting Explicit Layouts
+
+This is sort of the reverse operation. We need to push an explicit
+layout for the opening `{` we've just seen onto the stack. We also
+need to indicate that we're no longer expecting a layout, since the `{`
+starts the layout we were expecting:
+
+```haskell
+    startExplicitLayout :: LayoutM ()
+    startExplicitLayout = do
+      modify' (\s -> s {expectingLayout = False})
+      pushLayout Explicit
+```
+
+### Starting Implicit Layouts
+
+For `startImplicitLayout`, let's have a look at the code, and explain what's going
+on with some examples afterwards. This function will be called when we've seen our
+first token (that isn't a `{` or a `}`) after seeing a layout starting token.
+
+```haskell
+    startImplicitLayout :: Int -> LayoutM ()
+    startImplicitLayout col = do
+      modify' (\s -> s {expectingLayout = False})
+      compareIndentation col >>= \case
+        GT -> do
+          yieldToken OpenBrace
+          pushLayout (Implicit col)
+        _ -> do
+          yieldToken OpenBrace
+          yieldToken CloseBrace
+          continueImplicitLayout col
+```
+
+Now, regardless of how we handle things, we're no longer expecting a layout
+after this is over. We'll have handled things, one way or another.
+
+What happens next depends on how the column we saw this token at compares with the current indentation.
+
+If we're strictly further indented, then we start a new implicit layout, and push the `{` token
+that goes with it.
+Otherwise, we push a complete, but empty layout with a `{` and a matching `}` token, and then
+use `continueImplicitLayout`.
+
+This catches the case where we have something like:
+
+```haskell
+let
+  x = 2 where
+  y = 3
+in x + y
+```
+
+After the `where`, we are indeed expecting a layout, and `y` at column 2 is the token we expect to
+handle that fact. But, since `y = 3` is at the same level of indentation as `x = 2`, it
+belongs to the layout started after `let`! Because of this, this `where` block is actually empty,
+and the tokens we produce are:
+
+```haskell
+let {
+  x = 2 where {};
+  y = 3
+} in x + y
+```
+
+Now, if the `y = 3` had been further indented:
+
+```haskell
+let
+  x = 2 where
+    y = 3
+in x
+```
+
+Then this would need to produce:
+
+```haskell
+let
+  x = 2 where { y = 3 }
+in x
+```
+
+## Continuing Implicit Layout
+
+So `continueImplicitLayout` handles the case where we have some token at the start of a line,
+or after a layout token, that needs to continue the current implicit layout in some way. Another
+case we'll handle here is *closing* that implicit layout automatically.
+
+Layouts are closed when we see a token that's less indented. For example:
+
+```haskell
+x = y
+  where
+    y = 2
+
+z = 3
+```
+
+The `where` layout closes when we see `z = 3` indented less than `y = 2`, giving us:
+
+```haskell
+{
+x = y where { y = 2 };
+
+z = 3
+}
+```
+
+Concretely, we have:
+
+```haskell
+    continueImplicitLayout :: Int -> LayoutM ()
+    continueImplicitLayout col = do
+      closeFurtherLayouts
+      compareIndentation col >>= \case
+        EQ -> yieldToken Semicolon
+        _ -> return ()
+      where
+        closeFurtherLayouts =
+          compareIndentation col >>= \case
+            LT -> do
+              yieldToken CloseBrace
+              popLayout
+              closeFurtherLayouts
+            _ -> return ()
+```
+
+The first thing we do is close every implicit layout that we're strictly
+below, for teh reasons we just went over. To close them we emit a `}`,
+and then pop the layout off of the stack.
+
+Then we check whether or not there's a layout matching our indentation *exactly*,
+in which case we need to emit a semicolon.
+
+This is so that we have the semicolons in something like:
+
+```haskell
+let
+  x = 2
+  y = 3
+  z = 4
+in x + y + z
+```
+
+With this way of doing things, we'll be generating the semicolon necessary between
+the tokens when we see them continuing the layout, so we have something like:
+
+```haskell
+let {
+  x = 2
+  ;y = 3
+  ;z = 4
+} in x + y + z
+```
+
+The rest of the logic we had earlier makes it so that by the time we
+call `continueImplicitLayout`, we know that there's some other token
+before us, and we need a semicolon as a separator. That token will have
+use `startImplicitLayout` itself, producing the layout we find ourselves in.
+
+### Glue Code
+
+We can now glue all of this together, and produce a lexer function that does all of these positioning rules:
+
+```haskell
+lexer :: String -> Either LexerError [Token]
+lexer input =
+  runLexer rawLexer input >>= (fst >>> position >>> layout)
+```
+
 
 # Some Examples
 
+And that's it! We're done! We've made a complete lexer for our subset of Haskell,
+handling whitespace in all of its glory. For the sake of completeness, let's see how it works
+in some examples.
+
+As a reminder, we can run our lexer using:
+
+```bash
+cabal run haskell-in-haskell -- lex file.hs
+```
+
+First, if we just have some basic definitions:
+
+```haskell
+x = 1
+
+y = 2
+
+z = 3
+```
+
+We see that the whole thing is surrounded in braces, and semicolons are inserted
+at the right spots:
+
+```haskell
+[ OpenBrace
+, LowerName "x"
+, Equal
+, IntLitt 1
+, Semicolon
+, LowerName "y"
+, Equal
+, IntLitt 2
+, Semicolon
+, LowerName "z"
+, Equal
+, IntLitt 3
+, CloseBrace
+]
+```
+
+If we have a simple nested let:
+
+```haskell
+z =
+  let
+    x = let
+      y = 3
+    in y
+  in x
+```
+
+```haskell
+[ OpenBrace
+, LowerName "z"
+, Equal
+, Let
+, OpenBrace
+, LowerName "x"
+, Equal
+, Let
+, OpenBrace
+, LowerName "y"
+, Equal
+, IntLitt 3
+, CloseBrace
+, Semicolon
+, In
+, LowerName "y"
+, CloseBrace
+, In
+, LowerName "x"
+, CloseBrace
+]
+```
+
+If you've followed along so far, congratulations, I hope that wasn't too much typing!
+You can have quite a bit of fun trying out different programs, and seeing
+what output your lexer produces!
+
+{{<note>}}
+One rule of Haskell's layout algorithm that we've omitted is a rule saying that
+if you encounter a parse error, and you have an implicit layout
+on the stack, then you should try inserting a `}`, and then resume parsing.
+
+This rule is a pain to implement, and we've ommitted to vastly simplify
+the structure of our parsing. With this rule in place, you can't truly separate
+the two phases.
+
+While I think the rule is very ugly, it does make so some extra things do parse
+correctly. So, be mindful that some exmaples from Haskell might fail to parse
+because of this rule.
+{{</note>}}
+
 # Conclusion
 
-# References
+So, this post was longer than I expected it to be! Hopefully I did a decent job
+of introducing lexing, as well as the lexer for our subset of Haskell. I hope that
+the layout rules are much clearer now that you've actually had to implement all of their details.
+I've tried to organize the rules in a way that's quite understandble.
+
+There's [a section in the Haskell '98 report](https://www.haskell.org/onlinereport/syntax-iso.html)
+that talks about Haskell syntax, and the layout rules, in particular. This might be an interesting
+read, and you can contrast the way they define rules there with the imperative algorithm
+we've set up here.
+
+[Crafting Interpreters](https://craftinginterpreters.com/contents.html) is another fun
+and very approachable read if you want to know more about lexing.
+
+In the next post, we'll be going over parsing! By the end of that post, we'll have gone from
+a simple stream of tokens to a full syntax tree for our subset of Haskell!
+
