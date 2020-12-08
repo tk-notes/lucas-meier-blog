@@ -1914,7 +1914,7 @@ popLayout = modify' (\s -> s {layouts = drop 1 (layouts s)})
 {{<note>}}
 We use `drop 1`, instead of `tail`, since we want don't want to do anything
 if the stack of layouts is already empty.
-{</note>}
+{{</note>}}
 
 We also want to be able to inspect the current layout:
 
