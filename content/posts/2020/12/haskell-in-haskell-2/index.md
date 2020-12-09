@@ -14,30 +14,34 @@ In this post, we'll go over creating a _lexer_ for our subset of Haskell. This s
 of the compiler goes from the raw characters in our a source file, to a more
 structured stream of _tokens_.
 
-We'll really be diving into some code this time, so get your editor ready!
+We'll finally be digging into some serious code this time, so get your editor
+ready if you're following along!
 
 <!--more-->
 
 # 1 mile overview
 
-Before we go into the code for this part, let's first get an idea of
-what it is we're going to be doing in this part. What job
+Before we go dive into the code, let's first get an idea of
+what this part is about. What job
 is the lexing phase trying to accomplish? What is it responsible for?
+What kind of output will we produce?
 
 ## Making Tokens
 
-The first goal of the lexer is to take a our raw source code,
-which is nothing more than a blob of characters (A `String`, in Haskell),
-and figure out how to cluster these characters to make the Parser's job
-more useful.
+The first goal of the lexer is to take our raw source code,
+a blob of characters (`String`, in Haskell),
+and figure out how to group these characters to make the Parser's job
+easier.
 
 As a reminder, the Parser is going to take our tokens, and then produce
-a complete representation of the source code, in a tree-like structure.
-The Parser _could_ work directly on characters, but this would make
-it more complicated than necessary. Having a separate lexing phase
-gives us a kind of separation of concerns here.
+a complete representation of the source code.
+The Parser _could_ work directly on characters, but this would
+be more complicated. We would be worrying about character level
+concerns, at the same time as higher level structure.
+Having a separate lexing phase
+gives us a nice separation of concerns here.
 
-The Parser will be needing quite a bit of context to do its job.
+The Parser will needs to use context to do its job.
 For example, when parsing an expression, it knows not to try
 and read out things related to types. On the other hand,
 the lexer (at least the part that spits out tokens) can
@@ -45,7 +49,7 @@ be made to work _without_ context.
 
 The lexer just reads in characters, and spits out tokens. After spitting
 out a token, the lexer is in the exact same "state" that it started with.
-The lexer doesn't, or at least _shouldn't_ have any knowledge about context.
+The lexer has minimal knowledge about context.
 
 ## What tokens?
 
@@ -72,19 +76,12 @@ m y D e f i n i t i o n  =  2 3 2  +  y  2
 
 In terms of tokens, we'd like to end up with:
 
-```txt
-myDefinition
-=
-232
-+
-y2
-```
+{{<img "1.png">}}
 
 Here, we've first separated out an _identifier_, that must be taken as a whole.
 It makes no sense to process `myDefinition` as anything but a single unit
-in the parser. We also have two operators, `=`, and `+`. Naming these helps
-make our parser a bit more abstract. We also have a _literal_, `232`. It
-also doesn't make sense to treat a literal as anything but a unit.
+in the parser. We also have two operators, `=`, and `+`. We also have a _literal_, `232`. It
+doesn't make sense to treat a literal as anything but a unit.
 
 We'll be going over the details of what tokens we'd like to define, and how
 exactly we're going to go about lexing them out of our source code later.
@@ -99,8 +96,8 @@ whitespace.
 
 We're quite used to the whitespace sensitivity as Haskell programmers. Most
 programming languages nowadays don't even require semicolons, even
-if they do still use braces for layout. On the other hand, most people are
-oblivious, at least at first, to how Haskell actually uses braces and semicolons out of the hood.
+if they do still use braces for layout. On the other hand,
+most people don't know how Haskell actually uses braces and semicolons out of the hood.
 
 For example
 
@@ -159,10 +156,10 @@ z = 4
 }
 ```
 
-As hinted by this way of explaining things, what we're going
-to be doing in our compiler is adding an extra _mini-stage_ that
-is going to look at the whitespace in our program, and insert
-the correct semicolons and braces to reflect the meaning of the programmer's
+What we're going
+to be doing is adding an extra _mini-stage_ that
+looks at the whitespace in our program, and inserts
+the correct semicolons and braces to reflect the meaning of the
 indentation.
 
 We could do this as part of the parser, but this would make the parser _much more complicated_
@@ -171,21 +168,20 @@ lexer and the parser makes things much cleaner, and much more maintainable.
 
 If you don't understand exactly what constructs end up using
 indentation to insert braces and semicolons, that's normal: I haven't explained it yet :).
-We'll be going over this whole business in much more detail when it comes time
-to _implement_ this system, so that it's fresh in our heads.
+We'll be going over this whole business in much more detail when we
+_implement_ this system, so that it's fresh in our heads.
 
 # Our First Stage
 
-So, that's the overview of what we're going to be accomplishing
+So, having seen what we're going to be accomplishing
 in this part, let's actually start the scaffolding for what we want to do.
 
 ## A trivial Lexer
 
 The first thing we want to do is to create a trivial lexer. This will
-just serve as a stubholder so that we can create all of the code
-to run the lexer when our program is called with the right arguments.
-We're going to do that now, that way we can just focus on the lexer in the rest
-of this post.
+serve as a stubholder for now. Our goal here is to write the command line
+wrapper around this code first, and then expand it to make an actual
+lexer later.
 
 Anyhow, we need a `Lexer` module, so let's add that to our `exposed-modules`
 in our `.cabal` file:
@@ -247,12 +243,10 @@ the project.
 We also have `import Ourlude`, in order to import the custom prelude
 we defined [last time](/posts/2020/11/haskell-in-haskell-1/).
 
-Now, let's create a "stub" implementation of our lexer:
+For now, let's create a "stub" implementation of our lexer:
 
 ```haskell
-data LexerError
-  = UnimplementedError
-  deriving (Eq, Show)
+data LexerError = UnimplementedError deriving (Eq, Show)
 
 data Token = NoTokensYet deriving (Eq, Show)
 
@@ -271,11 +265,11 @@ has not been implemented yet.
 
 Before we actually implement these functions, we're first going to integrate the
 lexer into our command line program, so that the user can run it on an actual file.
-We're going to go ahead and write some boilerplate we can reuse for the other stages
-of our compiler as well. We can get this out of the way now, to focus on the guts
+We can reuse this boilerplate for the other stages
+of our compiler as well. With this out of the way now, we can focus on the guts
 of the compiler as we move forward.
 
-First, let's add some imports we'll be needing in `Main.hs`:
+First, let's add the imports we'll be needing in `Main.hs`:
 
 ```haskell
 import Control.Monad ((>=>))
@@ -288,7 +282,7 @@ import Text.Pretty.Simple (pPrint, pPrintString)
 ```
 
 We import our `Lexer` module, since we'll be using that here.
-We also import our prelude, of course, as well as some small helpers like `(>=>)`, and `toLower`.
+We also import our prelude, of course, as well as some small helpers like `>=>`, and `toLower`.
 We have some IO stuff we'll be using like `getArgs :: IO [String]` for getting the arguments passed
 to our program, as well as `exitFailure :: IO ()`, to quit the program if an error happens.
 
@@ -299,28 +293,28 @@ the library we mentioned
 
 ### Stages: The Idea
 
-What we'd like is a bit of an abstraction over the concept of a _stage_.
+We're going to make a bit an abstraction over the concept of a _stage_.
 Our compiler will be composed of various stages, such as the lexer,
 the parser, etc. Each stage takes in some input, and produces some output,
-potentially failing with an error. Our lexer takes in a `String` is input,
+potentially failing with an error. Our lexer takes in a `String` as input,
 produces `[Token]` as output, and fails with `LexerError`. Our stage
 abstraction should represent this concept of input, output, and errors.
 
-Another thing is that we'd like to be able to produce some kind
+We also want to be able to produce some kind
 of function, or `IO` procedure to execute, knowing up to which stage we want
 to proceed. So if the user does `haskell-in-haskell lex foo.hs`, we know that
 they want to stop and see the output of the lexing stage, whereas `haskell-in-haskell type foo.hs`
 would mean stopping after the type-checking phase, etc.
-We need to use our staging abstraction to construct some kind of `IO` action we can run,
+We need to use our stage abstraction to construct some kind of `IO` action,
 and figure out which of these actions to run based on this first argument. So if we see `lex`,
 we run `lexAction`, if we see `type` we run `typeAction`, etc.
+
+### Stages: The Implementation
 
 The first thing we need is some kind of opaque error type. We want this so that our
 stage abstraction doesn't have to keep track of the error type, for one, and also
 so that we can annotate the errors produced by that stage with some metadata, like
 the name of that stage.
-
-### Stages: The Implementation
 
 So, in `Main.hs`, let's create:
 
@@ -328,9 +322,10 @@ So, in `Main.hs`, let's create:
 data StagedError = StagedError String String
 ```
 
-The two string arguments are a bit of a shame, and easy to be confused, but
-the first will be the name of the stage, and the second will be a string representation
-of the error that the stage produced.
+Unfortunately, the two arguments are easily confused,
+but
+the first will be the name of the stage, and the second will be the
+error produced by a given stage, already converted to a `String`.
 
 We want to be able to transform `Either ThisStageError ThisStageInput` to use this
 error convention, so let's create:
@@ -343,10 +338,11 @@ stageEither name m = case m of
 ```
 
 Given a name (which is presumably that of a given stage), we can massage the
-error into a `StagedError` by showing the error, and then putting that
-along with the name together.
+error into a `StagedError` by showing the error,
+and putting the name beside it.
 
-We can then use it like so:
+We want to be able to print this `StagedError` type in
+a nice way, so let's create:
 
 ```haskell
 printStagedError :: StagedError -> IO ()
@@ -356,9 +352,10 @@ printStagedError (StagedError name err) = do
   pPrintString err
 ```
 
-So we print `<Stage> Error:`, and then the nice pretty printed error.
+This uses `pPrintString` from the `pretty-simple` library
+to print out the error in a nice way.
 
-With this in hand, we can create our stage abstraction:
+With this error type in hand, we can create our stage abstraction:
 
 ```haskell
 data Stage i o = Stage
@@ -372,11 +369,11 @@ We use this to create a function taking input `i`, and producing output `o`,
 potentially failing with a `StagedError`. We also have the name of the stage
 as an extra bit of metadata.
 
-So, we might have `Stage String [Token]` for our Lexer `Stage [Token] SyntaxTree` for our
+We might have `Stage String [Token]` for our Lexer, `Stage [Token] SyntaxTree` for our
 Parser, etc.
 
 Our lexer is of the form `String -> Either LexerError [Token]`. If we squint at this a bit,
-we see `i -> Either e o`. We want to make this function into a `Stage`, so let's create
+we see `i -> Either e o`. We want to transform these kinds of function into `Stage`, so let's create
 a little helper:
 
 ```haskell
@@ -412,8 +409,9 @@ See the similarity here with:
 ```
 
 One detail we do here is that the name of the composed stage is just the name of the second stage. We could've
-opted to make a new name, like "Lexer >-> Parser" or something, but this option actually makes more sense, sense each stage
-depends on the previous one, and we never run one half of the stages without the other half, we only
+opted to make a new name, like `Lexer >-> Parser` or something.
+This option actually makes more sense, because each stage
+depends on the previous one, and we never run one half of the stages without the other half. We only
 _stop early_, sometimes.
 
 Now, let's add some code to create an `IO` action from a given Stage:
@@ -471,7 +469,7 @@ process (Args path stage) = do
 
 Since we've already read in the stage as `String -> IO ()`, this works out just fine.
 
-Now we can actually write a function to parse our all the arguments:
+We can now write a function to parse out all of the arguments:
 
 ```haskell
 parseArgs :: [String] -> Maybe Args
@@ -499,7 +497,7 @@ as our arguments.
 
 ### Remaining Glue
 
-And finally, we can modify `main` to glue all of these functions together:
+Finally, we can modify `main` to glue all of these functions together:
 
 ```haskell
 main :: IO ()
@@ -510,7 +508,8 @@ main = do
     Just args -> process args
 ```
 
-`getArgs :: IO [String]` returns the command line arguments passed to us. We then use parse out `Args`,
+`getArgs :: IO [String]` returns the command line arguments passed to us. We then use these to
+parse out `Args`,
 printing out a failure message, or proceeding with the `process` function we defined earlier.
 
 Now we can actually run the parser, to see something like
@@ -531,13 +530,13 @@ Adding new stages is going to be a breeze!
 
 # How do you make a Lexer?
 
-So that was a dive into some practical Haskell, although mostly boilerplate. Now let's go back
+That was a dive into some practical Haskell, although mostly boilerplate. Now let's go back
 up a layer of abstraction, and think a bit about what a lexer really is, and how it works in theory.
 
 At the end of the day, our lexer will be scanning over our input string character by character,
 outputting tokens as it goes.
 
-**TODO: Illustration?**
+{{<img "2.png">}}
 
 For simple operators, it's easy to understand how our lexer is going to work. For example, if we have
 some operators like:
@@ -549,15 +548,15 @@ some operators like:
 the lexer can see the `+`, and then immediately spit out a `Plus` token, or something like that.
 When it sees the `*`, it spits out `Times`, with `-`, we get `Sub`, etc.
 
-**TODO: Illustration?**
+{{<img "3.png">}}
 
-If our lexer sees a character it doesn't know, it can blow up with an error or something:
+If our lexer sees a character it doesn't know, it can blow up with an error:
 
-**TODO: Illustration?**
+{{<img "4.png">}}
 
 For some other characters, the lexer will simply ignore them:
 
-**TODO: Illustration?**
+{{<img "5.png">}}
 
 If we only need to lex out single characters, then an interesting thing to notice is
 that our lexer keeps track of no state whatsoever. After seeing a single character, the lexer
@@ -565,8 +564,8 @@ is straight back to the same state it started with, ready to accept another char
 
 ## Character Classes
 
-Obviously, our lexer will have to produce tokens composed of more than just a single character
-of input. For example, integers. We want to accept things like `3`, `234`, `2239034`. Integer litterals
+Our lexer will have to produce tokens composed of more than just a single character
+of input. Integers, for example. We want to accept things like `3`, `234`, `2239034`. Integer litterals
 can be arbitrary strings of digits. To handle this, our lexer needs to enter a different "mode",
 or "state" as soon as it sees a digit. Instead of immediately producing some output, it instead shifts
 to a mode where it tries to consume the digits that remain, and only "breaks out" once it sees something that
@@ -586,7 +585,7 @@ in time, our lexer is in a given state, and we can move to different states as w
 potentially spitting out some tokens along the way. For example, a state machine that accepts arithmetic tokens
 like `2 + 23 * 44` would look like:
 
-**TODO: Illustration**
+{{<img "6.png">}}
 
 This state machine idea is also intimately connected to _regular expressions_, and in fact all
 the different classes of characters that make up our tokens correspond to regular expressions, and we
@@ -595,7 +594,13 @@ should be able to recognize whether or not our source code is lexically valid wi
 There's a rich theory around the connection between lexers, regular expressions, and state machines,
 so I'll refer you to other resources if you're interested in that.
 
-**TODO: references**
+There's [a great chapter](https://craftinginterpreters.com/scanning.html)
+on lexing in 
+[Crafting Interpreters](https://craftinginterpreters.com/contents.html), which explains these
+concerns in much more detail.
+
+[Engineering a Compiler](https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-088478-0)
+also has a good section on lexing, if you *really* want a *lot more* detail.
 
 ## Longest Match
 
@@ -603,11 +608,11 @@ Another issue we've completely glossed over is that of conflicts between differe
 We've specifically looked at nice examples where everything is in a completely different bubble, with no
 interaction between the different characters.
 
-**TODO: Illustration**
+{{<img "7.png">}}
 
 Now, the biggest source of ambiguity is between identifiers and keywords. For example,
 if we see `where`, then that is the keyword `where`. No ambiguity whatsoever, but if we add just
-one character, to get `where2` then suddenly that's an identifier, and `where2 = 3` is a valid bit
+one character, to get `where2`, then suddenly that's an identifier, and `where2 = 3` is a valid bit
 of Haskell. So our previous idea of seeing a `w`, and jumping straight towards assuming we've seen
 the start of the keyword `where` is not going to work. In fact, if we have some kind of rule like:
 "an identifier is a lower case alpha character followed by any number of alphas and digits", then it
@@ -651,8 +656,8 @@ let's go ahead and go back to `src/Lexer.hs`.
 
 ### Imports
 
-As is going to become a custom throughout this series, we're going to get all of the imports we'll
-need for the rest of this post out of the way:
+As is going to become a custom throughout this series, we're add
+all of the imports we need for the rest of this module right away:
 
 ```haskell
 import Control.Applicative (Alternative (..), liftA2)
@@ -664,7 +669,7 @@ import Data.Maybe (listToMaybe, maybeToList)
 import Ourlude
 ```
 
-We have some utilities for checking properties of cahracters, some convenient list
+We have some utilities for checking properties of characters, some convenient list
 folds that sadly aren't in the default Prelude, and the helper `listToMaybe`. The other
 monadic stuff will be introduced in due time as we get to using these utilities
 
@@ -680,9 +685,9 @@ data LexerError
   deriving ()
 ```
 
-The first `Unexpected char`, is used when we encounter a character that we don't know
-what to do with. `UnexpectedEOF` is when we reach the end of the input string before
-we're doing lexing some token. For example, if you start a string litteral,
+The first, `Unexpected char`, is used when we encounter a character that we don't know
+how to handle. `UnexpectedEOF` is when we reach the end of the input string before
+we're done lexing some token. For example, if you start a string litteral,
 but never end it, like `"abbbbb`, then you'll get an `UnexpectedEOF` when all
 of the input has been consumed.
 
@@ -721,7 +726,7 @@ a newtype is the be able to easily define new instances of different typeclasses
 `Lexer` type.
 {{</note>}}
 
-We can go ahead and write a few basic "building blocks" we'll be needing later.
+We can go ahead and write a few basic "building blocks" that we'll be needing later.
 
 The first lexer we'll make is one that accepts a single character matching a predicate,
 producing whatever character was accepted:
@@ -744,7 +749,7 @@ char :: Char -> Lexer Char
 char target = satisfies (== target)
 ```
 
-which will match an exect character. So we might do `char '+'`, for example.
+which will match an exact character. So we might do `char '+'`, for example.
 
 Now we need to implement some fundamental typeclasses for `Lexer`, which will be
 used for composing them together.
@@ -768,10 +773,10 @@ as the concrete type for this function. All this does really is do some plumbing
 to change the output our lexer produces; `fmap` has no effect whatsoever on
 what characters a lexer accepts.
 
-**TODO: Illustration?**
+{{<img "8.png">}}
 
 This also gives us access to other functions that use `Functor`, for example,
-we could now transform `fmap (const Plus) (char '+')` into something like
+we could now transform `fmap (const Plus) (char '+')` into
 `Plus <$ char '+'`, since `<$ :: Functor f => a -> f b -> f a` is defined for
 any type implementing `Functor`.
 
@@ -799,7 +804,9 @@ in power would be:
 both :: Lexer a -> Lexer b -> Lexer (a, b)
 ```
 
-which expresses the idea a bit more clearly, in my opinion
+which expresses the idea a bit more clearly, in my opinion.
+Here it's clear that we need to run both lexers, ending up
+with the combined outputs from both.
 {{</note>}}
 
 So, let's implement it:
@@ -839,12 +846,12 @@ then sequences them to recognize the entire string, one character at a time.
 
 We can create somewhat sophisticated lexers parsing long strings by chaining them sequentially with
 `<*>`, but one thing that's sorely missing is the ability to _choose_ between different options.
-I can take two lexers, and say "I want to lex `A`, followed by `B`", but I can't say "I want to lex `A`, or
-`B`. Our tokens are going to be a big example of this. Each token is going to be one of the options we
+I can take two lexers and say "I want to lex `A`, followed by `B`", but I can't say "I want to lex `A`, or
+`B`". Our tokens are going to need this mechanism. Each token is going to be one of the options we
 can choose from.
 
 Thankfully, there's a type class for this: `Alternative`.
-Concretely, requires us to implement:
+Concretely, it requires us to implement:
 
 ```haskell
 empty :: Lexer a
@@ -865,7 +872,7 @@ we talked about earlier. If this results in a tie, then we want to give priority
 
 {{<note>}}
 Prioritizing the left lexer over the right lexer is a completely arbitrary choice,
-but a choice that needs to be made, and will result in fun bugs if you forget that it was made.
+but a choice that needs to be made, and will result in fun bugs if you forget that it *was* made.
 {{</note>}}
 
 Let's implement the class:
@@ -881,11 +888,14 @@ instance Alternative Lexer where
         if length restA <= length restB then a else b
 ```
 
-So, we simply pattern match on _both_ the results given the same input, at the same time. If one of them failed,
+For `empty`, we have a lexer that will fail on any input.
+
+For `<|>`, we pattern match on _both_ the results given the same input, at the same time. If one of them fails,
 we rely on the other result. If both succeed, we need to dive in a bit more, and compare the lengths of
 the remaining inputs. We pick the result that has less input remaining, i.e. that has consumed _more_ input,
-i.e. that is the longest match. Because on ties, with equal lengths, we still choose `a`, we're biased
-towards the left lexer, as we decided earlier.
+i.e. that is the longest match.
+On ties, when the remaining inputs have equal length, we still choose `a`.
+This means that we're biased towards the left lexer, as we talked about earlier.
 
 We can once again put this to use, and create a helper letting us create
 a lexer choosing one out of many options:
@@ -910,21 +920,20 @@ but better libraries should be used in a production compiler.
 
 # Implementing the Lexer
 
-Alright, we've created a bit of a framework for building lexers, which might seem a bit
-abstract right now. This will all fit into place very quickly as we start to actually
-put all of that framework into practice.
+Alright, we've created a bit of a framework for building lexers. This might seem a bit
+abstract right now, but will all fit into place very quickly as we put it into practice.
 
 ## Tokens
 
 The first thing we need to do is actually define the type of tokens we want our lexer to return.
 
-We need a couple classes of tokens basically:
+We need a couple classes of tokens, basically:
 
-1. Keywords. Things like `where`, `let`, `case`
-2. Operators, like `+`, `->`, `::`
-3. Litterals, which we have for `Bool`, `Int`, and `String`
-4. Hardcoded primitive types, in our case `Bool`, `Int`, and `String`
-5. Identifiers, which come in two flavors in Haskell.
+1. **Keywords**, like `where`, `let`, `case`
+2. **Operators**, like `+`, `->`, `::`
+3. **Litterals**, which we have for `Bool`, `Int`, and `String`
+4. **Hardcoded primitive types**, in our case `Bool`, `Int`, and `String`
+5. **Identifiers**, which come in two flavors in Haskell.
 
 I apologize for the information dump, but it's easier to just write them
 all out, since most of them are just dumb labels:
@@ -987,7 +996,7 @@ data Token
 ```
 
 The litterals for `Int`, `String`, and `Bool` have values of the corresponding types, as
-we might expect. Haskell is this peculiarity where identifiers come in two flavors, the _upper case_
+we might expect. Haskell has this peculiarity where identifiers come in two flavors, the _upper case_
 identifiers, like `Foo230` and `Baz240`, which are used to indicate types, and _lower case_, like `fooA343`,
 or `bazB334`.
 
@@ -998,7 +1007,7 @@ Now, we can write a `Lexer` that produces these tokens!
 {{<note>}}
 We'll actually be writing a `Lexer (Token, String)`, which includes the parsed string, along
 with the token. We'll need this in a bit once we want to handle whitespace and layouts,
-but for not it is entirely superfluous. I've decided to go ahead and do it this way so we
+but for now it's superfluous. I've decided to go ahead and do it this way so we
 can avoid having to spend time rewriting 40 lines of code later.
 {{</note>}}
 
@@ -1018,7 +1027,7 @@ token = keyword <|> operator <|> litteral <|> name
 in terms of a handful of sub-lexers we'll also be defining in that `where` block. The
 high-level idea is that we're saying that a token is either a keyword,
 an operator, a litteral, or a name. Notice that we put `keyword` to the _left_
-or `name`, so that keywords have priority over identifiers!
+of `name`, so that keywords have priority over identifiers!
 
 Keywords are defined as lexers accepting exactly the right string:
 
@@ -1044,7 +1053,7 @@ Here we're using `with` in infix notation, in order to include the string along 
 be needing later. Another fun detail is that we consider `_` to be a keyword. Whether or not
 something is a keyword is more so about making the parser's job easier, rather than reflecting the
 semantics of the language. We could've made `_` just a normal identifier, but then we would have had
-to do extra work to separate out the class in the parser.
+to do extra work to separate out this token in the parser.
 
 Anyhow, let's look at operators:
 
@@ -1252,8 +1261,8 @@ we really need to be able to handle spaces, and also infer semicolons and braces
 
 # Handling Whitespace
 
-Right now we have a lexer for all of the basic building blocks of Haskell, except
-that it can't handle whitespace whatsoever! There are two aspects of whitespace that
+Right now we have a lexer for all of the basic building blocks of Haskell, but
+it can't handle any whitespace at all! There are two aspects of whitespace that
 we're going to be tackling in this section.
 
 The first is that Haskell, like basically every language, allows you to put plenty of space
@@ -1277,8 +1286,8 @@ x   = 2    +    *    2
 
 if you'd like.
 
-These should all generate the same tokens. The bits of whitespace contribute no tokens,
-they're simply ignored.
+These should all generate the same tokens. The bits of whitespace contribute nothing,
+and should be ignored.
 
 In C, for example, everything is delimited using braces and semicolons, so arbitrary
 amounts of both vertical and horizontal whitespaces are simply completely ignored when
@@ -1292,7 +1301,7 @@ In Haskell, on the other hand, whitespace *can be significant*, when it's used t
 where braces and semicolons should be inferred. This layout inference is the second aspect that we'll be
 working on, and is much more complicated than simply ignoring whitespace. In fact,
 because of this aspect, we *can't* just take the easy approach of filtering out whitespace characters
-as a whole, we instead need to be quite picky about what whitespace we see, since vertical
+as a whole, and instead need to be quite picky about what whitespace we see, since vertical
 whitespaces acts differently than horizonal whitespace.
 
 ## Haskell's layout structure
@@ -1301,7 +1310,7 @@ This series assumes you've programmed a reasonable amount in Haskell before, so 
 familiar on an intuitive level with how you can use whitespace to layout blocks.
 In fact, you probably haven't used braces and semicolons in your programs,
 and maybe you didn't even know they were an option. Let's try to go from our
-intuition about how things should work to a bit more rigid of an understanding.
+intuition about how things should work, to a more robust understanding.
 
 As an example, consider something like:
 

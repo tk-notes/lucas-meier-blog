@@ -17,6 +17,11 @@
   list-style-position: inside;
 }
 
+.content ol {
+  list-style-type: decimal;
+  list-style-position: inside;
+}
+
 .note p code {
   background-color: #cde9f9;
   @apply rounded;
