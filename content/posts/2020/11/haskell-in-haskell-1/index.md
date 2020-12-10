@@ -661,5 +661,7 @@ set up, and a lot of the boilerplate necessary for the project out of the way.
 
 The code for this part is available [here](https://github.com/cronokirby/haskell-in-haskell/tree/part-1).
 
-Stay tuned for the next part of this series, where we'll finally get into compiler goodness,
+Stay tuned for
+[the next part](/posts/2020/12/haskell-in-haskell-2/)
+of this series, where we'll finally get into compiler goodness,
 by writing our own lexer for Haskell, and all of its whitespace trickery!

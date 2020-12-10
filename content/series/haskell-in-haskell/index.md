@@ -19,4 +19,5 @@ tuned for new posts as they come along: I'll update this page whenever they arri
 
 # [0: Introduction](/posts/2020/11/haskell-in-haskell-0)
 # [1: Setup](/posts/2020/11/haskell-in-haskell-1)
+# [2: Lexing](/posts/2020/12/haskell-in-haskell-2/)
 

@@ -19,6 +19,10 @@ ready if you're following along!
 
 <!--more-->
 
+The full code for this part is available
+[here](https://github.com/cronokirby/haskell-in-haskell/tree/part-2),
+for reference.
+
 # 1 mile overview
 
 Before we go dive into the code, let's first get an idea of
@@ -1265,7 +1269,7 @@ Right now we have a lexer for all of the basic building blocks of Haskell, but
 it can't handle any whitespace at all! There are two aspects of whitespace that
 we're going to be tackling in this section.
 
-The first is that Haskell, like basically every language, allows you to put plenty of space
+Haskell, like basically every language, allows you to put plenty of space
 between tokens. For example, what we can now lex:
 
 ```haskell
@@ -1283,8 +1287,6 @@ or even:
 ```haskell
 x   = 2    +    *    2
 ```
-
-if you'd like.
 
 These should all generate the same tokens. The bits of whitespace contribute nothing,
 and should be ignored.
@@ -1306,7 +1308,7 @@ whitespaces acts differently than horizonal whitespace.
 
 ## Haskell's layout structure
 
-This series assumes you've programmed a reasonable amount in Haskell before, so you're probably
+I'm assuming that you've programmed a reasonable amount in Haskell before, so you're probably
 familiar on an intuitive level with how you can use whitespace to layout blocks.
 In fact, you probably haven't used braces and semicolons in your programs,
 and maybe you didn't even know they were an option. Let's try to go from our
@@ -1323,7 +1325,7 @@ x = foo + bar
 y = 3
 ```
 
-The first rule you've likely internalized is that everything
+The first rule that you've likely internalized is that everything
 at the same level of indentation *continues* whatever the current block is.
 Because `foo` and `bar` are at the same level of indentation, we expect
 them to be in the same block.
@@ -1398,7 +1400,7 @@ x = a
 }
 ```
 
-The presence of a `where` keyword causes us to be ready to see this kind of whitespace
+The `where` keyword make us ready to see this kind of whitespace
 sensitive layout of code. The other keywords like this (for our subset) include `let`, and `of`.
 
 {{<note>}}
@@ -1410,8 +1412,10 @@ term in the bindings after `where`.
 
 ## Position Information
 
-So, given our intuitive understanding, we've realized that it's very important
+With our intuitive understanding, we've realized that it's very important
 to keep track of "where" a token is, both "vertically", and "horizontally".
+
+For example:
 
 ```haskell
 x = y
@@ -1442,9 +1446,9 @@ let
 in
 ```
 
-What column a token appears at is quite important. Another bit of information that's
-quite important is whether or not a token is at the start of a given line or not.
-What we want is to annotate our tokens with this position information.
+What column a token appears at is quite important.
+Whether or not a token is at the start of a line also matters.
+We'll need to annotate our tokens with this position information.
 
 So, in `Lexer.hs`, let's create some types to represent this information:
 
@@ -1454,27 +1458,26 @@ data LinePosition = Start | Middle deriving (Eq, Show)
 data Positioned a = Positioned a LinePosition Int deriving (Eq, Show)
 ```
 
-We can annotate something with positioning information by specifying whether
-or not it's the first token on a given line, and the column at which it appears.
-This will be sufficient to implement our layout rules.
+`Positioned a` adds position information to something of type `a`. We
+include the `a` itself, followed by its `LinePosition`,
+and the exact column at which it appears.
 
-What we'll be doing soon enough is going from `[Positioned Token] -> [Token]`,
-using that extra position information to infer the braces and semicolons which
-we add to the tokens we output.
+What we'll be doing soon enough is making a function `[Positioned Token] -> [Token]`,
+using that extra position information to infer the necessary braces and semicolons.
 
 Right now though, we just have `[Token]`, without any position information,
 and no braces and semicolons.
 
 ### Raw Tokens
 
-Right now, our lexer simply blows up if it encounters any whitespace tokens,
+In fact, our lexer simply blows up if it encounters any whitespace tokens,
 and we can't handle comments either. The next order of business is being
 able to lex whitespace and comments along with normal tokens.
 
 If we weren't whitespace sensitive, we'd still need to do this. We would
 simply collect all of these tokens, and then filter them out from
 the final output. This way, we could allow arbitrary spacing between tokens,
-as well as comments in the source code, without affecting the semantics.
+as well as comments in the source code, without affecting the rest of the tokens.
 
 For our purposes, it's important to keep these tokens, so we can annotate the
 other "normal" tokens with position information. We'll be using the whitespace
@@ -1487,7 +1490,7 @@ data RawToken
   = Blankspace String
   | Comment String
   | Newline
-  | RawToken Token String
+  | NormalToken Token String
 ```
 
 `Blankspace` represents "horizontal" whitespace, i.e whitespace containing no newlines. For
@@ -1501,7 +1504,7 @@ Let's go ahead and create a lexer for these raw tokens:
 rawLexer :: Lexer [RawToken]
 rawLexer = some (whitespace <|> comment <|> rawToken)
   where
-    rawToken = fmap (uncurry RawToken) token
+    rawToken = fmap (uncurry NormalToken) token
     ...
 ```
 
@@ -1514,8 +1517,7 @@ For comments, we need to parse a `--`, and then the rest of the line:
     comment = Comment <$> (string "--" *> many (satisfies (/= '\n')))
 ```
 
-We allow empty comments, hence why we pick `many`, instead of `some`.
-
+To allow for empty comments, we pick `many` instead of `some`.
 
 Now, for whitespace, we can either have horizontal whitespace, or a single newline:
 
@@ -1529,7 +1531,9 @@ Horizontal whitespace is just one or more whitespace characters that are *not*
 newlines:
 
 ```haskell
-    blankspace = Blankspace <$> some (satisfies (\x -> isSpace x && x /= '\n'))
+    blankspace =
+      Blankspace <$>
+        some (satisfies (\x -> isSpace x && x /= '\n'))
 ```
 
 And a newline is generated when we see a `\n`:
@@ -1538,18 +1542,18 @@ And a newline is generated when we see a `\n`:
     newline = Newline <$ char '\n'
 ```
 
-With that, we can now parse out the whitespaces and comments. If we wanted to,
-we could replace `some token` with `rawLexer` in our `lexer` function,
-and then filter out just the normal tokens, and get a lexer for a version of Haskell
-that doesn't infer layouts.
+With that, we can now parse out the whitespaces and comments.
+We could now make a lexer for "whitespace insensitive Haskell", if we wanted to.
+We would replace `some token` with `rawLexer`, in our `lexer` function,
+and then filter out the normal tokens.
 
 ### Positioning Tokens
 
 The next step is using all of this information to annotate
 the normal tokens using the `Positioned` type we defined earlier.
-We want to have a function `[RawToken] -> [Positioned Token]`, where given the
+We want to have a function `[RawToken] -> [Positioned Token]`. Given the
 list of raw tokens, we produce a list of tokens with positions. In the process,
-all of the superfluous whitespace and comment tokens are discarded, since they've served their purpose
+all of the whitespace and comment tokens are discarded.
 
 The basic idea of the algorithm is going to be a somewhat imperative one.
 We'll keep track of `(LinePosition, Int)`, which will serve as the position of the next token,
@@ -1568,8 +1572,8 @@ position = foldl' go ((Start, 0), []) >>> snd >>> reverse
 ```
 
 So, we're folding from the left, and the accumulator will hold the current position information,
-as well as a list of tokens we're producing. After the fold is done, we simply discard this position information,
-and use the tokens we produced. We produce a new token by adding it the front of the list, so we
+as well as a list of tokens we're producing. After the fold is done, we discard this position state,
+but keep the tokens we produced. We produce a new token by adding it the front of the list, so we
 want to *reverse* this order after we're finished.
 
 {{<note>}}
@@ -1595,7 +1599,7 @@ The implementation looks like this:
       Newline -> ((Start, 0), Nothing)
       Comment _ -> ((Start, 0), Nothing)
       Blankspace s -> ((pos, col + length s), Nothing)
-      RawToken t s ->
+      NormalToken t s ->
         let token = Positioned t pos col
         in ((Middle, col + length s), Just token)
 ```
@@ -1605,8 +1609,8 @@ at the start of the next line.
 
 A comment acts in the same way, since a comment is effectively like a new line, in terms of positioning.
 
-When we see blank space, that simply advances the current column, while keeping
-the information about whether or not we're at the start of a line. If we were previously
+When we see blank space, we advance the current column, while keeping
+but our position at the start or middle of a line is left unchanged. If we were previously
 at the start of a line, and then see some blank space, we're still at the start of the line,
 since we haven't seen a "real" token yet.
 
@@ -1646,11 +1650,14 @@ to yield all of the original tokens from the source code.
 
 ### Layouts
 
-One of the things we'll need to keep track of are *layouts*:
+The first thing we need to keep track of are the *layouts*
 
 ```haskell
 data Layout = Explicit | Implicit Int
 ```
+
+We distinguish between `Explicit` layouts, which are created by the user
+with `{}`, and `Implicit` layouts, which are inferred based on whitespace.
 
 Let's say we have some code like:
 
@@ -1697,7 +1704,7 @@ the second will have us end up with `x = 3 y = 2`, as if they were on one line.
 Syntactically, this will get rejected by our parser, but our lexer isn't going
 to bat an eye yet.
 
-Since we want to be able to nest these layouts:
+We also want to be able to nest layouts, like this:
 
 ```haskell
 let {
@@ -1707,13 +1714,13 @@ let {
 } in x
 ```
 
-We'll be needing a *stack* of layouts. This will allow us to push and pop layouts as
-we enter and exit them.
+To do this, we'll be keeping a *stack* of layouts.
+This will allow us to push and pop layouts as we enter and exit them.
 
 ### Expecting Layouts
 
 Another rule we mentioned in passing before is that `let`, `where` and `of`
-all places where a layout can start. For example, when you have:
+are places where a layout can start. For example, when you have:
 
 ```haskell
 let
@@ -1725,12 +1732,12 @@ After seeing `let`, we need to keep our eyes peeled for the next token, since th
 might trigger the start of a new implicit layout. The column where that token is
 positioned becomes the column for that new layout as well.
 
-On the other hand if we see a `{` after a `let`, that indicates that
-we're actually not going to be starting an implicit layout, in which case
+On the other hand, if we see a `{` after a `let`, that indicates that
+we're not going to be starting an implicit layout, in which case
 the indentation of that `{` doesn't matter at all.
 
-Our way of managing all this will be to keep track of whether or not
-we're currently expecting a layout. When we see `let`, `where` or `of`,
+We'll need to keep track of whether or not we're expecting a layout.
+When we see `let`, `where` or `of`,
 we'll set that to true, and then set it back once we've found the next token.
 
 ### The Full State
@@ -1738,7 +1745,7 @@ we'll set that to true, and then set it back once we've found the next token.
 The final thing we'll need, mainly for convenience, is a way to yield tokens.
 Since we might want to yield extra tokens at certain points, it'd be nice to
 have a way to modify the state to have an extra few tokens in its "output buffer".
-We'll simply have a `[Token]`, and then use `:` to add new items. Once we've
+We'll have a `[Token]`, and then use `:` to add new items. Once we've
 traversed all of the positioned tokens, we can reverse this list, and return it,
 and this will become the final output for the lexer.
 
@@ -1765,7 +1772,7 @@ the positioned tokens we feed it.
 
 ## Contextual Computation
 
-In this section, we'll have our first use of Monad Transformers to
+In this section, we have our first use of Monad Transformers to
 create a little context, or DSL, in which to do some kind of operation.
 We'll be seeing plenty more of these throughout the rest of this series, so I think
 it's a good idea to explain the general idea here. If you're already familiar
@@ -1795,18 +1802,18 @@ return (x + y)
 This bit of code is quite similar to the first version, but something very important
 has changed: we're now in a do block. Because we're in such a block,
 it becomes important not only to consider each line, but also the order in which
-the lines occurr, as well as what kind of Monad, or *context* the `do` block is for.
+the lines occur, as well as what kind of Monad, or *context* the `do` block is for.
 
 What `do` enables us to go from strictly pure computations, to computations
-in a given context, or augmented with some kind of effectful capability.
-One of the contexts we use recently was `Maybe`. `Maybe` allows us to do some computation
+in a given context, or augmented with some kind of extra capability.
+One of the contexts we used recently was `Maybe`. `Maybe` allows us to do some computation
 with the possibility of failure. `do` does the job of
 sequencing together all of the code, using the `>>=` function that `Maybe` implements.
 In the above example, if `f` were to return `Nothing`, then the result of the whole block
 would be `Nothing`.
 
-There are other kinds of contexxts that will be useful to us quite soon.
-One example would be `State s`. `State s` allows us to have some computations
+There are other kinds of contexts that will be useful to us quite soon.
+One example would be `State s`. This allows us to have some computations
 that manipulate some state of type `s`. We can query for the current state,
 and also modify it. It's as if we embedded a little imperative DSL into our Haskell code.
 Of course, `State s` is essentially sugar for `s -> (a, s)`, and `>>=` does the drudge
@@ -1825,7 +1832,7 @@ are useful.
 We can use these raw combinations directly, or encapsulate them behind
 a `newtype`. We'll be using `newtypes` later on. The idea behind wrapping
 a stack of transformers behind a `newtype` is that the DSL we want to provide is
-quite different than that of the different transform contexts. The transformers
+quite different than that of the different transformers. The transformers
 are just an implementation detail for the little imperative language
 we want to embed.
 
@@ -1856,8 +1863,8 @@ runLayoutM =
 The idea behind running the stack is that you need to unwrap the layers
 from outside to inside. So first we unwrap the `ExceptT` layer,
 and then unwrap the `State` layer. We need to provide a starting state, of course.
-That starting state indicates that no layouts have been seen yet, no tokens have been produced
-but, we *are* expecting a layout at the start of a file!
+That starting state indicates that no layouts have been seen yet, no tokens have been produced,
+but we *are* expecting a layout at the start of a file!
 
 Finally, we'll look at the output result, which will be `(Either LexerError a, LayoutState)`,
 We don't care about the output itself, only the tokens in the state,
@@ -1880,8 +1887,8 @@ and thus the braces surrounding all of the code.
 ## Basic Operations
 
 As a bit of a warmup, let's write a few of the fundamental operations
-we'll be using. These make up a bit more of the "DSL" we've
-created with `LayoutM`.
+we'll be using. These make up a bit more of the "DSL"
+we're making with `LayoutM`.
 
 ### Yielding Tokens
 
@@ -1892,12 +1899,12 @@ yieldToken :: Token -> LayoutM ()
 yieldToken t = modify' (\s -> s {tokens = t : tokens s})
 ```
 
-We do nothing more than modify the current state, where the new state has
-a new token at the front of its buffer.
+We modify the current state, producing a new state with the token
+at the front of our output buffer.
 
 {{<note>}}
 We use `modify'`, the strict version of `modify`, since we have no
-use for laziness in our state, which we're going to consume completely,
+use for laziness in our state. We're going to consume it completely,
 and so it's better to avoid creating needless thunks.
 {{</note>}}
 
@@ -2006,7 +2013,7 @@ x = y where {
 So we need to generate all of those closing braces when we reach
 the end of the token stream. Thankfully, since we keep a stack of the layouts
 we've entered, we'll have 3 pending implicit layouts: one for the start of the file,
-and 2 others for the wheres.
+and 2 others for the `where`s.
 
 So, we have the following definition:
 
@@ -2030,13 +2037,13 @@ we see an explicit layout, then that's an error. It means that we have something
 x = 2
 ```
 
-and we *never* close explicit braces ourselves. This we have an unmatched `{`
+and we *never* close explicit braces ourselves. We have an unmatched `{`
 by the time we're at the end of the file, and that's an error.
 
 Whenever we see an implicit layout, we generate the necessary closing `}`,
 and then remove that layout from the stack.
 
-Another helper we have here is `startsLayout`:
+Another helper we'll need is `startsLayout`:
 
 ```haskell
     startsLayout :: Token -> Bool
@@ -2109,13 +2116,15 @@ must close an explicit layout started with `{`, and this layout must be
 at the top of the stack. The reason for this is that we don't allow `}`
 to close implicit layouts itself.
 
+For example:
+
 ```haskell
 {
 let
   x = 2 }
 ```
 
-This would be an error, for example, because we start an implicit layout after
+this would be an error. This is because we start an implicit layout after
 the `x`, and `}` isn't allowed to close that implicit layout itself.
 
 Concretely, we have:
@@ -2128,7 +2137,7 @@ Concretely, we have:
         _ -> throwError (Unexpected '}')
 ```
 
-If the current layout is explicit, that's we expect, and we remove
+If the current layout is explicit, that's what we expect, and we remove
 it from the stack, since the `}` has closed it. Otherwise, we throw an error,
 for the reasons mentioned above.
 
@@ -2385,17 +2394,16 @@ You can have quite a bit of fun trying out different programs, and seeing
 what output your lexer produces!
 
 {{<note>}}
-One rule of Haskell's layout algorithm that we've omitted is a rule saying that
+One rule of Haskell's layout algorithm that we've omitted says that
 if you encounter a parse error, and you have an implicit layout
 on the stack, then you should try inserting a `}`, and then resume parsing.
 
-This rule is a pain to implement, and we've ommitted to vastly simplify
+This rule is a pain to implement, and we've left it out to vastly simplify
 the structure of our parsing. With this rule in place, you can't truly separate
 the two phases.
 
 While I think the rule is very ugly, it does make so some extra things do parse
-correctly. So, be mindful that some exmaples from Haskell might fail to parse
-because of this rule.
+correctly. Keep that in mind if some examples fail to lex.
 {{</note>}}
 
 # Conclusion
@@ -2403,7 +2411,10 @@ because of this rule.
 So, this post was longer than I expected it to be! Hopefully I did a decent job
 of introducing lexing, as well as the lexer for our subset of Haskell. I hope that
 the layout rules are much clearer now that you've actually had to implement all of their details.
-I've tried to organize the rules in a way that's quite understandble.
+I've tried to organize the rules in a way that's reasonably understandable.
+
+As always, [here's](https://github.com/cronokirby/haskell-in-haskell/tree/part-2).
+the full code for this part.
 
 There's [a section in the Haskell '98 report](https://www.haskell.org/onlinereport/syntax-iso.html)
 that talks about Haskell syntax, and the layout rules, in particular. This might be an interesting
