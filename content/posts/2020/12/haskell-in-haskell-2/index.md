@@ -1,7 +1,7 @@
 ---
 title: "(Haskell in Haskell) 2. Lexing"
-date: 2020-12-08
-draft: true
+date: 2020-12-10
+draft: false
 tags:
   - Haskell
   - Programming Languages
