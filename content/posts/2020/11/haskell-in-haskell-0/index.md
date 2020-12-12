@@ -112,7 +112,7 @@ For example, here's a little DSL of sorts for some arithmetic expressions:
 data Expr
   = Add Expr Expr
   | Mul Expr Expr
-  | IntLitt Int
+  | IntLit Int
 ```
 
 Haskell allows us to plainly represent the different variants that make up our syntax tree,
@@ -240,13 +240,13 @@ We'll have something like:
 data Expr
   = Add Expr Expr
   | Mul Expr Expr
-  | IntLitt Int
+  | IntLit Int
 ```
 
 except about 20 times more complicated. The parser will recognize that `2 + 2 * 4` corresponds to:
 
 ```haskell
-Add (IntLitt 2) (Mul (IntLitt 2) (IntLitt 4))
+Add (IntLit 2) (Mul (IntLit 2) (IntLit 4))
 ```
 
 This will be our first representation of the source code we've been given, and is where the fun *really* starts.

@@ -61,8 +61,8 @@ Each function has a name, and then takes a list of named arguments.
 
 The function called `main`, is the entry point for a program.
 
-## String litterals
-The only type of litteral in Poline is the string, which works
+## String literals
+The only type of literal in Poline is the string, which works
 the same as other languages:
 ```
 "example string"
@@ -75,10 +75,10 @@ Poline has a statement for printing:
 ```
 fn example(arg) {
     print arg;
-    print "litteral";
+    print "literal";
 }
 ```
-Both variables, and string litterals can be printed. Every statement
+Both variables, and string literals can be printed. Every statement
 in poline ends with a semicolon. Every function consists of a series
 of statements.
 
@@ -126,8 +126,8 @@ fn main() {
 }
 ```
 After spawning a new thread, we have a handle we can access stored in `p`.
-We send the string litteral `"foo"` to `p`. We could have sent a variable
-instead of a string litteral too.
+We send the string literal `"foo"` to `p`. We could have sent a variable
+instead of a string literal too.
 
 In the thread `p`, we first receive a message, creating a variable named
 `arg`, and then we print the contents of that variable.
@@ -279,11 +279,11 @@ Program {
 }
 ```
 The first thing to notice is the extra information in addition to the syntax
-tree. We've moved all of the string litterals in our program into an external
+tree. We've moved all of the string literals in our program into an external
 table, and we have an index for the main function. The main work done by
-simplification is to remove litteral strings and names from our syntax tree.
+simplification is to remove literal strings and names from our syntax tree.
 Instead of referring to functions by their name, we refer to them by their
-index. We now refer to string litterals in the AST by their position in the table.
+index. We now refer to string literals in the AST by their position in the table.
 Variables are referred to by their position on their stack.
 
 ## Stack indices

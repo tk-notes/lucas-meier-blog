@@ -569,16 +569,16 @@ is straight back to the same state it started with, ready to accept another char
 ## Character Classes
 
 Our lexer will have to produce tokens composed of more than just a single character
-of input. Integers, for example. We want to accept things like `3`, `234`, `2239034`. Integer litterals
+of input. Integers, for example. We want to accept things like `3`, `234`, `2239034`. Integer literals
 can be arbitrary strings of digits. To handle this, our lexer needs to enter a different "mode",
 or "state" as soon as it sees a digit. Instead of immediately producing some output, it instead shifts
 to a mode where it tries to consume the digits that remain, and only "breaks out" once it sees something that
-isn't a digit. At that point, it can produce the token for that integer litteral, and return back to its
+isn't a digit. At that point, it can produce the token for that integer literal, and return back to its
 initial state.
 
 Many more of the tokens we produce will involve multiple characters. For example, to match out against a string
-litteral like `"Hello World"`, we need to realize that a string litteral is happening when we see
-Athe `"`, and then keep on consuming characters for that litteral until we see the closing `"`.
+literal like `"Hello World"`, we need to realize that a string literal is happening when we see
+Athe `"`, and then keep on consuming characters for that literal until we see the closing `"`.
 
 Quite a few tokens in our language will be keywords. For example, `let`, `where`, `data`, `type`. These can be
 consumed using "modes" or "states" as well. For example, when we see an `l`, our lexer could enter a mode
@@ -691,7 +691,7 @@ data LexerError
 
 The first, `Unexpected char`, is used when we encounter a character that we don't know
 how to handle. `UnexpectedEOF` is when we reach the end of the input string before
-we're done lexing some token. For example, if you start a string litteral,
+we're done lexing some token. For example, if you start a string literal,
 but never end it, like `"abbbbb`, then you'll get an `UnexpectedEOF` when all
 of the input has been consumed.
 
@@ -935,7 +935,7 @@ We need a couple classes of tokens, basically:
 
 1. **Keywords**, like `where`, `let`, `case`
 2. **Operators**, like `+`, `->`, `::`
-3. **Litterals**, which we have for `Bool`, `Int`, and `String`
+3. **Literals**, which we have for `Bool`, `Int`, and `String`
 4. **Hardcoded primitive types**, in our case `Bool`, `Int`, and `String`
 5. **Identifiers**, which come in two flavors in Haskell.
 
@@ -980,12 +980,12 @@ data Token
   | FSlashEqual -- `/=`
   | VBarVBar -- `||`
   | AmpersandAmpersand -- `&&`
-  -- An Int litteral
-  | IntLitt Int -- An Int litteral
-  -- A String litteral
-  | StringLitt String
-  -- A Bool litteral
-  | BoolLitt Bool
+  -- An Int literal
+  | IntLit Int -- An Int literal
+  -- A String literal
+  | StringLit String
+  -- A Bool literal
+  | BoolLit Bool
   -- The type `Int`
   | IntTypeName
   -- The type `String`
@@ -999,7 +999,7 @@ data Token
   deriving (Eq, Show)
 ```
 
-The litterals for `Int`, `String`, and `Bool` have values of the corresponding types, as
+The literals for `Int`, `String`, and `Bool` have values of the corresponding types, as
 we might expect. Haskell has this peculiarity where identifiers come in two flavors, the _upper case_
 identifiers, like `Foo230` and `Baz240`, which are used to indicate types, and _lower case_, like `fooA343`,
 or `bazB334`.
@@ -1019,7 +1019,7 @@ We have:
 
 ```haskell
 token :: Lexer (Token, String)
-token = keyword <|> operator <|> litteral <|> name
+token = keyword <|> operator <|> literal <|> name
   where
     with :: Functor f => b -> f a -> f (b, a)
     with b = fmap (b,)
@@ -1030,7 +1030,7 @@ token = keyword <|> operator <|> litteral <|> name
 `with` is nothing more than a little helper we'll be using shortly. Our lexer is defined
 in terms of a handful of sub-lexers we'll also be defining in that `where` block. The
 high-level idea is that we're saying that a token is either a keyword,
-an operator, a litteral, or a name. Notice that we put `keyword` to the _left_
+an operator, a literal, or a name. Notice that we put `keyword` to the _left_
 of `name`, so that keywords have priority over identifiers!
 
 Keywords are defined as lexers accepting exactly the right string:
@@ -1101,25 +1101,25 @@ For parsing the operator `\`, we need to create an escaped slash inside of the s
 hence `"\\"`.
 {{</note>}}
 
-Now let's move on to something a bit more interesting: litterals:
+Now let's move on to something a bit more interesting: literals:
 
 ```haskell
-    litteral :: Lexer (Token, String)
-    litteral = intLitt <|> stringLitt <|> boolLitt
+    literal :: Lexer (Token, String)
+    literal = intLit <|> stringLit <|> boolLit
       where
         ...
 ```
 
-So, a litteral is either an integer litteral, a string litteral, or a bool litteral, as we
+So, a literal is either an integer literal, a string literal, or a bool literal, as we
 went over above.
 
 For integers, we have:
 
 ```haskell
-        intLitt :: Lexer (Token, String)
-        intLitt =
+        intLit :: Lexer (Token, String)
+        intLit =
           some (satisfies isDigit)
-            |> fmap (\x -> (IntLitt (read x), x))
+            |> fmap (\x -> (IntLit (read x), x))
 ```
 
 So, `some` accepts one or more of a given lexer. It's actually defined for any `Alternative`!
@@ -1128,23 +1128,23 @@ We accept one or more digits, and then use `read` to parse that string of digits
 For strings, we have:
 
 ```haskell
-        stringLitt :: Lexer (Token, String)
-        stringLitt =
+        stringLit :: Lexer (Token, String)
+        stringLit =
           char '"' *> many (satisfies (/= '"')) <* char '"'
-            |> fmap (\x -> (StringLitt x, x))
+            |> fmap (\x -> (StringLit x, x))
 ```
 
 The idea is that we require a `"`, followed by many characters that
 are _not_ the closing `"`, and then that closing `"`. Our manipulation with
-`*>` and `<*` just makes sure that we don't include the delimiters in our string litteral.
+`*>` and `<*` just makes sure that we don't include the delimiters in our string literal.
 
-And finally, we have boolean litterals:
+And finally, we have boolean literals:
 
 ```haskell
-        boolLitt :: Lexer (Token, String)
-        boolLitt =
-          (BoolLitt True `with` string "True")
-            <|> (BoolLitt False `with` string "False")
+        boolLit :: Lexer (Token, String)
+        boolLit =
+          (BoolLit True `with` string "True")
+            <|> (BoolLit False `with` string "False")
 ```
 
 This approach is the same we used for keywords and operators before, and makes sense
@@ -1237,9 +1237,9 @@ should output
 ```haskell
 [ LowerName "x"
 , Equal
-, IntLitt 2
+, IntLit 2
 , Plus
-, IntLitt 2
+, IntLit 2
 ]
 ```
 
@@ -2341,15 +2341,15 @@ at the right spots:
 [ OpenBrace
 , LowerName "x"
 , Equal
-, IntLitt 1
+, IntLit 1
 , Semicolon
 , LowerName "y"
 , Equal
-, IntLitt 2
+, IntLit 2
 , Semicolon
 , LowerName "z"
 , Equal
-, IntLitt 3
+, IntLit 3
 , CloseBrace
 ]
 ```
@@ -2377,7 +2377,7 @@ z =
 , OpenBrace
 , LowerName "y"
 , Equal
-, IntLitt 3
+, IntLit 3
 , CloseBrace
 , Semicolon
 , In

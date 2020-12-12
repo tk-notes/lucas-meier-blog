@@ -305,14 +305,14 @@ in x
 All whitespace is filtered out, so our tokens look like this:
 
 ```haskell
-data Token = Let | In | Equal | Semicolon | Name String | IntLitt Int
+data Token = Let | In | Equal | Semicolon | Name String | IntLit Int
 ```
 
 Then we can have a lexer getting out a single token:
 
 ```haskell
 token :: Lexer Token
-token = keywords <|> operators <|> name <|> intLitt
+token = keywords <|> operators <|> name <|> intLit
   where
     keywords = (Let <$ string "let") <|> (In <$ string "in")
     operators = (Equal <$ char '=') <|> (Semicolon <$ char ';')
@@ -321,7 +321,7 @@ token = keywords <|> operators <|> name <|> intLitt
       where
        startsName = satisfies isAlpha
        continuesName = satisfies isAlphaNum
-    intLitt = some (satisfies isDigit) |> fmap (read >>> IntLitt)
+    intLit = some (satisfies isDigit) |> fmap (read >>> IntLit)
 ```
 
 To assemble this into a full lexer pulling out many tokens, and ignoring whitespace,

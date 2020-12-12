@@ -922,7 +922,7 @@ We need a couple classes of tokens basically:
 
 1. Keywords. Things like `where`, `let`, `case`
 2. Operators, like `+`, `->`, `::`
-3. Litterals, which we have for `Bool`, `Int`, and `String`
+3. Literals, which we have for `Bool`, `Int`, and `String`
 4. Hardcoded primitive types, in our case `Bool`, `Int`, and `String`
 5. Identifiers, which come in two flavors in Haskell.
 
@@ -968,11 +968,11 @@ data Token
   | VBarVBar -- `||`
   | AmpersandAmpersand -- `&&`
   -- An Int litteral
-  | IntLitt Int -- An Int litteral
+  | IntLit Int -- An Int litteral
   -- A String litteral
-  | StringLitt String
+  | StringLit String
   -- A Bool litteral
-  | BoolLitt Bool
+  | BoolLit Bool
   -- The type `Int`
   | IntTypeName
   -- The type `String`
@@ -1092,7 +1092,7 @@ Now let's move on to something a bit more interesting: litterals:
 
 ```haskell
     litteral :: Lexer (Token, String)
-    litteral = intLitt <|> stringLitt <|> boolLitt
+    litteral = intLit <|> stringLit <|> boolLit
       where
         ...
 ```
@@ -1103,10 +1103,10 @@ went over above.
 For integers, we have:
 
 ```haskell
-        intLitt :: Lexer (Token, String)
-        intLitt =
+        intLit :: Lexer (Token, String)
+        intLit =
           some (satisfies isDigit)
-            |> fmap (\x -> (IntLitt (read x), x))
+            |> fmap (\x -> (IntLit (read x), x))
 ```
 
 So, `some` accepts one or more of a given lexer. It's actually defined for any `Alternative`!
@@ -1115,10 +1115,10 @@ We accept one or more digits, and then use `read` to parse that string of digits
 For strings, we have:
 
 ```haskell
-        stringLitt :: Lexer (Token, String)
-        stringLitt =
+        stringLit :: Lexer (Token, String)
+        stringLit =
           char '"' *> many (satisfies (/= '"')) <* char '"'
-            |> fmap (\x -> (StringLitt x, x))
+            |> fmap (\x -> (StringLit x, x))
 ```
 
 The idea is that we require a `"`, followed by many characters that
@@ -1128,10 +1128,10 @@ are _not_ the closing `"`, and then that closing `"`. Our manipulation with
 And finally, we have boolean litterals:
 
 ```haskell
-        boolLitt :: Lexer (Token, String)
-        boolLitt =
-          (BoolLitt True `with` string "True")
-            <|> (BoolLitt False `with` string "False")
+        boolLit :: Lexer (Token, String)
+        boolLit =
+          (BoolLit True `with` string "True")
+            <|> (BoolLit False `with` string "False")
 ```
 
 This approach is the same we used for keywords and operators before, and makes sense
@@ -1224,9 +1224,9 @@ should output
 ```haskell
 [ LowerName "x"
 , Equal
-, IntLitt 2
+, IntLit 2
 , Plus
-, IntLitt 2
+, IntLit 2
 ]
 ```
 
