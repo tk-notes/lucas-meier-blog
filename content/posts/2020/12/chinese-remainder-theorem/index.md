@@ -234,13 +234,13 @@ So $(x, y)$ becomes $(y, (x - q))$
 We can write out a similar algorithm pretty easily:
 
 ```haskell
-gcd :: Integer -> Integer -> (Integer, Integer)
-gcd a b | a < b = gcd b a
-gcd a 0 = (1, 0)
-gcd a b =
+bezout :: Integer -> Integer -> (Integer, Integer)
+bezout a b | a < b = bezout b a
+bezout a 0 = (1, 0)
+bezout a b =
   let q = div a b
       r = mod a b
-      (x, y) = gcd b r
+      (x, y) = bezout b r
   in (y, x - q)
 ```
 
@@ -455,7 +455,7 @@ $$
 as desired $\square$.
 
 Since $x \equiv a_{1, 2} \mod n_1 n_2$ is equivalent to solving both of the
-first two equations, we can simple replace both of those equations, to get:
+first two equations, we can simply replace both of those equations, to get:
 
 $$
 \begin{aligned}
@@ -502,7 +502,7 @@ For a single equation, the solution is obvious:
 solve [(a, n)] = fullMod a n
 ```
 
-Note that we use the `fullMod` function we defined earlier, so that we get the smalles positive
+Note that we use the `fullMod` function we defined earlier, so that we get the smallest positive
 solution. `a` itself would be a solution, but we normalize it here to get the "nicest" version
 of it.
 
