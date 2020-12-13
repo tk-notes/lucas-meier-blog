@@ -511,7 +511,7 @@ of it.
 Now for two or more equations:
 
 ```haskell
-solve ((a1, n2) : (a2, n2) : rest) =
+solve ((a1, n1) : (a2, n2) : rest) =
   let (m1, m2) = bezout n1 n2
       a12 = a1 * m2 * n2 + a2 * m1 * n2
   in solve ((a12, n1 * n2) : rest)
