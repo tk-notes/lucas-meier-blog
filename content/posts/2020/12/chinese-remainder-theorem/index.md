@@ -228,7 +228,7 @@ $$
 Which gives us:
 
 $$
-\gcd(a, b) = xb + yr = xb + y(a - qb) = ya + (x - q)b
+\gcd(a, b) = xb + yr = xb + y(a - qb) = ya + (x - qy)b
 $$
 
 So $(x, y)$ becomes $(y, (x - q))$
