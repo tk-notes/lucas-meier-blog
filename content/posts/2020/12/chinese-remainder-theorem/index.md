@@ -243,7 +243,7 @@ bezout a b =
   let q = div a b
       r = mod a b
       (x, y) = bezout b r
-  in (y, x - q)
+  in (y, x - q * y)
 ```
 
 # The Chinese Remainder Theorem
