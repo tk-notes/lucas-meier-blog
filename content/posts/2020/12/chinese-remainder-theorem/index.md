@@ -203,7 +203,9 @@ and the third implements the recursive rule we just went over.
 Bézout's algorithm extends this to find not only the $\gcd$, but also two factors
 $x, y$ such that $xa + yb = \gcd(a, b)$
 
-We have a similar base case: with $\gcd(a, 0) = a$, and it's obvious that:
+We have a similar base case:
+
+With $\gcd(a, 0) = a$, it's obvious that:
 
 $$
 1 \cdot a + 0 \cdot 0 = a
