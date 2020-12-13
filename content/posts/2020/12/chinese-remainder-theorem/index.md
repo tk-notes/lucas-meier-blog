@@ -53,7 +53,7 @@ $$
 
 where $k \cdot m \leq x$, and $\forall k' \cdot m \leq x. \quad k' \leq k$.
 
-The behavior of `mod` for negative numbers vary depending on the programming language.
+The behavior of `mod` for negative numbers varies depending on the programming language.
 In haskell, for example, `mod (-x) m` is `-(mod x m)`. But according to the mathematical
 definition we've just given, this wouldn't be the case.
 
@@ -149,7 +149,7 @@ Let's go over the idea behind Euclid's algorithm first.
 Note that $\text{gcd}(a, 0) = a$. Anything divides $0$, so we just need a divisor of $a$.
 The largest one is just $a$ itself.
 
-Now, let's say we can decmpose $a$:
+Now, let's say we can decompose $a$:
 
 $$
 a = qb + r
