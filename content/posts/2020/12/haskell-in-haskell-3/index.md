@@ -295,22 +295,256 @@ you'll read about parsing will use them heavily.
 
 # Parser Combinators
 
+Alright, now it's time to start writing some code. Before we start definiting the structure
+of our syntax tree, or writing the parser itself, we first need to write our tool
+of choice for making parsers: the *Parser Combinator*! This is going to be a suped up
+version of the *Lexer Combinator* tool we made last time, extended to handle
+recursive structures!
+
+Let's first create a module for our parser in our cabal file:
+
+```haskell
+  exposed-modules:     Ourlude
+                     , Lexer
+                     , Parser
+```
+
+Now let's go setup the standard module and imports in `src/Parser.hs`:
+
+```haskell
+{-# LANGUAGE LambdaCase #-}
+
+module Parser where
+
+import Control.Applicative (Alternative (..), liftA2)
+import Data.List (foldl')
+import Lexer (Token (..))
+import Ourlude
+```
+
+We have a `LambdaCase` as a convenient extension in this module. We also import
+`Alternative`, like for Lexer Combinators, as well as some other utilities.
+
 ## From Lexer Combinator to Parser Combinator
 
-**TODO**
+With Lexer Combinators, we had something like `input -> Maybe (a, input)`. So we take in some input,
+and then either fail, or return a value, and the remaining input. This works well for lexing, since
+a lexer can only produce result, and it's also obvious which of two options we need to choose
+at any point: use the longest match rule.
 
-Talk about why we need to upgrade from the previous part
+For parsing, on the other hand, our structure is much more complicated, so it's not always
+obvious that the longest match rule will be correct. What we do instead is that in the presence of
+ambiguity, we just let it happen. Instead of either failing, or returning a single way of consuming
+the input, we return all possible ways to proceed forward. So, we have:
+
+```haskell
+input -> [(a, input)]
+```
+
+Now, by the time we've parsed the entire source code, there should be only a single element
+in this list. Otherwise, it means there's multiple ways of parsing some code. For example,
+a parser that doesn't handle operator precedence might see `2 + 3 * 4` and produce both:
+
+```haskell
+(2 + 3) * 4
+2 + (3 * 4)
+```
+
+Of course, the second option is correct, because `*` has *higher precedence* than `+`, as we'll
+see later.
+
+Ambiguity in the parsing process is fine, as long as we resolve it later. We might need more than
+one token to resolve this ambiguity, which is ok. As a chief example, take *where expressions*.
+These are expressions with the definitions coming *after* the body they're used in:
+
+```haskell
+x + y
+  where
+    x = 2
+    y = 3
+```
+
+If in our parser for expressions, we have some rule like:
+
+```haskell
+expr = notWhereExpr <|> whereExpr
+```
+
+Then we'll have some ambiguity here. This is because we can't tell which of these parsers is correct
+until we see the `where` token. Because of this, for the first 3 tokens,
+we'll have multiple options floating around.
+
+{{<note>}}
+It's possible to rearrange how you decompose your parser to avoid unbounded ambiguity
+like this. For example, you could always parse an expression, and then changing the meaning
+of what you parsed previously based on whether or not you see a where. We won't be needing
+these kinds of tricks, but they can make parsing more efficient.
+{{</note>}}
+
+By the time we finish parsing the file, we shouldn't have any ambiguity left. If we *do*,
+then that means that there are multiple ways of interpreting some code. This is basically
+never a problem in the code itself, but a problem in the implementation of the language.
+There are certain languages that are inherently ambiguous, like C++, in which case
+the parser needs to make an arbitrary choice, but Haskell is not ambiguous. If we
+fail to parse something because of ambiguity, that's probably a *bug* in our parser.
+
+### The Concrete Type
+
+With all of this in mind, we can go ahead and define a concrete type for `Parser`:
+
+```haskell
+newtype Parser a = Parser {runParser :: [Token] -> [(a, [Token])]}
+```
+
+This is very similar to our `Lexer` type from the last part. Instead of working over `String`,
+we know work over `[Token]`, a list of tokens, instead. And instead of either failing,
+or returning a result, we instead return multiple possible ways of parsing.
+
+### Example Building Blocks
+
+To get a bit more familiar with how this works, let's go ahead and make a couple basic
+helpers.
+
+First, a little helper that accepts a single token:
+
+```haskell
+satisifies :: (Token -> Bool) -> Parser Token
+satisifies p =
+  Parser <| \case
+    t : ts | p t -> [(t, ts)]
+    _ -> []
+```
+
+This is analogous to `Lexer.satisfies`, which accepted a single *character*.
+We look at the remaining list of tokens, and if we can pull out a token matching
+our predicate, we return that token, along with the remaining input. Otherwise
+we return an empty list, since there's now way for this parser to succeed.
+
+A similar function is going to be `pluck`:
+
+```haskell
+pluck :: (Token -> Maybe a) -> Parser a
+```
+
+The behavior is going to be the same as `satisfies`, except now we return a value
+if the predicate matches. This is useful, because we have a few tokens like
+`IntLit i` and `StringLit s` which also have an argument, and this helper
+lets us match against that token, extracting the argument. For example, we can do:
+
+```haskell
+pluck <| \case
+  IntLit i -> Just i
+  _ -> Nothing
+```
+
+To get a parser that accepts an int literal, but produces an `Int`.
+
+The implementation of `pluck` is similar to `satisfies`:
+
+```haskell
+pluck :: (Token -> Maybe a) -> Parser a
+pluck f =
+  Parser <| \case
+    t : ts -> case f t of
+      Just res -> [(res, ts)]
+      _ -> []
+    _ -> []
+```
+
+`Just` replaces the `True` case we had previously, but also provides
+us with the value we want to return.
 
 ## Functor and Applicative
 
-**TODO**
-Go over the functor and applicative instances
+Like with `Lexer`, we'll be providing instances of `Functor` and `Applicative`
+for `Parser`.
+
+For `Functor`, we have:
+
+```haskell
+instance Functor Parser where
+  fmap f (Parser p) = Parser (p >>> fmap (first f))
+```
+
+This just maps over the whatever results we might have produced. In fact,
+this definitions is *exactly* the same as for `Lexer`, since `Maybe`
+and `[]` are both `Functor`s!
+
+For `Applicative`, the operations will mean the same thing as
+for `Lexer`. `pure :: a -> Parser a` will give us a parser that always succeeds,
+consuming no input, and `(<*>) :: Parser (a -> b) -> Parser a -> Parser b` will
+give us a parser that runs the first parser, and then runs the second parser
+using the function produced by the first with the argument produced by the second.
+The difference with `Lexer` is that now a parser may return *multiple* results.
+What we do here is to simply combine *all the combinations* of first and second results:
+
+```haskell
+instance Applicative Parser where
+  pure a = Parser (\input -> [(a, input)])
+  Parser pF <*> Parser pA =
+    Parser <| \input -> do
+      (f, rest) <- lF input
+      (a, s) <- lA rest
+      return (f a, s) 
+```
+
+`pure` does exactly what we said it does before, so it's not too surprising.
+
+What's neat with `<*>` is that to implement the "combine all possible functions and arguments",
+we just the fact that `[]` implements the `Monad` class in the same way that `Maybe` does,
+allowing us to use `do` notation. For `[]`, instead of allowing us to handle failure,
+we instead are able to handle "non-determinism". What ends up happening is
+that for each possible pair `(f, rest)` of a function, and remaining input,
+we return each possible way of using the second parser on that input, and then
+applying the function on the argument produced.
+
+In practice, most of the time there won't be any ambiguity, so:
+
+```haskell
+parser1 *> parser2
+```
+
+will simply mean "run `parser1`, and then run `parser2`"
+
+On the other hand, if we have:
+
+```haskell
+(parser1A <|> parser1B) *> (parser2A <|> parser2B)
+```
+
+then we also have `2 * 2 = 4` paths available to us. We can parse `1A` and then `2A`,
+`1A` and then `2B`, etc.
 
 ## Alternative
 
-**TODO**
+As you might expect, we'll also be implementing `Alternative` for `Parser`,
+to get that sweet sweet `<|>` operator, and all the goodies that come along with it!
+We also need an `empty :: Parser a` function, which returns a `Parser` that always fails.
 
-explain how the alternative instance works
+```haskell
+instance Alternative Parser where
+  empty = Parser (const [])
+  Parser pA <|> Parser pB =
+    Parser <| \input -> pA input ++ pB input
+```
+
+So, to get a parser that always fails, we simply return no valid ways that we
+can continue parsing.
+
+For `<|>`, we run both parsers, and then combine both of their results using `++`.
+Unlike `Lexer`, we don't try to resolve any ambiguity if they both succeed.
+As explained earlier, we let the ambiguity exist, by returning all possible
+ways of parsing. Our final parser should only end up returning one result though,
+even if sub parsers might temporarily have some abiguity.
+
+Like last time, the `Alternative` instance gives us plenty of goodies for free.
+For example, we now have `many :: Parser a -> Parser [a]`, which allows
+to turn parser for one item, into a parser for many items, placed one after the other.
+There's also `some`, which does the same thing, but doesn't requires at least one
+item.
+
+So if `intParser` accepts `3`, then `some intParser` would accept `3 4 5 6`, producing
+`[3, 4, 5, 6]` as our output.
 
 # Adding a new stage
 
@@ -320,9 +554,10 @@ Add a toy stage / parser and AST
 
 # Structure of the AST
 
+## Custom Types
+
 ## Haskell Definitions
 
-## Custom Types
 
 ## Haskell Expressions
 
