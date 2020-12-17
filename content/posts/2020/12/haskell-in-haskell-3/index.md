@@ -1,7 +1,7 @@
 ---
 title: "(Haskell in Haskell) 3. Parsing"
 date: 2020-12-16
-draft: false
+draft: true
 tags:
   - Haskell
   - Programming Languages
