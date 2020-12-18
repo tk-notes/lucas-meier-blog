@@ -546,18 +546,128 @@ item.
 So if `intParser` accepts `3`, then `some intParser` would accept `3 4 5 6`, producing
 `[3, 4, 5, 6]` as our output.
 
-# Adding a new stage
+# Integrating a Parser
 
-**TODO**
+We now have our combinator framework we need to build our parser. Before we
+actually start working on parsing our subset of Haskell, let's go ahead and
+get the boilerplate of adding a new stage to our compiler out of the way,
+so we can focus on parsing in the rest of this post.
 
-Add a toy stage / parser and AST
+Let's go ahead and define a stub type for our syntax tree, and for our errors:
+
+```haskell
+data ParseError = UnimplementedError deriving (Show)
+
+data AST = AST deriving (Show)
+```
+
+Like last time, we just have a single error: the error telling
+users that are parser is not implemented yet!
+
+Our `AST` is just a stub data type as well.
+
+We'll be completing both of these soon enough, but for now, we just want
+to get this stage of the compiler integrated into the command line program.
+
+We also need to write a simple `parser` function that we can expose
+as our implementation of this stage:
+
+```haskell
+parser :: [Token] -> Either ParseError AST
+parser _ = Left UnimplementedError
+```
+
+This function will take in the list of tokens produced by the lexer,
+and return either the parsed syntax tree, or an error, indicating
+that parsing failed.
+
+Finally, we can add the `AST` type and the `parser` function to the the
+exports for this module:
+
+```haskell
+module Parser (AST(..), parser)
+```
+
+{{<note>}}
+Right now, we don't need to export the constructors of `AST` in order
+to make the stage. The stages we'll add in the next parts will be working
+with the details of the syntax tree, so we will be needing to export
+its constructors, as well as the other data types we'll add in this part.
+{{</note>}}
+
+## Adding a new Stage
+
+We now need to go into `Main.hs`, and add a `Stage` for the parser. First,
+let's add the `Parser` module to our list of imports.
+
+```haskell
+-- ...
+import qualified Parser
+-- ...
+```
+
+Right next to `lexerStage`, we can go ahead and add a new `Stage` for our parser:
+
+```haskell
+parserStage :: Stage [Lexer.Token] Parser.AST
+parserStage = makeStage "Parser" Parser.parser
+```
+
+The definition of this is essentially the same as we had for `lexerStage`.
+Stages were introduced in great detail
+[last time](/posts/2020/12/haskell-in-haskell-2/#stages-the-idea),
+so feel free to take a quick refresher if you'd like.
+
+We also need to modify our argument parsing to accept "parse" as a stage.
+This way, users can do:
+
+```txt
+haskell-in-haskell parse file.hs
+```
+
+in order to print out the AST they get from parsing `file.hs`.
+
+Of course, they'll still be able to do:
+
+```txt
+haskell-in-haskell lex file.hs
+```
+
+to just print out the tokens they get after lexing `file.hs`.
+
+All we need to do is modify `readStage`, giving us:
+
+```haskell
+readStage :: String -> Maybe (String -> IO ())
+readStage "lex" =
+  lexerStage |> printStage |> Just
+readStage "parse" =
+  lexerStage >-> parserStage |> printStage |> Just
+readStage _ = Nothing
+```
+
+Here we get to use the fancy `>->` operator we defined last time, in order
+to compose the lexing stage with the parsing stage. This works out nicely,
+since the parsing stage consumes the tokens that the lexing stage produced.
+In the end, we end up with a stage taking in a `String` for the source code,
+and producing an `AST`, that we want to print out.
+
+We can now run all of this, and see something like:
+
+```haskell
+> cabal run haskell-in-haskell -- parse foo.hs
+Parser Error:
+UnimplementedError
+```
+
+which makes sense, since we haven't implemented the parser yet. Let's
+fix that!
 
 # Structure of the AST
 
 ## Custom Types
 
 ## Haskell Definitions
-
 
 ## Haskell Expressions
 

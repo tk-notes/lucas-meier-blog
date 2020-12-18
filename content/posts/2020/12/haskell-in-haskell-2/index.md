@@ -516,7 +516,7 @@ main = do
 parse out `Args`,
 printing out a failure message, or proceeding with the `process` function we defined earlier.
 
-Now we can actually run the parser, to see something like
+Now we can actually run the lexer, to see something like
 
 ```bash
 > cabal run haskell-in-haskell -- lex foo.hs
