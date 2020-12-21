@@ -1347,6 +1347,75 @@ read as "f dollar x", but that doesn't roll off the tongue like "f cash x" does.
 
 ## Pattern Matching
 
+The next kind of expression we're going to deal with are `case` expressions, things
+like:
+
+```haskell
+case x of
+  2 -> x + 2
+  3 -> x + 3
+  y -> x + y
+```
+
+or
+
+```haskell
+case x of
+  Nil -> 0
+  Cons A (Cons B Nil) -> 1
+  Cons B Nil -> 2
+  Cons y Nil -> y
+```
+
+We have some kind of expression that we're scrutinizing, followed by
+a series of branches. Each branch has some kind of *pattern* that we're matching
+against, followed by an expression. The value of the case expression is the value
+of whatever branch happens to match.
+
+So, let's first define what kind of patterns we have in our language:
+
+```haskell
+data Pattern
+  = ...
+  deriving (Eq, Show)
+```
+
+The first kind of pattern is the wildcard: `_`. This pattern matches against everything,
+but creates no new name:
+
+```haskell
+data Pattern
+  = WildcardPattern
+```
+
+The next kind of pattern is similar. We can also have a name as a pattern, like:
+
+```haskell
+case 3 of
+  x -> x
+```
+
+This is like the wildcard, but also assigns the value of whatever it managed to
+match to the given name. So here, `x` would have the value `3` inside of the branch.
+We have:
+
+```haskell
+data Pattern
+  ...
+  | NamePattern ValName
+```
+
+We use `ValName`, since only lower case names like `x` are valid here.
+
+Another kind of pattern is for *literals*. We can match against literal ints, like
+`3`, or literal strings, like `"foo"`:
+
+```haskell
+data Pattern
+  ...
+  | LiteralPattern Literal
+```
+
 ## Definitions
 
 # Parsing in Practice
