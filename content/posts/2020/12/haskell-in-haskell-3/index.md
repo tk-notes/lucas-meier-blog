@@ -984,13 +984,16 @@ Of course, this makes no sense *semantically*, and will be caught by later stage
 Let's first define a structure for each of the constructors / variants:
 
 ```haskell
+type ConstructorName = String
+
 data ConstructorDefinition
   = ConstructorDefinition ConstructorName [Type]
   deriving (Eq, Show)
 ```
 
 A constructor has a given name, like `VariantA`, or `Cons`, as well as a list
-of types, which are the arguments for the constructor. For example,
+of types, which are the arguments for the constructor. For clarity,
+we've created a separate synonym for this kind of name. For example,
 the `VariantB` constructor in our `MyType` example would be represented as:
 
 ```haskell
@@ -1025,7 +1028,322 @@ to represent our language, and we're just getting started!
 
 ## Expressions
 
+In this section, we'll be defining most of the different kinds of expressions in our language.
+For `let` and `where` expressions, which use *definitions*, which we'll define
+a bit later.
+
 ### Literals
+
+This first kind of expression we have are *literals*. We have int literals,
+like `2` and `245`, string literals, like `"foo"` and `"bar"`, and finally,
+boolean literals, namely, `True` and `False`. We can define a type `Literal`
+representing these:
+
+```haskell
+data Literal
+  = IntLiteral Int
+  | StringLiteral String
+  | BoolLiteral Bool
+  deriving (Eq, Ord, Show)
+```
+
+We have one type of literal for each of the primitive types in our language.
+
+Let's also add a type of expression for literals:
+
+```haskell
+data Expr
+  = LitExpr Literal
+  deriving (Eq, Show)
+```
+
+As an example, the literal `3` becomes the much more verbose:
+
+```haskell
+LitExpr (IntLiteral 3)
+```
+
+### Names
+
+We can also reference names inside of expressions. For example, if
+we have some value `x :: Int`, we have `x + x` as an expression. We can also reference
+the constructors for different data types, like `Nil`, `Red`, etc.
+
+We'll be representing these names with strings, but for clarity, let's create a
+type synonym:
+
+```haskell
+type Name = String
+```
+
+We can then use it to define a kind of expression that just use a name:
+
+```haskell
+data Expr
+  ...
+  | NameExpr Name
+```
+
+Semantically, the meaning of `NameExpr "foo"` is whatever expression
+`"foo"` is bound to in a given scope. So if we have `foo = 3`, then
+`NamExpr "foo"` should evaluate to `IntLiteral 3`, using our expression syntax.
+
+### If Expressions
+
+The next kind of expression are *if* expressions, things like:
+
+```haskell
+if y then 3 else 4
+
+if 2 + 3 > 4 then 4 else x + x
+```
+
+These are straightforwardly defined as:
+
+```haskell
+data Expr
+  ...
+  | IfExpr Expr Expr Expr
+```
+
+We can have arbitrary expressions inside of the condition, if-branch,
+and else-branch.
+
+So, `if y then 3 else 4` becomes:
+
+```haskell
+IfExpr
+  (NameExpr "y")
+  (LitExpr (IntLiteral 3))
+  (LitExpr (IntLiteral 4))
+```
+
+### Lambda Expressions
+
+The next kind of expression are *lambda* expressions, allowing us
+to define anonymous functions. These look like:
+
+```haskell
+\x -> x + 1
+
+\x -> \y -> x + y
+```
+
+Note that in Haskell, you can define multiple names at once in a lambda. For example:
+
+```haskell
+\x y -> x + y
+```
+
+is valid, and syntax sugar for:
+
+```haskell
+\x -> y -> x + y
+```
+
+The simplifier will deal with this syntax sugar, our parser will accept this
+verbatim:
+
+```haskell
+data Expr
+  ...
+  | LambdaExpr [ValName] Expr
+```
+
+We have a list of named parameters, and then an arbitrary expression using them.
+So `\x -> x` becomes:
+
+```haskell
+LambdaExpr "x" (NameExpr "x")
+```
+
+This is the first time we use the `ValName` synonym, which is defined as:
+
+```haskell
+type ValName = String
+```
+
+This will be used in many places for names that exclusively refer to values.
+So `x` is a `ValName`, but something like `Nil` would rather be typed
+as `ConstructorName`.
+
+{{<note>}}
+Since we're using type synonyms here, there's actually no difference between `ValName`
+and `ConstructorName`. We could've used `newtype` instead, to make it impossible
+to confuse them. The problem is that there are situations, like `NameExpr`,
+where both might be valid.
+
+For simplicity I've opted to not add the boilerplate of creating explicit differences,
+the synonyms are mainly there for documentation, not correctness.
+{{</note>}}
+
+### Function Application
+
+What would our functional language be without *function application*? In Haskell,
+function application just takes arguments separated by whitespace:
+
+```haskell
+f 1 2 3
+```
+
+We can also have some arbitrary expression as the function as well:
+
+```haskell
+(f . g) 1 2
+```
+
+This gives us:
+
+```haskell
+data Expr
+  ...
+  | ApplyExpr Expr [Expr]
+```
+
+Because of currying, `f 1 2` is really sugar for `(f 1) 2`, but once
+again, we'll be removing syntax sugar in the *simplifier*; the parser
+needs to accept all of this. So, for now, `f 1 2` would be represented as:
+
+```haskell
+ApplyExpr
+  (NameExpr "f")
+  [LitExpr (IntLiteral 1), LitExpr (IntLiteral 2)]
+```
+
+### Negation
+
+We have a single unary operator in our language: negation. Instead of
+having negative numbers, like `-3`, this is instead the negation operator
+`-` applied to the expression `3`. We can also do more complicated things like:
+
+```haskell
+-((\x -> x + 1) 3)
+```
+
+So, we add negation expressions:
+
+```haskell
+data Expr
+  ...
+  | NegateExpr Expr
+```
+
+This makes the simple `-3` into the much more verbose:
+
+```haskell
+NegateExpr (LitExpr (IntLiteral 3))
+```
+
+### Binary Operators
+
+With the only unary operator in the language out of the way, let's add the
+many *binary* operators we need. This will cover arithmetic like `a + b + c`,
+to function composition `f . g . h`, to comparisons with `x > y`, etc.
+
+We have:
+
+```haskell
+data Expr
+  ...
+  | BinExpr BinOp Expr Expr
+```
+
+If we have some complex arithmetic expression, like `a + a + b * (x + y)`, this can
+still be written as a tree, with each node only having two children:
+
+{{<img "3.png">}}
+
+Or, using the structure we've just defined, as:
+
+```haskell
+BinExpr
+  Add
+  (BinExpr
+    Add
+    (NameExpr "a")
+    (NameExpr "a")
+  )
+  (BinExpr
+    Mul
+    (NameExpr "b")
+    (BinExpr
+      Add
+      (NameExpr "x")
+      (NameExpr "y")
+    )
+  )
+```
+
+Of course, we haven't defined `Add` or `Mul`, or any of the other members
+of `BinOp` yet. Let's briefly go over all of the operators:
+
+```haskell
+data BinOp
+  = ...
+  deriving (Eq, Show)
+```
+
+The `+` operator is used to add two numbers:
+
+```haskell
+  = Add
+```
+
+The `-` operator subtracts the right number from the left number:
+
+```haskell
+  | Sub
+```
+
+The `*` operator is for multiplication:
+
+```haskell
+  | Mul
+```
+
+The `/` operator is for division:
+
+```haskell
+  | Div
+```
+
+We have the comparision operators `<`, `<=`, `>`, `>=`, which become:
+
+```haskell
+  | Less
+  | LessEqual
+  | Greater
+  | GreaterEqual
+```
+
+And the comparison operators `==` and `/=` become:
+
+```haskell
+  | EqualTo
+  | NotEqualTo
+```
+
+We also have the two boolean operators `||`, and `&&`, which are:
+
+```haskell
+  | Or
+  | And
+```
+
+Finally, we have the function "operators". Namely, `$` and `.`. These are defined
+as standard functions in normal Haskell, but since we don't have custom operators,
+these are done here as well:
+
+```haskell
+  | Cash
+  | Compose
+```
+
+{{<note>}}
+I have no idea how widespread calling the `$` operator "cash" is. I've always
+called it that since I first learned Haskell ~ 4 years ago. I've heard `f $ x`
+read as "f dollar x", but that doesn't roll off the tongue like "f cash x" does.
+{{</note>}}
 
 ## Pattern Matching
 
