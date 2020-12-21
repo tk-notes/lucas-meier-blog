@@ -665,13 +665,371 @@ fix that!
 
 # Structure of the AST
 
-## Custom Types
+Before we can write a parser to convert our tokens into a syntax
+tree, we need to *define* the shape of that syntax tree. This is the part
+where we explicitly define different structures representing everything
+in our language. We're going to be describing the exact subset of Haskell
+that we implement, by creating various data types for each construct
+in the language.
 
-## Haskell Definitions
+For example, we're going to have a data type for *expressions*. One of
+the variants will be a binary expression, for things like `1 + 2`,
+or `4 * 33`. Another variant might be function application, for things like
+`f 1 2 x`. There will, of course, be many other variants.
 
-## Haskell Expressions
+## A Rough Idea
+
+Our subset of Haskell is cleaved into two very distinct parts:
+
+1. The part of the language dealing with defining types
+2. The part of the language dealing with defining values
+
+These 2 parts interact through *declarations*, which allow
+us to declare that a given value has a certain type.
+
+For example, if you have:
+
+```haskell
+x :: Int -> Int
+x = \x -> x + 1
+```
+
+The `Int -> Int` is squarely in the domain of types, and we'll need some data structures
+to describe function types like `Int -> Int`. The lamdba expression `\x -> x + 1` is clearly
+in the domain of values. And the declaration `x :: ...` is a point of interaction, of sorts. 
+
+Because of this, we can think of our language as being roughly groupable
+into 3 sections:
+
+1. Types: describing them, definining them, creating synonyms
+2. Expressions
+3. Definitions: assigning types and expressions to names
+
+There's a lot of interaction between these categories of course. For example,
+`let x = 3 in x` is an expression that also uses a definition, inside
+of the `let`. With that said, it's still useful to have a bit of categorization
+in our head before we start defining everything we need.
+
+## Types
+
+So, the first thing we can do is define how we can work with types in this subset
+of Haskell. We need ways to refer to certain types, like `Int`, `String`,
+or more complicated things, like `(Int -> String) -> String`. We'll
+also need ways to define new types, either through custom types, like
+`data Color = Red | Blue | Green`, or type synoyms, like `type MyInt = Int`.
+
+### The Fundamental types
+
+Before we get to definitions of new types, let's first define our data structures
+representing the basic ways of using types that exist. For example,
+when you have `x :: Int -> Int`, you need some way of representing whatever
+type comes after the `::`. This is what we'll be defining now.
+
+In effect, what we're doing is defining what a type "is" in our subset of Haskell.
+In fact, this definition will be useful *beyond* just parsing. We can also use
+this representation of types of in *type checker*, for example. Because of this,
+we won't be creating this definition of what at type is in the `Parser` module,
+but instead creating a new module, in `src/Types.hs`, to hold fundamental data
+structures for working with types. We'll expand on this module in further parts,
+as we need to do more things with types.
+
+{{<note>}}
+There's an argument to be made for never sharing things like this between different
+stages. It might be more maintainable to distinguish between the *syntax* of what
+constitutes a type, and the *semantics* of what a type really is later on. Essentially,
+the difference is that the former talks about what things the user can type in their
+source code to tell your compiler about types, but the latter defines how the compiler
+itself manipulates types.
+
+For example, this approach allows you to add *syntax sugar* for different types:
+maybe `A <-> B` is syntax sugar for `(A -> B, B -> A)` in your language. Your representation
+of types later on doesn't have to deal with this extra construction if you separate
+the syntactic types from the "actual" types.
+
+We won't be using a separation like this for our types, but we will have
+a *simplifier* phase for expressions. We'll be going over this phase next time.
+It just turns out that for types, there's not really anything we can simplify,
+so it's a bit more convenient to not bother with the extra boilerplate of having
+two isomorphic representations.
+{{</note>}}
+
+As usual, let's edit our `.cabal` file to add the `Types` module:
+
+```txt
+  exposed-modules:     Ourlude
+                     , ...
+                     , Types
+```
+
+Now, we can go ahead and define this module in `src/Types.hs`:
+
+```haskell
+module Types where
+
+import Ourlude
+```
+
+For now, we just export everything in the module, but we'll come back and make the
+imports explicit once we've defined our representation of types.
+
+First, let's think about what kind of types you should be able to work with in
+our subset of Haskell. As mentioned already, we're going to have a primitive
+`Int` type, which will be the standard integer type we're used to.
+Integer literals will have that type, so `3 :: Int`, for example. We've already
+lost the element of surprise by defining boolean and string literals in the lexer,
+so we're going to also have *primitive* boolean and string types in this
+subset. So we have `String` and `Bool` as builtin types as well.
+
+{{<note>}}
+Our subset of Haskell would be expressive enough to define these in the language itself:
+
+```haskell
+data Bool = True | False
+
+data String = StringCons Char String | EmptyString
+```
+
+The reason I've opted to make these primitive instead is that to do this thing well,
+you need some kind of module system, which is out of the scope for the subset
+we're trying to make with this series.
+{{</note>}}
+
+In addition to builtin types, we need a way for users to define new types,
+and then reference those types. so if a use has `type X = Int`, then
+they should be able to say:
+
+```haskell
+y :: X
+y = 3
+```
+
+So we need to reference custom types by *name*, as well.
+
+Our subset will also have support for polymorphism. You can define functions like:
+
+```haskell
+id x = x
+```
+
+The type of this function is of course:
+
+```haskell
+id :: a -> a
+```
+
+where `a` is not a type *per se*, but rather a *type variable*. We need a way
+to reference type variables by name as well.
+
+This also means that custom data types can be polymorphic, and have variables of their
+own. For example, you might define a list data type as:
+
+```haskell
+data List a = Cons a (List a) | Nil
+```
+
+This will be valid in our language, and introduces the type `List _`, where the underscore
+needs to be filled in. So you might have `List Int` as one type,
+`List String` as another, and `List a`, if `a` happens to be a type variable in scope.
+In brief, custom types are referenced by name, and also have multiple variables.
+
+Finally, we need a way to talk about the function type `A -> B`, which is also
+built into the language.
+
+With all of this in mind, let's just define our representation of types:
+
+```haskell
+type TypeVar = String
+
+type TypeName = String
+
+infixr 2 :->
+
+data Type
+  = StringT
+  | IntT
+  | BoolT
+  | CustomType TypeName [Type]
+  | TVar TypeVar
+  | Type :-> Type
+  deriving (Eq, Show)
+```
+
+So, we have the basic primitive types as hardcoded options:
+
+- `Int` corresponds to `IntT` in this representation
+- `String` corresponds to `StringT`
+- `Bool` corresponds to `BoolT`
+
+We have 2 type synonyms, to clarify the difference between `TypeVar`, which is a lower
+case name, like `a` used for the name of a type variable, and `TypeName`, which
+is an upper case name, like `List` or `Foo`, used to reference the name
+of a newly defined type.
+
+Type variables have the variant `TVar` and take a name as argument. So `a` in Haskell
+would be `TVar "a"` in our representation.
+
+For newly defined types, we have the name of that type, as well as a list of arguments,
+which are also types, so `List Int` would be `CustomType "List" [IntT]` in this representation.
+
+You can also nest things, so `List (List Int)` would become
+
+```haskell
+CustomType "List" [CustomType "List" [IntT]]
+```
+
+Note that type synonyms are also under this category. If you have `type X = Int`,
+then you'd have `CustomType "X" []` to refer to this type synonym.
+
+Finally, we need a way to represent function types. We create a new operator
+`:->` for this. (We need the `:` so that it can be used in types). With this in place
+`Int -> Int` becomes `IntT :-> IntT`, as expected. Note that we declare
+this operator `infixr`, which means it's right associative, like `->` is in Haskell.
+This means that:
+
+```haskell
+Int :-> StringT :-> BoolT
+```
+
+is parsed by GHC as:
+
+```haskell
+Int :-> (StringT :-> BoolT)
+```
+
+which is exactly the behavior that we want.
+
+We'll be using this representation of types throughout the compiler. Let's go ahead and
+explicitly export it as well:
+
+```haskell
+module Types
+  ( Type (..),
+    TypeVar,
+    TypeName
+  )
+where
+```
+
+Now, let's use these types to start working on our syntax tree, in `src/Parser.hs`.
+
+### Defining new types
+
+The next thing we need to do is add the data structures representing the definitions
+of new types in our language. There are going to be two ways to define new types:
+
+1. Type Synonyms, things like `type X = Int`
+2. Data Definitions, things like `data Animal = Cat | Dog`
+
+In our language, these are both considered as 2 of the kinds of definitions
+that can appear at the top level. They'll both be variants of a common
+`Definition` type.
+
+We'll be needing the items we just defined in the `Types` module inside of the parser,
+so let's add an import in `src/Parser.hs`:
+
+```haskell
+...
+import Ourlude
+import Types (Type (..), TypeName, TypeVar)
+```
+
+First, let's define type synonyms.
+Note that we don't allow polymorphic things like `type List2 a = List a`,
+only `type ListInt = List Int`. Because of this, we can define type synonyms
+as a simple variant of `Definition`:
+
+```haskell
+data Definition
+  = TypeSynonym TypeName Type
+```
+
+A type synonym has a name, which is an upper case name like `X`, and a type that
+it's equal to.
+
+And then, we need to define the structure of data definitions. The basic idea
+is that we have a name and some list of constructors:
+
+```haskell
+data MyType = VariantA | VariantB | VariantC
+```
+
+We also need the ability to have arguments in each of the constructors:
+
+```haskell
+data MyType = VariantA String | VariantB Int Int | VariantC
+```
+
+We can also make the data type *polymorphic*, by specifying some type variables
+next to the name:
+
+```haskell
+data MyType a b = VariantA String | VariantB Int Int | VariantC
+```
+
+Of course, we can use these type variables inside of the variants:
+
+```haskell
+data MyType a b = VariantA String | VariantB Int Int | VariantC a b
+```
+
+And that's about it for new data types.
+
+{{<note>}}
+Syntactically speaking, nothing is stopping us from using type variables that aren't
+even in scope, so something like `data Foo = Foo a b c` will parse just fine.
+
+Of course, this makes no sense *semantically*, and will be caught by later stages.
+{{</note>}}
+
+Let's first define a structure for each of the constructors / variants:
+
+```haskell
+data ConstructorDefinition
+  = ConstructorDefinition ConstructorName [Type]
+  deriving (Eq, Show)
+```
+
+A constructor has a given name, like `VariantA`, or `Cons`, as well as a list
+of types, which are the arguments for the constructor. For example,
+the `VariantB` constructor in our `MyType` example would be represented as:
+
+```haskell
+ConstructorDefinition "VariantB" [IntT, IntT]
+```
+
+Now we can add an extra variant in `Definition` for data definitions:
+
+```haskell
+data Definition
+  = DataDefinition TypeName [TypeVar] [ConstructorDefinition]
+  | TypeSynonym TypeName Type
+  deriving (Eq, Show)
+```
+
+A data definition has a name, a list of type variables, and then a list of constructors.
+Our `MyType` example becomes:
+
+```haskell
+DataDefinition "MyType" ["a", "b"]
+  [ ConstructorDefinition "VariantA" [StringT],
+    ConstructorDefinition "VariantB" [IntT, IntT],
+    ConstructorDefinition "VariantC" [TVar "a", TVar "b"]
+  ]
+```
+
+in this representation.
+
+And now we have a complete way of representing the syntax for defining new types!
+We've already started getting a feel for the tree like structure we're using
+to represent our language, and we're just getting started!
+
+## Expressions
+
+### Literals
 
 ## Pattern Matching
+
+## Definitions
 
 # Parsing in Practice
 
