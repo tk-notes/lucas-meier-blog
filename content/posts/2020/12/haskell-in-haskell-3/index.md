@@ -420,7 +420,16 @@ We look at the remaining list of tokens, and if we can pull out a token matching
 our predicate, we return that token, along with the remaining input. Otherwise
 we return an empty list, since there's now way for this parser to succeed.
 
-A similar function is going to be `pluck`:
+An immediate application of this `satisfies` function is going to be:
+
+```haskell
+token :: Token -> Parser Token
+token = (==) >>> satisfies
+```
+
+This just matches against a specific token that we provide.
+
+A similar function to `satisfies` is going to be `pluck`:
 
 ```haskell
 pluck :: (Token -> Maybe a) -> Parser a
@@ -1408,7 +1417,7 @@ data Pattern
 We use `ValName`, since only lower case names like `x` are valid here.
 
 Another kind of pattern is for *literals*. We can match against literal ints, like
-`3`, or literal strings, like `"foo"`:
+`3`, literal strings, like `"foo"`, or literal bools, like `True`, or `False`:
 
 ```haskell
 data Pattern
@@ -1416,7 +1425,292 @@ data Pattern
   | LiteralPattern Literal
 ```
 
+
+We also want to be able to match against custom types. If we define a custom
+type like `data Color = Red | Blue | Green`, we need to be able to do things like:
+
+```haskell
+case color of
+  Red -> ...
+  Blue -> ...
+  Green -> ...
+```
+
+If our data type has constructors, like `data Pair = Pair Int String`,
+we want to be able to match against the arguments as well, giving us constructions like:
+
+```haskell
+case pair of
+  Pair 3 "foo" -> ...
+  Pair x "bar" -> ...
+  Pair _ _ -> ...
+```
+
+With this in mind, we need to add a variant for these constructor patterns:
+
+```haskell
+data Pattern
+  ...
+  | ConstructorPattern ConstructorName [Pattern]
+```
+
+We have the name of the constructor, followed by a sequence of arbitrarily complex
+patterns. So, given a data type like `data List a = Cons a (List a) | Nil`,
+and a pattern like:
+
+```haskell
+Cons _ (Cons _ (Cons _ Nil)
+```
+
+we would represent this as:
+
+```haskell
+ConstructorPattern
+  "Cons"
+  [  WildcardPattern,
+     ConstructorPattern "Cons"
+       [ WildcardPattern,
+         ConstructorPattern "Cons"
+           [ WildcardPattern,
+             ConstructorPattern "Nil" []
+           ]
+       ]
+  ]
+```
+
+And now that we've defiend patterns, we can immediately define case expressions!
+
+```haskell
+data Expr
+  ...
+  | CaseExpr Expr [(Pattern, Expr)] 
+```
+
+So, we first have the expression we're scrutinizing, followed by a list of mappings
+from patterns to expressions to use when that pattern matches. So,
+some expression like:
+
+```haskell
+case scrut of
+  0 -> 0
+  1 -> 1
+  _ -> 2
+```
+
+we would represent this as:
+
+```haskell
+CaseExpr (NameExpr "scrut")
+  [ (LiteralPattern (IntLiteral 0), LitExpr (IntLiteral 0)),
+    (LiteralPattern (IntLiteral 1), LitExpr (IntLiteral 1)),
+    (WildcardPattern, LitExpr (IntLiteral 2))
+  ]
+```
+
 ## Definitions
+
+Now that we've defined *expressions* as well as the structure of *type definitions*,
+we can combine the two, in order to define the structure of value definitions.
+This is about the structure of defining new values. In Haskell, there are two parts
+to a value definition:
+
+1. The type annotation, like `x :: Int`
+2. The name definition itself, like `x = 3`
+
+The type annotation and name definition don't have to appear together, and the
+type annotation isn't necessary at all. Regardless, our parser will need to represent
+both.
+
+So, let's create a structure for both of these:
+
+```haskell
+data Definition
+  = ValueDefinition ValueDefinition
+  | DataDefinition TypeName [TypeVar] [ConstructorDefinition]
+  | TypeSynonym TypeName Type
+  deriving (Eq, Show)
+  
+data ValueDefinition
+  = ...
+  deriving (Eq, Show)
+```
+
+We've just introduced the notion of a `ValueDefinition`, which will contain both
+the type annotations, and the name definitions we've just touched upon. We've also
+added this to our concept of `Definition`. A definition now includes the two
+constructs related to types, namely, data definitions, and type synoyms,
+as well as the definitions for values.
+
+For type annotations, the definition is pretty simple:
+
+```haskell
+data ValueDefinition
+  = TypeAnnotation ValName Type
+```
+
+A type annotation like `x :: Int` is represented as the name of the value being annotated,
+and the type we're providing after the `::`.
+
+For name definitions, our first try might be something like:
+
+```haskell
+NameDefinition ValName Expr
+```
+
+The idea is that something like `x = 3` would become:
+
+```haskell
+NameDefinition "x" (LitExpr (IntLiteral 3))
+```
+
+This *would* work for a large class of Haskell definitions, but Haskell
+has some more syntax sugar around definitions. The first piece of sugar is that
+instead of having to write:
+
+```haskell
+id = \x -> x
+```
+
+You can instead move the parameter to this function to the left side of the `=`,
+to get:
+
+```haskell
+id x = x
+```
+
+Of course, you can have multiple parameters as well:
+
+```haskell
+f a b = a + b
+```
+
+So, our structure for name definitions will need to accomodate these named parameters.
+
+Another bit of sugar is that you can *pattern match* inside of these definitions:
+
+```haskell
+f 0 1 = 1
+f 0 _ = 2
+f a b = a + b
+```
+
+A function can be defined with multiple "heads", each of which has a pattern for
+each of its arguments. Because of this, our full structure for name definitions
+becomes:
+
+```haskell
+data ValueDefinition
+  ...
+  | NameDefinition ValName [Pattern] Expr
+```
+
+We have the name used for this value, a list of patterns for each of the arguments,
+and an expression for the body of this definition.
+
+As an example, this function:
+
+```haskell
+f :: Int -> Int
+f 0 = 0
+f a = a
+```
+
+Would become 3 separate definitions:
+
+```haskell
+TypeAnnotation "f" (IntT :-> IntT :-> IntT)
+
+NameDefinition "f" [LiteralPattern (IntLiteral 0)]
+                   (LiteralPattern (IntLiteral 0))
+
+NameDefinition "f" [NamePattern "a"] (NameExpr "a")
+```
+
+We have one definition for the type annotation, and 2 more for each of the
+2 heads of the function.
+
+{{<note>}}
+Note that we do no enforcing of some basic integrity checks for these heads,
+like enforcing that they have the same number of patterns. This kind of thing is going
+to be handled in the simplifier.
+{{</note>}}
+
+Now that we have a structure for definitions, we can add the two missing
+types of expressions: `let` and `where` expressions. These are two ways to express
+the same thing: local definitions inside an expression. So:
+
+```haskell
+let x :: Int
+    x = 2
+in x
+```
+
+and
+
+```haskell
+x
+where
+  x :: Int
+  x = 2
+```
+
+Have exactly the same meaning. For clarity, we'll just create two different
+types of expression for each of these:
+
+```haskell
+data Expr
+  ...
+  | LetExpr [ValueDefinition] Expr
+  | WhereExpr Expr [ValueDefinition]
+```
+
+The structure is slightly different, to reflect the different order of the two
+variants. `let` has the definitions before the expression, and `where` has
+the definitions after the expression.
+
+{{<note>}}
+We could've choosed to parse `where` as a `let` expression, or vice-versa,
+but I like the clarity of representing the syntax *exactly*. As you might imagine,
+our simplifier will also remove this redundancy.
+{{</note>}}
+
+Finally, now that we have *definitions* finished, we can actually
+define a realy syntax tree:
+
+```haskell
+data AST = AST [Definition] deriving (Eq, Show)
+```
+
+This just says that a Haskell program consists of a sequence of top level definitions.
+So, something like:
+
+```haskell
+data Color = Red | Blue | Green
+
+type C = Color
+
+x :: C
+x = Red
+```
+
+would be a series of 4 definitions, represented as:
+
+```haskell
+AST
+  [ DataDefinition "Color"
+      [ ConstructorDefinition "Red" [],
+        ConstructorDefinition "Blue" [],
+        ConstructorDefinition "Green" []
+      ],
+    TypeSynonym "C" (CustomType "Color" []),
+    ValueDefinition (TypeAnnotation (CustomType "C" [])),
+    ValueDefinition (NameDefinition "x" [] (NameExpr "Color"))
+  ]
+```
+
+Whew! We now have a complete AST representing our subset of Haskell! The next step
+in this post is to write a *parser* for it, using the little combinator
+framework we created earlier.
 
 # Parsing in Practice
 
