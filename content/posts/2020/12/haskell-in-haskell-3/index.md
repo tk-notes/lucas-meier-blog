@@ -1714,11 +1714,114 @@ framework we created earlier.
 
 # Parsing in Practice
 
-## Basic Utilities
+So, now it's time to use all of the little tools we've made
+in order to build up a parser for our AST. We're going to be building up a parser
+in a bottom up fashion, starting with simple parsers for simple parts
+of the language, and combining them piece by piece to make up a parser for the whole language.
 
-## Types
+## Names and Literals
 
-## Primitives
+We're going to be starting with the simplest form of expression: names,
+and literals. There were two types of names in the lexer: `LowerName`,
+for names starting with a lower case letter, and `UpperName` for names
+starting with an upper case letter. We can make a parser for `LowerName`
+pretty easily:
+
+```haskell
+lowerName :: Parser ValName
+lowerName =
+  pluck <| \case
+    LowerName n -> Just n
+    _ -> Nothing
+```
+
+Here we use the `pluck :: (Token -> Maybe a) -> Parser a` function we defined previously.
+`pluck` lets us match against a certain type of token, and also extract some information
+about that token. Here this is useful, since we want to extract
+the string contained in a `LowerName` token.
+
+We can do the same trick for `UpperName`:
+
+```haskell
+upperName :: Parser TypeName
+upperName =
+  pluck <| \case
+    UpperName n -> Just n
+    _ -> Nothing
+```
+
+The only difference here is that we're extracting from `UpperName` instead
+of extracting from `LowerName`.
+
+We've created a few different synonyms for `String`, to clarify the different
+kinds of names we use throughout our AST: things like
+`TypeVar`, `TypeName`, `ValName`, etc. We can immediately put the two parsers
+we've just defined to use, by creating a parser for each of these syntactic
+classes:
+
+```haskell
+typeVar :: Parser TypeVar
+typeVar = lowerName
+
+typeName :: Parser TypeName
+typeName = upperName
+
+valName :: Parser ValName
+valName = lowerName
+
+constructorName :: Parser ConstructorName
+constructorName = upperName
+```
+
+Each of these kinds of name is either a lower case name, or an upper case name. In some contexts,
+for example, function application, we might need to accept *both*,
+which is why we created the `Name` synonym. We can add a parser for that as well:
+
+```haskell
+name :: Parser Name
+name = valName <|> constructorName
+```
+
+Here we use the `<|>` for the first time, to indicate that a `name`,
+is either a `valName`, or a `constructorName`, i.e. that we should accept either
+the `LowerName` token, or the `UpperName` token here.
+
+The next thing we can add in this section is literals. We want to be able
+to parse ints, strings and bools, which make up the builtin values in our
+subset of Haskell:
+
+```haskell
+literal :: Parser Literal
+literal = intLit <|> stringLit <|> boolLit
+  where
+```
+
+Once again, we use the handy `<|>` operator, to say that a literal is either
+an integer literal, a string literal, or a bool literal. The lexer has already
+done the job of creating a token for each of these, which
+makes defining these alternatives very easy:
+
+```haskell
+  where
+    intLit =
+      pluck <| \case
+        IntLit i -> Just (IntLiteral i)
+        _ -> Nothing
+    stringLit =
+      pluck <| \case
+        StringLit s -> Just (StringLiteral s)
+        _ -> Nothing
+    boolLit =
+      pluck <| \case
+        BoolLit b -> Just (BoolLiteral b)
+        _ -> Nothing
+```
+
+We use the very handy `pluck` once again, in order to both match against
+the right kind of literal token, and pick out the data alongside it. We then
+make sure to wrap this data in the right kind of literal for our AST.
+Int literals become `IntLiteral i`, strings `StringLiteral s`, bools `BoolLiteral b`,
+as we went over before.
 
 ## The Operator Hierarchy
 
@@ -1726,7 +1829,9 @@ framework we created earlier.
 
 ## Definitions
 
-## Glueing it all together
+## Types
+
+## Gluing it all together
 
 # Examples
 
