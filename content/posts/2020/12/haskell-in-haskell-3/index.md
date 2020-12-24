@@ -1823,9 +1823,610 @@ make sure to wrap this data in the right kind of literal for our AST.
 Int literals become `IntLiteral i`, strings `StringLiteral s`, bools `BoolLiteral b`,
 as we went over before.
 
-## The Operator Hierarchy
+## Parsing Operators
 
-## Expressions
+The next thing we'll add support for is parsing operators.
+Before we jump into the thick of it though, we'll have to think a bit about the right approach.
+
+### Operator Precedence
+
+A first approach
+towards operators would be to treat them as a kind of punctuation. If you have something
+like:
+
+```haskell
+x + y - a + 3
+```
+
+The names and litearls are like words composing this arithmetic sentence,
+and the arithmetic operators
+are like the puncutuation between the words. A first approach would have some parser
+for these bottom level words, then use this parser, separated by the arithmetic
+tokens.
+
+**TODO: Illustration**
+
+One problem with this approach is *precedence*. For example, multiplication with
+`*` has higher precedence  than addition with `+`. This means that an expression like:
+
+```haskell
+1 + 2 * 3 + 3 * 5
+```
+
+should parse as:
+
+```haskell
+((1 + (2 * 3)) + 3) * 5
+```
+
+and not:
+
+```haskell
+((((1 + 2) * 3) + 3) * 5)
+```
+
+We would get the latter if we parsed addition and multiplication with the same precedence.
+One approach to fix this is to have multiple layers for each level of precedence:
+
+**TODO: Illustration**
+
+So, addition would parse multiplication, separated by `+`, and multiplication would
+parse literal factors, separated by `*`. This paradigm allows us to skip
+levels too. A single item like `3` falls under the "at least one number separated by `*`"
+category: we just have the single number.
+
+Function application falls under this paradigm as well. We can treate
+function application as a very high precedence kind of operator. Instead of
+parsing "at least one `<sub-factor>`, separated by `<operator>`", we just
+"at least two `<sub-factor>`". This is to make sure that,
+only `f x` is considered as a function application, since `f` alone
+would just be a name.
+
+With multiplication, addition, and function application, our tower of operators
+now looks like this:
+
+**TODO: Illustration**
+
+One aspect is missing though: parentheses! In languages with arithmetic expressions like
+these, you can manually insert parentheses to override the grouping rules:
+
+```haskell
+(1 + 2) * 3
+```
+
+is not the same thing as:
+
+```haskell
+1 + 2 * 3
+```
+
+precisely because the parentheses have been inserted. 
+
+There's a simple rule to make this work. Instead of having the bottom of our tower
+just be simple dead-end rules like literals, or simple names, we can instead add
+a rule that goes all the way to the top, parsing any expression surrounded with
+parentheses:
+
+**TODO: Illustration**
+
+Parsing some expression like `f (1 + 2)` will work, because we end up with a transition
+like this:
+
+**TODO: Illustration**
+
+This is also useful beyond arithmetic, since we wanted to allow arbitrary expressions
+inside of parentheses *anyways*. As bizarre as it may seem, something like:
+
+```haskell
+function (
+  case x of
+    1 -> 2
+    _ -> 3
+)
+```
+
+*is* a valid bit of Haskell. This precedence looping trick will allow us to parse
+this kind of thing once we expand our expressions to accept more than
+just operators.
+
+A full precedence tower would look like this:
+
+**TODO: Illustration**
+
+With that in mind, have enough thinking done to start implementing this precedence tower.
+
+### Operator Utilities
+
+The parsing for each layer of operator will be very similar, so we can go ahead
+and define a handful of utilities we'll be using to build them up.
+
+The first utility is to take a parser for `<item>` and turn it
+into a parser for `( <item> )`. This is useful for implementing the looping
+in our tower of precedence. This utility just requires matching
+`()` tokens before and after the original parser:
+
+```haskell
+parensed :: Parser a -> Parser a
+parensed p = token OpenParens *> p <* token CloseParens
+```
+
+Here we use the convenient `*>` and `<*` operators:
+
+```haskell
+(*>) :: Applicative f => f a -> f b -> f b
+(<*) :: Applicative f => f a -> f b -> f a
+```
+
+These sequence their arguments in the same order as `<*>`, but pick a different
+result. For our `parensed` parser, this does the right thing, parsing
+the `(` before our original parser, and the `)` after, but leaving us with
+just the original result.
+
+When thinking about parsing operators, we had the nice of idea of doing
+something like "parse at least one factor, separated by an operator".
+We can make a utility that does this:
+
+```haskell
+sepBy1 :: Parser a -> Parser sep -> Parser [a]
+```
+
+Given a parser for `a`, and parser for `sep`, this creates a parser that
+parses one or more occurrences of `a`, separated by `sep`. So,
+something like `sepBy1 literal (token Semicolon)` would parse things like `3;1;"foo"`.
+
+The implementation makes straightforward use of a few utilities for `Alternative`:
+
+```haskell
+sepBy1 :: Parser a -> Parser sep -> Parser [a]
+sepBy1 p sep = liftA2 (:) p (many (sep *> p))
+```
+
+Semantically, we first parse `p`, and then zero or more occurrences of
+`sep`, followed by `p`. So:
+
+```txt
+<p>
+<p> <sep> <p>
+<p> <sep> <p> <sep> <p>
+```
+
+are all going to be accepted by this parser.
+`many :: Alternative f => f a -> f [a]` is provided to us, since parsers
+implement the `Alternative` class.
+
+We use `sep *> p` each time, since we just want the item parsed, and not the separator.
+Finally, we use `liftA2 (:)` to cons the first item parsed, with the many items
+produced by the rest of the parser.
+
+Now, this would work for something simple like multiplication, since we
+could parse out many multiplication factors, separated by `*`. One slight
+problem is that some operators have the *same* precedence. For example,
+`+` and `-`. We need a modified version of this where we remember
+which separator happened each time. In fact, it would be even more useful
+if given something like:
+
+```haskell
+1 + 2 - 3 + 4
+```
+
+our parser could recognize this as:
+
+```haskell
+1 (+, 2) (-, 3) (+, 4)
+```
+
+and then build up the correct parse tree, using each operator:
+
+```haskell
+((1 + 2) - 3) + 4
+```
+
+This inspires this type for parsing operators:
+
+```haskell
+opsL :: Parser (a -> a -> a) -> Parser a -> Parser a
+```
+
+The first parser is used for separators, and the second parser is used
+for the factors between separators. Semantically, this acts
+like `sepBy1`, with the arguments reversed. The key difference is that
+we use whatever function produced by the separator, to combine the items
+to its left and right. For example, for parsing addition and subtraction,
+we could use this as our separator:
+
+```haskell
+(BinExpr Add <$ token Plus) <|> (BinExpr Sub <$ token Dash)
+```
+
+If we see a `+`, we combine things as an addition expression, and if we see
+a `-`, then we combine things with a subtraction expression.
+
+The implementation is similar to `sepBy1`
+
+```haskell
+opsL :: Parser (a -> a -> a) -> Parser a -> Parser a
+opsL sep p = liftA2 squash p (many (liftA2 (,) sep p))
+  where
+    squash = foldl' (\acc (combine, a) -> combine acc a)
+```
+
+Instead of discarding the separators, we now keep them alongside
+the tokens:
+
+**TODO: Illustration**
+
+Then, we fold from the left, using the combinator that's now attached
+to each token we encounter:
+
+**TODO: Illustration**
+
+In practice, this works as we'd like, of course. Given some arithmetic expression
+like:
+
+```haskell
+a + b + c - d
+```
+
+this groups things in the way we'd expect:
+
+```haskell
+((a + b) + c) - d
+```
+
+One problem is that this works for *left associative* operators, since
+we have our large expression on the left, and add items
+as we scan towards the right.
+
+Some operators are not left associative though! For example, the ubiquitous
+`$` operator does not associatie to the left. An expression like:
+
+```haskell
+f $ g $ 1
+```
+
+means:
+
+```haskell
+f $ (g $ 1)
+```
+
+and not:
+
+```haskell
+(f $ g) $ 1
+```
+
+We need to create an `opsR` function, that does the same thing as `opsL`,
+but associates to *right* instead:
+
+```haskell
+opsR :: Parser (a -> a -> a) -> Parser a -> Parser a
+```
+
+The idea is that given some sequence, like:
+
+```haskell
+f $ g $ h $ a
+```
+
+We end up with:
+
+**TODO: Illustration**
+
+after grouping the items and the separator.
+
+Next let's flip this sequence around, before moving the separator
+to the right one step:
+
+**TODO: Illustration**
+
+Now, if we were to use our previous technique, and scan from left to right,
+we'd get the correct answer. Of course, we'd need to make sure that we pass
+the accumulator on the right, and the next item on the left:
+
+**TODO: Illustration**
+
+With this in mind, here's the implementation of `opsR`:
+
+```haskell
+opsR :: Parser (a -> a -> a) -> Parser a -> Parser a
+opsR sep p = liftA2 squash p (many (liftA2 (,) sep p))
+  where
+    shift (oldStart, stack) (combine, a) =
+      (a, (combine, oldStart) : stack)
+
+    squash start annotated =
+      let (start', annotated') = foldl' shift (start, []) annotated
+       in foldl' (\acc (combine, a) -> combine a acc) start' annotated'
+```
+
+Our starting point is the same as with `opsL`, having parsed our
+first item, and the following items along with their separators. From their,
+we do a first scan, where our goal is to end up attaching each separator
+to the item on its left, and have the last item in our starting list
+left alone.
+
+We do this with `foldl'`, keeping track of the last item we've seen, and
+the tail of items along with their new separators. When we see a new `(sep, a)`
+pair, `a` becomes our new last item, and the previous item
+is adjoined with `sep` onto the tail.
+
+Finally, we can scan over this list as if we were doing a left associative
+operator, with the caveat that we swap the arguments to `combine`.
+This is because if we have:
+
+```haskell
+f $ x
+```
+
+which we've separed into:
+
+```haskell
+(x, [($, f)])
+```
+
+the `$` function is still expecting the accumulator on its *right*,
+to make, `f $ x`.
+
+{{<note>}}
+Of course, we could have swapped the convention for `opsR`, making it accept
+the separator function in the same order in which it ends up using it, but
+this would make things needlessly complicated for the consumer of this function.
+{{</note>}}
+
+This took me a while to get a hold of as well, but thinking through the illustrations
+really helps make sense of how this operation works.
+
+### Operators in Practice
+
+At the top of our precedence hierarchy, we have expressions:
+
+```haskell
+expr :: Parser Expr
+expr = binExpr
+```
+
+For now, all the expression we have are *binary expressions*. This is where we'll
+do all of our operators.
+
+We have:
+
+```haskell
+binExpr :: Parser Expr
+binExpr = cashExpr
+  where
+    cashExpr = opsR (BinExpr Cash <$ token Dollar) orExpr
+```
+
+The lowest precedence operator is at the top. The lowest precedence operator
+being the ubiquituous `$`, of course.
+
+Next we have `||`:
+
+```haskell
+    orExpr = opsR (BinExpr Or <$ token VBarVBar) andExpr
+```
+
+And then we have `&&`:
+
+```haskell
+    andExpr = opsR (BinExpr And <$ token AmpersandAmpersand) comparisonExpr
+```
+
+{{<note>}}
+Hopefully this whole precedence tower idea is starting to make a bit more sense
+as we put it into place.
+{{</note>}}
+
+Next we have comparisons, i.e. `<, <=, >, >=, ==, /=`:
+
+```haskell
+    comparisonExpr = opsL comparisonOperator concatExpr
+      where
+        comparisonOperator =
+          (BinExpr Less <$ token LeftAngle)
+            <|> (BinExpr LessEqual <$ token LeftAngleEqual)
+            <|> (BinExpr Greater <$ token RightAngle)
+            <|> (BinExpr GreaterEqual <$ token RightAngleEqual)
+            <|> (BinExpr EqualTo <$ token EqualEqual)
+            <|> (BinExpr NotEqualTo <$ token FSlashEqual)
+```
+
+Here we have different possibilities, since all of these operators have the same
+precedence. For each of the possible tokens, we make sure to associate
+the correct binary expression. Each of the operator parser
+always yields exactly the combining function that they represent,
+thanks to `<$`.
+
+Continuing on, we have `++`, for string concatenation:
+
+```haskell
+    concatExpr = opsL (BinExpr Concat <$ token PlusPlus) addSubExpr
+```
+
+Followed by addition and subtraction with `+` and `-`:
+
+```haskell
+    addSubExpr = opsL addSubOperator mulDivExpr
+      where
+        addSubOperator =
+          (BinExpr Add <$ token Plus)
+            <|> (BinExpr Sub <$ token Dash)
+```
+
+Multiplication and division, with `*` and `/`, are a bit stronger:
+
+```haskell
+    mulDivExpr = opsL mulDivOperator composeExpr
+      where
+        mulDivOperator =
+          (BinExpr Mul <$ token Asterisk)
+            <|> (BinExpr Div <$ token FSlash)
+```
+
+And finally, the highest precedence binary operator is function composition with `.`:
+
+```haskell
+    composeExpr = opsR (BinExpr Compose <$ token Dot) unaryExpr
+```
+
+Next come unary operators, of which we only have `-x`, for integer negation.
+Note that, `-(+1) 3` is valid haskell, and means `-4`. This still looks
+a bit weird to me, but is pretty simple to handle:
+
+```haskell
+unaryExpr :: Parser Expr
+unaryExpr = negateExpr <|> appExpr
+  where
+    negateExpr = (token Dash *> appExpr) |> fmap NegateExpr
+```
+
+To parse a unary expression, we either find a `-` and a function application expression,
+or just skip the `-` entirely.
+
+`appExpr` is going to parse something like `f a b c`, and decide whether
+or not it's a function, based on how many things it sees:
+
+```haskell
+appExpr :: Parser Expr
+appExpr = some factor |> fmap extract
+  where
+    extract [] = error "appExpr: No elements produced after some"
+    extract [e] = e
+    extract (e : es) = ApplyExpr e es
+```
+
+If we see a single expression, then we leave that alone. Something like `3`
+by itself just means `3`. If we see `f 3`, i.e. two or more items, then
+the first of those items is a function, and the rest are its arguments.
+
+{{<note>}}
+The `some` function provided by `Alternative` parses one or more occurrences
+of a parser, so if it produces an empty list, that's not our fault,
+and something very fishy is going on.
+
+This is why some people advocate for more usage of the `NonEmpty` type in
+Haskell, which would allow `many` and `some` to indicate how they differ
+in terms of their types:
+
+```haskell
+some :: f a -> f (NonEmpty a)
+many :: f a -> f [a]
+```
+{{</note>}}
+
+And finally, we have `factor`, which is at the bottom of our precedence hierarchy:
+
+```haskell
+factor :: Parser Expr
+factor = littExpr <|> nameExpr <|> parensed expr
+  where
+    littExpr = fmap LitExpr literal
+    nameExpr = fmap NameExpr name
+```
+
+A factor is either a simple literal, a name, or it pulls off the beautiful
+trick we went over earlier: it expects some parentheses, and jumps
+all the way back to the top of the expression hierarchy!
+
+## Other Expressions
+
+The next thing we're going to tackle is parsing expressions that don't contain
+definitions, i.e. `if`, `case` and lambdas.
+
+If expressions and lambdas are pretty simple, so let's get them out of the way:
+
+```haskell
+expr :: Parser Expr
+expr = binExpr <|> ifExpr <| lambdaExpr
+  where
+```
+
+For `if`, it's pretty much what it says on the tin:
+
+```haskell
+    ifExpr =
+      IfExpr
+        <$> (token If *> expr)
+        <*> (token Then *> expr)
+        <*> (token Else *> expr)
+```
+
+We parse the condition after an `if` token, the first branch after
+a `then` token, and the final branch after an `else` token. We use the standard
+`<$>` and `<*>` operators to plumb these results into the `IfExpr` constructor,
+which takes these three operands.
+
+For lambdas, it's also not that complicated. A lambda like:
+
+```haskell
+\x y -> x + y
+```
+
+is just the `\` token, some names, a `->` token, and then an expression. In code,
+we get:
+
+```haskell
+    lambdaExpr = token BSlash *>
+      liftA2 LambdaExpr (some valName) (token ThinArrow *> expr)
+```
+
+For case expressions, we first need a way to parse *patterns*. Parsing
+patterns is kind of similar to operators. We can have a constructor with simple
+arguments:
+
+```haskell
+C 1 2 3 4
+```
+
+but in order to introduce more complicated patterns as arguments, we need parentheses:
+
+```haskell
+C (A 2) 2 3 B
+```
+
+Notice how the `B` constructor takes no arguments, and so can appear without
+any issue as a simple argument here.
+
+Our definition for a single pattern looks like this:
+
+```haskell
+onePattern :: Parser Pattern
+onePattern = unspacedPattern <|> argfulPattern
+  where
+    argfulPattern =
+      liftA2 ConstructorPattern constructorName (some unspacedPattern)
+```
+
+A pattern is either an a constructor taking some arguments, or a single
+argument pattern. `unspacedPattern` will parse any kind of pattern that can
+appear as an argument to a constructor, perhaps requiring parentheses:
+
+```haskell
+unspacedPattern :: Parser Pattern
+unspacedPattern = simplePattern <|> parensed onePattern
+  where
+```
+
+So, an `unspacedPattern` is either an entire pattern, wrapped in parentheses,
+or a s *simple pattern*, which can appear as an argument
+without any parentheses:
+
+```haskell
+    simplePattern =
+      wildCardPattern
+        <|> varPattern
+        <|> litPattern
+        <|> singleConstructor
+    singleConstructor = fmap (`ConstructorPattern` []) constructorName
+    wildCardPattern = WildcardPattern <$ token Underscore
+    varPattern = fmap NamePattern valName
+    litPattern = fmap LiteralPattern literal
+```
+
+This is either the case of a single constructor with no arguments, like
+`B` in the example before, a wildcard pattern `_`, a single named
+pattern, like `x`, a 
 
 ## Definitions
 
