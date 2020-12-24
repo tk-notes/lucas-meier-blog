@@ -15,3 +15,7 @@ relativeURLs = true
     lineNumbersInTable = true
     noClasses = false
     tabWidth = 4
+
+[taxonomies]
+  tag = "tags"
+  "note-tag" = "note-tags"

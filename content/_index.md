@@ -30,3 +30,9 @@ If you want to stay up to date, I'd recommend checking out the [RSS feed](/posts
 The vast majority of my programming work involves working on side-projects. These range from small
 weekend-projects, to games, to libraries, to programming languages! I also recommend
 checking out my [Github](https://github.com/cronokirby) for an even more complete overview.
+
+
+## [Notes](/notes)
+
+I sometimes put up rough notes for things I'm studying, or working on here.
+
