@@ -98,4 +98,4 @@ so $X$ is connected.
 
 $$\square$$
 
-(I first saw this proof, and other ideas, in "Topology: A Categorical Approcach")
+(I first saw this proof, and other ideas, in "Topology: A Categorical Approach")
