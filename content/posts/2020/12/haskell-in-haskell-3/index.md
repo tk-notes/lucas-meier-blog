@@ -1708,8 +1708,30 @@ AST
   ]
 ```
 
-Whew! We now have a complete AST representing our subset of Haskell! The next step
-in this post is to write a *parser* for it, using the little combinator
+Whew! We now have a complete AST representing our subset of Haskell!
+Let's go ahead and add the necessary data types that our parser
+needs to export:
+
+```haskell
+module Parser
+  ( AST (..),
+    ValName,
+    ConstructorName,
+    Name,
+    Definition (..),
+    ConstructorDefinition (..),
+    ValueDefinition (..),
+    Expr (..),
+    Literal (..),
+    BinOp (..),
+    Pattern (..),
+    parser,
+  )
+where
+```
+
+The next step
+in this post is to write a *parser* for our AST, using the little combinator
 framework we created earlier.
 
 # Parsing in Practice
@@ -2424,15 +2446,589 @@ without any parentheses:
     litPattern = fmap LiteralPattern literal
 ```
 
-This is either the case of a single constructor with no arguments, like
+A pattern like this is either a constructor with no arguments, like
 `B` in the example before, a wildcard pattern `_`, a single named
-pattern, like `x`, a 
+pattern, like `x`, or a literal, like `3` or `"foo"`.
 
-## Definitions
+With patterns defined, we can start working on case expressions. Note that
+from the point of view of the parser, case expressions use braces and semicolons:
+
+```haskell
+case x of {
+  1 -> 2;
+  _ -> 3
+}
+```
+
+This kind of situation will appear with definitions as well, so we can go
+ahead and make a utility for parsing braces and semicolons:
+
+```haskell
+braced :: Parser a -> Parser [a]
+braced p =
+  token OpenBrace *> sepBy1 p (token Semicolon) <* token CloseBrace
+```
+
+`braced` turns a parser for a single item, into a parser for one or more items
+separated by semicolons, all inside of braces.
+
+We can then immediately used `braced` to create a parser for case expressions:
+
+```haskell
+caseExpr :: Parser Expr
+caseExpr =
+  liftA2 CaseExpr (token Case *> expr <* token Of) (braced patternDef)
+  where
+    patternDef = liftA2 (,) onePattern (token ThinArrow *> expr)
+```
+
+We have the `case <scrutinee> of` part, followed by the patterns,
+which are in braces and semicolons. We than have the `<pat> -> <branch>`
+part. Each pattern is just the
+`onePattern` we defined before, followed by the `->` token,
+and the expression for that branch.
+
+We could add this to the definition of `expr`, but we're going to be
+adding a few more expressions shortly, so we can just include it when
+we get around to those.
 
 ## Types
 
+The remaining expressions we need to add are those related to definitions.
+Things like `x = 2`, or `x :: Int`. We can parse the expression part
+of these value definitions just fine, but we haven't added any parsing
+for types yet! Before we can proceed, we'll need to add some parsing
+for types, and then move on to definitions.
+
+Parsing types is going to be *very similar* to parsing patterns.
+We have some types taking in arguments, like `Pair Int String`,
+or `List (List Int)`. We need to distinguish the types
+that are basic enough to appear without parentheses in our parser,
+like we did with patterns.
+
+We'll also need to add in a bit of operator parsing, to parse
+function types like `Int -> String -> Int`.
+
+Our goal is to define:
+
+```haskell
+typeExpr :: Parser Type
+```
+
+which parses an arbitrary type.
+
+Starting from the bottom, we have:
+
+```haskell
+singleType :: Parser Type
+singleType = fmap TVar typeVar <|> primType <|> parensed typeExpr
+  where
+    primType =
+      (IntT <$ token IntTypeName)
+        <|> (StringT <$ token StringTypeName)
+        <|> (BoolT <$ token BoolTypeName)
+```
+
+The `singleType` represents either a fundamental type that *is not* a kind of
+custom type, or an arbitrary type, so long as it's between parentheses.
+
+We can then use this to define a full parser for type expressions:
+
+```haskell
+typeExpr :: Parser Type
+typeExpr = opsR ((:->) <$ token ThinArrow) baseType
+  where
+    baseType = singleType <|> customType
+    customType = liftA2 CustomType typeName (many typeArgument)
+
+typeArgument :: Parser Type
+typeArgument = namedType <|> singleType
+  where
+    namedType = fmap (`CustomType` []) typeName
+```
+
+We have different type "factors", separated by the function arrow `->`. This
+becomes the constructor `:->`, which represents the same thing in our syntax tree.
+Of course, we make sure that we parse this operator in a *right associative*
+way, so that:
+
+```haskell
+Int -> String -> Int
+```
+
+is parsed as:
+
+```haskell
+IntT :-> (StringT :-> IntT)
+```
+
+The base type that can appear between functions is either the single type
+we defined earlier, or a custom type, which we excluded from the definition
+of `singleType`. A custom type is parsed as some type name, followed by zero
+or more arguments.
+
+For the arguments, we do something interesting. We accept `singleType`, as
+expected, but we also accept `namedType`. `namedType` is just a single
+custom type, without any arguments. This allows us to have
+a type like `T` as an argument, giving us something like `Pair T T`,
+without needing to wrap `T` in parentheses.
+
+{{<note>}}
+The reason we couldn't have moved this case inside of `singleType` is
+becase of *ambiguity*. If it were possible to parse something like `T`
+by going through `singleType`, then it would also be possible
+to parse it by going through `customType`, and having no arguments
+coming from `many`. Because we have multiple ways of parsing, we would
+end up with multiple results after running our parsers, which we
+do not want.
+{{</note>}}
+
+## Value Definitions
+
+With that in place, we now have everything we need to parse value definitions.
+As a reminder, these look like:
+
+```haskell
+x :: Int
+x = 3
+```
+
+We have either a *type annotation*, or a *name definition*. The parser for
+this is pretty straightforward:
+
+```haskell
+valueDefinition :: Parser ValueDefinition
+valueDefinition = nameDefinition <|> typeAnnotation
+  where
+    nameDefinition =
+      NameDefinition
+        <$> valName
+        <*> many unspacedPattern
+        <*> (token Equal *> expr)
+    typeAnnotation =
+      liftA2 TypeAnnotation valName (token DoubleColon *> typeExpr)
+```
+
+A `valueDefinition` is either a `nameDefinition`, or a `typeAnnotation.`
+
+A `typeAnnotation` is a name, followed by a `::` and some type.
+
+A `nameDefinition` is also a name, but this time with multiple patterns
+as arguments, and then the `=` token, and the expression. We have multiple
+patterns, since Haskell allows the syntax sugar:
+
+```haskell
+f a b = a + b
+```
+
+for:
+
+```haskell
+f = \a b -> a + b
+```
+
+These are `unspacedPattern`, since if we need complex patterns, we need them
+to appear with parentheses. Something like:
+
+```haskell
+f Pair a b =
+```
+
+will be parsed as:
+
+```haskell
+f (Pair) (a) (b) =
+```
+
+instead of:
+
+```haskell
+f (Pair a b) =
+```
+
+which is possible, but requires explicit parentheses.
+
+### Remaining Expressions
+
+With these value definitions in place, we're now ready to completely define all
+possible expressions. The remaining expressions
+we need to add to `expr` are `where`, and `let` expressions:
+
+```haskell
+expr :: Parser Expr
+expr = notWhereExpr <|> whereExpr
+  where
+    notWhereExpr =
+      letExpr <|> ifExpr <|> lambdaExpr <|> binExpr <|> caseExpr
+    ifExpr =
+      IfExpr
+        <$> (token If *> expr)
+        <*> (token Then *> expr)
+        <*> (token Else *> expr)
+    lambdaExpr = token BSlash *>
+      liftA2 LambdaExpr (some valName) (token ThinArrow *> expr)
+    letExpr = liftA2 LetExpr
+      (token Let *> braced valueDefinition) (token In *> expr)
+    whereExpr = liftA2 WhereExpr
+      notWhereExpr (token Where *> braced valueDefinition)
+```
+
+It should be clear that `notWhereExpr <|> whereExpr` includes every
+kind of expression, unless you're a constructive mathematician.
+
+For let expressions, we just parse the token `let`, followed by
+some value definitions in braces and semicolons, and then the `in` token,
+and the expression.
+
+Remember that `let` introduces a layout, so:
+
+```haskell
+let
+  x :: Int
+  x = 2
+in x
+```
+
+is lingo for:
+
+```haskell
+let {
+  x :: Int;
+  x = 2 
+} in x
+```
+
+Now, for `where` expressions, it's tempting to do something like:
+
+```haskell
+expr *> token Where *> braced valueDefinition
+```
+
+but the problem is that this parser recurses infinitely. This is a problem
+we haven't touched upon yet, called *left recursion*. This arises
+in theory for parsing methods like ours, and for parser combinators
+in particular, even in a lazy language like Haskell.
+
+The fundamental problem is that if we have a rule like this,
+to parse `expr`, we try parsing `expr`, which means that we try
+to parse `expr`, and so we see if we can parse `expr`, and we give
+a shot at parsing `expr`, and then, out of curiosity, see
+if maybe parsing `expr` might work, etc.
+
+We aren't able to make any progress, because we have no concrete rules to latch on to.
+The solution is to not have `expr` on the left here, but have `notWhereExpr`
+here. That way, if our parser starts "exploring" this path, it can't immediately
+loop back onto itself, but instead has to parse a different rule
+that will allow it to make progress.
+
+This is why we define `notWhereExpr` to include everything except `whereExpr`,
+to prevent this kind of immediate loop, with no tokens in between.
+
+Anyhow, with this trick resolved, we have now finished parsing all
+of the expressions in our language. The end is in sight!
+
+## Other Definitions
+
+The only remaining items to parse in our syntax tree are custom type definitions,
+and type synonyms, which make up the remaining kinds of definition
+in our language.
+
+For type definitions, we'll need a parser for each of the constructors that make
+up a definition like:
+
+```haskell
+data VariantA = A Int String | B String Int
+```
+
+This gives us:
+
+```haskell
+constructorDefinition :: Parser ConstructorDefinition
+constructorDefinition =
+  liftA2 ConstructorDefinition constructorName (many typeArgument)
+```
+
+Here we can reuse the `typeArgument` we defined earlier, which was
+then used for the simple types that appear as arguments to a custom type,
+like `Pair Int (List String)`. Of course, if we have a constructor:
+
+```haskell
+PairConstructor Int (List String)
+```
+
+then it's natural to reuse the same parsing scheme for its arguments.
+
+A constructor doesn't necessarily have any arguments, hence the `many`,
+instead of `some`.
+
+Finally, we can use this to define the remaining definitions:
+
+```haskell
+definition :: Parser Definition
+definition = valueDefinition' <|> dataDefinition <|> typeSynonym
+  where
+    valueDefinition' = fmap ValueDefinition valueDefinition
+    dataDefinition =
+      DataDefinition
+        <$> (token Data *> typeName)
+        <*> many typeVar
+        <*> (token Equal *> sepBy1 constructorDefinition (token VBar))
+    typeSynonym = liftA2 TypeSynonym
+      (token Type *> typeName) (token Equal *> typeExpr)
+```
+
+A definition is either a value definition, a data definition,
+or a type synonym.
+
+Type synonyms are pretty simple. We have a `type` token, the
+name of the synonym, and then `=`, followed by the type we're making
+an alias of.
+
+For data definitions, we first have the `data` token, followed by the
+name of the new custom type, and any type variables it might have.
+We have then have an `=` token, followed by its constructors. There
+must be one or more constructors, each of them separated by a `|` token.
+
+{{<note>}}
+In theory Haskell does accept types with no constructors, so
+we could have done `sepBy` instead of `sepBy1` here, to allow things like:
+
+```haskell
+data Void =
+```
+{{</note>}}
+
+And now we can parse all of the definitions in our language. We
+just have a bit of plumbing left to do to connect all of this together.
+
 ## Gluing it all together
 
+A Haskell program consists of a series of top level definitions. The whole
+file is actually in a braced environment, which means that
+we have the following parser for the entire AST:
+
+```haskell
+ast :: Parser AST
+ast = fmap AST (braced definition)
+```
+
+These definitions include both value definitions, so definition values
+by assigning them expressions, or annotating their types, as well as defining
+new types, through type synonyms, or data definitions.
+
+We also need to amend our `ParseError` type to be a bit more informative:
+
+```haskell
+data ParseError = FailedParse | AmbiguousParse [(AST, [Token])] deriving (Show)
+```
+
+While still not as informative as you really would like, we now have two kinds of errors.
+The first occurrs if our parser found no way to parse the tokens given to us,
+and the second occurrs if for some reason multiple ASTs have been produced
+after going through all of the tokens.
+
+I've mentioned ambiguity being a concern when designing some aspects of the parser,
+and avoiding seeing this kind of error is the reasoning behind some of the design.
+
+With these errors in mind, we can amend our `parser` function to use
+the `ast` parser we just defined:
+
+```haskell
+parser :: [Token] -> Either ParseError AST
+parser input = case runParser ast input of
+  [] -> Left FailedParse
+  [(res, _)] -> Right res
+  tooMany -> Left (AmbiguousParse tooMany)
+```
+
+We use `runParser :: Parser a -> [(a, [Token])]` to get a list of parse results,
+after running the parser for our entire syntax tree on the input tokens.
+If we have no possible parses, then that's the first error we defined above.
+If we have too many parses, that's the ambiguous error. Finally,
+if we just have a single result, then that's the AST that we want our parser to return.
+
+And with that, we've finished our parser! It's time to pat ourselves on the back,
+and try it out with a few examples.
+
 # Examples
+
+If we run
+
+```haskell
+cabal run haskell-in-haskell -- parse file.hs
+```
+
+we'll be able to see the parse tree for a given source program.
+
+For something simple like:
+
+```haskell
+x :: Int
+x = 2
+```
+
+we get:
+
+```haskell
+AST
+    [ ValueDefinition
+        ( TypeAnnotation "x" IntT )
+    , ValueDefinition
+        ( NameDefinition "x" []
+            ( LitExpr
+                ( IntLiteral 2 )
+            )
+        )
+    ]
+```
+
+which is quite a bit more verbose, but matches what we expect. We see the definition
+of `x` pop up, first as a type annotation, and then once more, as the actual
+expression.
+
+We can make more complex arithmetic of course:
+
+```haskell
+x :: Int
+x = 1 + 2 * 3
+```
+
+This program gives:
+
+```haskell
+AST
+    [ ValueDefinition
+        ( TypeAnnotation "x" IntT )
+    , ValueDefinition
+        ( NameDefinition "x" []
+            ( BinExpr Add
+                ( LitExpr
+                    ( IntLiteral 1 )
+                )
+                ( BinExpr Mul
+                    ( LitExpr
+                        ( IntLiteral 2 )
+                    )
+                    ( LitExpr
+                        ( IntLiteral 3 )
+                    )
+                )
+            )
+        )
+    ]
+```
+
+We can also do `let` expressions:
+
+```haskell
+x :: Int
+x =
+  let y = 2
+  in y
+```
+
+```haskell
+AST
+    [ ValueDefinition
+        ( TypeAnnotation "x" IntT )
+    , ValueDefinition
+        ( NameDefinition "x" []
+            ( LetExpr
+                [ NameDefinition "y" []
+                    ( LitExpr
+                        ( IntLiteral 2 )
+                    )
+                ]
+                ( NameExpr "y" )
+            )
+        )
+    ]
+```
+
+I'll spare you from putting more complicated expressions as examples here,
+because the parse trees are quite verbose.
+
+As a final example, let's do some basic pattern matching with a custom type:
+
+```haskell
+data Color = Red | Blue | Green
+
+f Red = 0
+f Blue = 1
+f Green = 2
+```
+
+```haskell
+AST
+    [ DataDefinition "Color" []
+        [ ConstructorDefinition "Red" []
+        , ConstructorDefinition "Blue" []
+        , ConstructorDefinition "Green" []
+        ]
+    , ValueDefinition
+        ( NameDefinition "f"
+            [ ConstructorPattern "Red" [] ]
+            ( LitExpr
+                ( IntLiteral 0 )
+            )
+        )
+    , ValueDefinition
+        ( NameDefinition "f"
+            [ ConstructorPattern "Blue" [] ]
+            ( LitExpr
+                ( IntLiteral 1 )
+            )
+        )
+    , ValueDefinition
+        ( NameDefinition "f"
+            [ ConstructorPattern "Green" [] ]
+            ( LitExpr
+                ( IntLiteral 2 )
+            )
+        )
+    ]
+```
+
+We first have the definition for this custom type, with
+its three different constructors. We then have three separate definitions
+for the function `f`, since it has three different heads. Each of those
+heads has a pattern it matches against, which we see in the `NameDefinition`
+node as well.
+
+Anyways, it's a lot of fun to play around with this for different programs,
+and I've gotten distracted playing around with it again, even through I wrote this
+parser months before I got around to writing this post.
+
+# Conclusion
+
+Hopefully this was an interesting post, as we get deeper and deeper into
+the guts of the compiler. Hopefully the little sprinkling of theory
+was enough to make the implementation understandable, but this post
+did end up being longer than I expected it to be.
+
+As usual, Crafting Interpreters has
+[a great chapter on parsing](https://craftinginterpreters.com/parsing-expressions.html),
+which might be a good read if you're still not sure how exactly
+parsers work, even if the combinator approach works intuitively.
+
+If you want a meatier text that goes into different theoretical methods of parsing,
+including the thorny issues like *left recursion*,
+I like the book
+[Engineering a Compiler](
+https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-088478-0).
+The third chapter of this book is about parsing, and covers
+all of this theory in great detail.
+
+In this next post, we'll be going over the *simplifier*, to prepare
+our syntax tree for consumption by our type checker. The simplifier will have some
+drudge work to do, like resolving information about the type synonyms used
+in our program, and the signatures of each constructor. Another super
+interesting part is remove all of the nesting from pattern matching,
+making the rest of the compiler much simpler.
+
+Anyways, I'm getting ahead of myself, but that's a bit of a preview for the next
+part in this series. At the rate it takes me to write these, this'll most likely
+be coming around next year.
+
+So, I wish you all a (belated) Merry Christmas, and a Happy New Year!
 
