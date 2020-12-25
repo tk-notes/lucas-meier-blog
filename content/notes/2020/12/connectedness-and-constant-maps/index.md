@@ -96,6 +96,6 @@ we have $f = g \circ \pi$, for some unique $g : Y \to \\{0, 1\\}$. Since $Y$
 is connected, $g$ is constant. This means that $f$ is constant,
 so $X$ is connected.
 
-$$\square$$
+$\square$
 
 (I first saw this proof, and other ideas, in "Topology: A Categorical Approach")
