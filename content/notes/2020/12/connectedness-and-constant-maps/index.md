@@ -70,3 +70,32 @@ Because $A_\alpha$ is connected, $f$ is constant on $A_\alpha$, and equal to
 $f(p)$ everywhere. $f$ is thus constant on $\bigcup_\alpha A_\alpha$.
 
 $\square$
+
+## Constant On Fibers
+
+This way of looking at things is quite elegant if you adopt a more categorical point
+of view in other parts of Topology. For example, one characterization of a quotient
+map is as follows:
+
+A continuous function $\pi : X \to Y$ is a quotient map if and only if
+for every function $f : X \to Z$ that is constant on the fibers $\pi^{-1}(\\{y\\})$
+of $Y$, there exists a unique $g : Y \to Z$ making the following diagram commute:
+
+{{<img "3.png">}}
+
+The following theorem becomes very simple with these definitions:
+
+If $\pi : X \to Y$ is a quotient map, $Y$ is connected, and furthermore,
+every fiber $\pi^{-1}(\\{y\\})$ is also connected, then $X$ is connected.
+
+**Proof:**
+
+Take an arbitrary map $f : X \to \\{0, 1\\}$. Because each fiber is connected,
+this map is constant on fibers. By the universal property of quotients,
+we have $f = g \circ \pi$, for some unique $g : Y \to \\{0, 1\\}$. Since $Y$
+is connected, $g$ is constant. This means that $f$ is constant,
+so $X$ is connected.
+
+$$\square$$
+
+(I first saw this proof, and other ideas, in "Topology: A Categorical Approcach")
