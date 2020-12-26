@@ -2,6 +2,7 @@
 title: "Misc 0"
 date: 2020-12-26T15:15:24+01:00
 type: note
+katex: true
 note-tags:
   - "Programming"
   - "Green Threads"
