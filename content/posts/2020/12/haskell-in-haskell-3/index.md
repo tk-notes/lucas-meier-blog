@@ -16,39 +16,45 @@ lexer produced in the [previous part](/posts/haskell-in-haskell-3).
 
 <!--more-->
 
-Because of all the work we did in our last post, writing this parser will actually
-be *simpler* than the lexer. We've already broken up our source code into
-bite-size tokens, and used the whitespace to infer semicolons and braces. Because
-of this, our parser's job is much simpler.
+Because of all the work we did last time, this part should actually
+be *simpler*. We've already broken up our source code into
+bite-size tokens, using whitespace to infer semicolons and braces.
+Having this clean representation makes our parser's job much easier.
 
-# Parsing in theory
+# Parsing in Theory
 
-Before we start writing out our parser in code, let's try and figure out
-what a parser is supposed to do, and why we need a parser anyways.
+Before we start coding our parser, let's try and figure out
+what a parser is supposed to do, and why we need one anyways.
 
-The goal of parsing is to go from our source code, to a representation that we
+The goal of parsing is to go from our *source code*, to a representation that we
 can actually work with. We want to transform Haskell code like:
 
 ```haskell
 foo = 2 + 3 * 4
 ```
 
-into some kind of data structure that we can meaningfully. We'll be using this
-data structure to make sure that the usage of types makes sense, and then
-eventually turning the data structure into C code.
+into some kind of data structure that we can progressively
+analyze and transform into C code. We'll need to analyze things
+like the scoping of names, and the usage of types. We'll also
+be gradually transforming and simplifying our representation,
+with the goal of getting closer and closer to C.
 
-We've already written one chunk of this transformation: the lexer. The lexer
-groups up this source code into small tokens. Each token the lexer produces wouldn't
-make sense as separate chunks. Our parser needs to take these tokens, and then
-analyze their structure to produce a data structure representing our code.
+We've already written one chunk of this parsing: the lexer.
+The lexer takes some source code, and groups it up into small tokens.
+Each token doesn't
+make sense as separate chunks. Our parser needs to take these tokens,
+analyze their structure, and produce a data structure representing the source code.
 
-## Tokens are not enough
+## More than Tokens?
 
-After the lexer, we already have a data structure: a list of tokens. Why not just use
-this as our representation of source code?
+Our lexer already gives us a data structure: a list of tokens. Why not just use
+this to represent Haskell code?
 
-This won't be very useful, because the tokens don't really reflect the structure of
-our source code. Take this example:
+Unfortunately, this isn't going to work;
+the tokens aren't expressive enough to really reflect the structure
+of Haskell.
+
+Take this example:
 
 ```haskell
 x = 2 + 2
@@ -56,13 +62,16 @@ x = 2 + 2
 y = 2
 ```
 
-As a flat stream of tokens, we have:
+After lexing, we get a flat stream of tokens:
 
 ```haskell
 { x = 2 + 2 ; y = 2 }
 ```
 
-But, there's actually a nested nature to this code. A better way of looking at this would be:
+
+But this flat representation fails to capture the *nested*
+nature of this snippet.
+A better representation would be something like:
 
 ```haskell
 (
@@ -72,14 +81,15 @@ But, there's actually a nested nature to this code. A better way of looking at t
 ```
 
 The expression `2 + 2` "belongs" to the definition of `x`, and the expression
-`2` "belongs" to the definition of `y`. This kind of nested structure
-is a bad fit for a *flat* data structure like a list of tokens.
+`2` "belongs" to the definition of `y`. This kind of *nested structure*
+is **ubiquitous** throughout Haskell. A list of tokens
+is simply a bad fit here.
 
 ## Trees
 
-On the other hand, this kind of nested data structure is perfect for a tree.
+On the other hand, this kind of nesting is perfect for a tree.
 
-This example:
+Let's take our previous example once more:
 
 ```haskell
 x = 2 + 2
@@ -87,16 +97,17 @@ x = 2 + 2
 y = 2
 ```
 
-Can be represented by a tree that looks something like this:
+This piece of code can be represented by a tree that looks something like this:
 
 {{<img "1.png">}}
 
-Each node in the tree has some kind of label, and can contain other subtrees as its children.
-We also have a node at the top level, which contains all the top level definitions. Definitions
-nodes use an `=` here, and have the name as one child, and the expression as the other child.
-Addition uses a `+` node, with the expression arguments as children.
+Each node in the tree has some kind of label, and can contain other subtrees as children.
+We have a node at the top level, containing all the top level definitions.
+**Definitions**
+use an `=` here, have the **name** as one child, and the **expression** as the other.
+**Addition** uses a `+` node, with its arguments as children.
 
-In fact, this approach scales nice to expressions with even more nesting:
+This approach scales nicely to expressions with even more nesting:
 
 ```haskell
 x =
@@ -104,22 +115,22 @@ x =
   in y 
 ```
 
-Here we have a two nested expressions for `x`, giving us a tree that looks like:
+We now have a two nested expressions for `x`, giving us a tree that looks like:
 
 {{<img "2.png">}}
 
-It's easy to imagine how this might work for even more complicated expressions, since
+We can imagine how this might work for even more complicated expressions, since
 nodes can contain arbitrary trees as their children.
 
 ## Valid Syntax vs Valid Semantics
 
 This tree of nodes built up from source code is called an **Abstract Syntax Tree**, or
 an **AST**, for short. It's a syntax tree, since it represents the structure of
-our programming language, i.e. what syntax is valid or not. I don't actually know why
-it's called an *abstract* tree. I like to think that it's abstract, because it provides
+our programming language: what syntax is valid or not. I don't actually know why
+it's called an *abstract* tree, but I like to think that it's abstract, because it provides
 a representation of trees that are *syntactically* valid, but that don't necessarily make any sense.
 
-For example take something like:
+For example, take this snippet:
 
 ```haskell
 x =
@@ -127,26 +138,31 @@ x =
   in "x" foo
 ```
 
-This bit of code is *syntactically valid*, and can be parsed just fine, but it has a few notable issues.
+This bit of code is *syntactically valid*, and our parser *shouldn't complain*.
+It still has a few issues though:
 
-- You can't add strings and numbers
-- You can't use a string like `"x"` as a function
-- The name `foo` is not defined in that scope
+1. You can't add strings and numbers
+2. You can't use a string like `"x"` as a function
+3. The name `foo` is not defined in this scope
 
 Because of these issues, our program is *semantically invalid*, even though it manages to parse.
-The goal of the *type checker* that we'll write soon enough is to find all of these issues.
+The goal of the *type checker* is to find all of these issues. We'll get to this
+soon enough, but not in this part.
 
-But, it's not our parser's job to figure these things out yet. Our parser is just concerned
-with producing this *Abstract* Syntax Tree, by transforming the list of tokens produced
-by our lexer.
+It's not our parser's job to figure these things out yet. Our parser is just concerned
+with producing this *Abstract* Syntax Tree.
+The parser will be taking the tokens produced by the lexer, and forming
+them to make up this tree.
+
+{{<img "16.png">}}
 
 ## Grammars
 
 One common tool used to describe these syntax rules is a [Context Free Grammar](https://www.wikiwand.com/en/Context-free_grammar),
-or just a *Grammar* for short. Grammars allow us to think about the structure
-of a programming language, at least in terms of its surface syntax.
+or just *Grammar* for short. Grammars allow us to think about the structure
+of a programming language, at least at the level of syntax.
 
-As a motivating example, let's take a very simplified version of our Haskell subset.
+As a motivating example, let's take a very simplified subset of Haskell.
 
 Our example language consists of a single expression, which might be one of:
 
