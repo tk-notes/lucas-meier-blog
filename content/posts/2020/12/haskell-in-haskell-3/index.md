@@ -1860,13 +1860,13 @@ like:
 x + y - a + 3
 ```
 
-The names and litearls are like words composing this arithmetic sentence,
+The names and literals are like words composing this arithmetic sentence,
 and the arithmetic operators
 are like the puncutuation between the words. A first approach would have some parser
 for these bottom level words, then use this parser, separated by the arithmetic
 tokens.
 
-**TODO: Illustration**
+{{<img "4.png">}}
 
 One problem with this approach is *precedence*. For example, multiplication with
 `*` has higher precedence  than addition with `+`. This means that an expression like:
@@ -1890,7 +1890,7 @@ and not:
 We would get the latter if we parsed addition and multiplication with the same precedence.
 One approach to fix this is to have multiple layers for each level of precedence:
 
-**TODO: Illustration**
+{{<img "5.png">}}
 
 So, addition would parse multiplication, separated by `+`, and multiplication would
 parse literal factors, separated by `*`. This paradigm allows us to skip
@@ -1907,7 +1907,7 @@ would just be a name.
 With multiplication, addition, and function application, our tower of operators
 now looks like this:
 
-**TODO: Illustration**
+{{<img "6.png">}}
 
 One aspect is missing though: parentheses! In languages with arithmetic expressions like
 these, you can manually insert parentheses to override the grouping rules:
@@ -1929,12 +1929,12 @@ just be simple dead-end rules like literals, or simple names, we can instead add
 a rule that goes all the way to the top, parsing any expression surrounded with
 parentheses:
 
-**TODO: Illustration**
+{{<img "7.png">}}
 
 Parsing some expression like `f (1 + 2)` will work, because we end up with a transition
 like this:
 
-**TODO: Illustration**
+{{<img "8.png">}}
 
 This is also useful beyond arithmetic, since we wanted to allow arbitrary expressions
 inside of parentheses *anyways*. As bizarre as it may seem, something like:
@@ -1953,7 +1953,7 @@ just operators.
 
 A full precedence tower would look like this:
 
-**TODO: Illustration**
+{{<img "9.png">}}
 
 With that in mind, have enough thinking done to start implementing this precedence tower.
 
@@ -2075,12 +2075,12 @@ opsL sep p = liftA2 squash p (many (liftA2 (,) sep p))
 Instead of discarding the separators, we now keep them alongside
 the tokens:
 
-**TODO: Illustration**
+{{<img "10.png">}}
 
 Then, we fold from the left, using the combinator that's now attached
 to each token we encounter:
 
-**TODO: Illustration**
+{{<img "11.png">}}
 
 In practice, this works as we'd like, of course. Given some arithmetic expression
 like:
@@ -2099,23 +2099,23 @@ One problem is that this works for *left associative* operators, since
 we have our large expression on the left, and add items
 as we scan towards the right.
 
-Some operators are not left associative though! For example, the ubiquitous
-`$` operator does not associatie to the left. An expression like:
+Some operators are not left associative though! For example,
+the function arrow `->` between types associates to the *right*:
 
 ```haskell
-f $ g $ 1
+Int -> String -> Int
 ```
 
 means:
 
 ```haskell
-f $ (g $ 1)
+Int -> (String -> Int)
 ```
 
 and not:
 
 ```haskell
-(f $ g) $ 1
+(Int -> String) -> Int
 ```
 
 We need to create an `opsR` function, that does the same thing as `opsL`,
@@ -2128,25 +2128,28 @@ opsR :: Parser (a -> a -> a) -> Parser a -> Parser a
 The idea is that given some sequence, like:
 
 ```haskell
-f $ g $ h $ a
+A -> B -> C -> D
 ```
 
 We end up with:
 
-**TODO: Illustration**
+{{<img "12.png">}}
 
 after grouping the items and the separator.
 
 Next let's flip this sequence around, before moving the separator
 to the right one step:
 
-**TODO: Illustration**
+{{<img "13.png">}}
 
-Now, if we were to use our previous technique, and scan from left to right,
-we'd get the correct answer. Of course, we'd need to make sure that we pass
-the accumulator on the right, and the next item on the left:
+Now we also need to *flip*
+the operator, to make sure that the arguments are passed in the right order.
 
-**TODO: Illustration**
+{{<img "14.png">}}
+
+And then our scanning approach from last time works:
+
+{{<img "15.png">}}
 
 With this in mind, here's the implementation of `opsR`:
 
@@ -2175,20 +2178,25 @@ is adjoined with `sep` onto the tail.
 
 Finally, we can scan over this list as if we were doing a left associative
 operator, with the caveat that we swap the arguments to `combine`.
-This is because if we have:
+
+This is because we need to apply `flip combine` in practice,
+and not just `combine`, to accomplish the "operator flipping"
+we went over in the previous diagram.
+
+In practice, this means that if we have:
 
 ```haskell
-f $ x
+A -> B
 ```
 
-which we've separed into:
+which we've separated into:
 
 ```haskell
-(x, [($, f)])
+(B, [(->, A)])
 ```
 
-the `$` function is still expecting the accumulator on its *right*,
-to make, `f $ x`.
+the `->` function is still expecting the accumulator on its *right*,
+to make, `A -> B`.
 
 {{<note>}}
 Of course, we could have swapped the convention for `opsR`, making it accept
