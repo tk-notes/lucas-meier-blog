@@ -6,6 +6,9 @@ katex: true
 note-tags:
   - "Programming"
   - "Green Threads"
+  - "Topology"
+  - "Math"
+  - "Algebra"
   - "Misc"
 ---
 
