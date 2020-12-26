@@ -42,7 +42,7 @@ and $b \in C$,
 we have $a \in ab^{-1}C$ as well. But since $ab^{-1}C$ is a connected
 component, i.e. equivalence class, and it contains $a$,
 it must be equal to $C$, since $C$ is an equivalence class containining
-$C$. Since $ab^{-1}C = C$, $ab^{-1}$ must be in $C$.
+$a$. Since $ab^{-1}C = C$, $ab^{-1}$ must be in $C$.
 
 To see that $C$ is normal, we show that $gC = Cg$. For this, note
 that $gC$ and $Cg$ are both connected components, as
