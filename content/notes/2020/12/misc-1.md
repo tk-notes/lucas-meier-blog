@@ -54,3 +54,13 @@ they must be equal.
 
 $\square$
 
+# Font Rendering
+
+For some reason I've gotten somewhat curious about font rendering as a potential project.
+It falls under the "software I use without really understanding, for sure".
+
+Here's some links I got on Discord:
+
+https://gankra.github.io/blah/text-hates-you/
+https://crates.io/crates/fontdue
+
