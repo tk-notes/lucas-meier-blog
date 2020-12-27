@@ -151,14 +151,15 @@ soon enough, but not in this part.
 
 It's not our parser's job to figure these things out yet. Our parser is just concerned
 with producing this *Abstract* Syntax Tree.
-The parser will be taking the tokens produced by the lexer, and forming
-them to make up this tree.
+The parser will be taking the tokens produced by the lexer, and
+transforming them into this tree.
 
 {{<img "16.png">}}
 
 ## Grammars
 
-One common tool used to describe these syntax rules is a [Context Free Grammar](https://www.wikiwand.com/en/Context-free_grammar),
+One common tool used to describe these syntax rules is a
+[Context Free Grammar](https://www.wikiwand.com/en/Context-free_grammar),
 or just *Grammar* for short. Grammars allow us to think about the structure
 of a programming language, at least at the level of syntax.
 
@@ -193,7 +194,11 @@ let {
 } in x
 ```
 
-(For simplicitly, we require a semicolon after each definition, instead of between them)
+{{<note>}}
+For simplicity, we require a semicolon *after* each definition,
+instead of between them. This is slightly different than how we'll handle
+this in our real language, but is simpler for now.
+{{</note>}}
 
 A Grammar for this language would like something like this:
 
@@ -207,33 +212,38 @@ A Grammar for this language would like something like this:
 <singleDefinition> ::= <name> = <expr>
 ```
 
-Each `<rule>` references some type of syntactic element. So `<expr>` corresponds to
+Each `<rule>` references some type of syntactic element. For example, `<expr>`
+references
 an *expression* in our little language. After the `::=`, we declare each
-rule that lets us build up that element. Everything not between angle brackets
+way we can build up this element. Everything outside of angle brackets
 is an actual token we expect to see.
 
-So, for `<expr>` this matches the overview we gave earlier: an expression is either
+For `<expr>`, this matches the overview we gave earlier: an expression is either
 an integer literal, a string literal, a name, or a let expression.
 
-And then `<letexpr>` consists of the token `let`, followed by some definitions, inside
-braces, and the finally the token `in`, and an expression.
+And then, `<letexpr>` consists of the token `let`, followed by some definitions inside
+braces, the token `in`, and an expression.
 
-`<definitions>` is either empty, or a single definition, followed by a `;`,
+`<definitions>` is either empty, or a single definition followed by a `;`,
 and some more definitions.
 
-Finally, `<singleDefinition>`, for things like `x = 3`, is just a name, the token `=`,
+Finally, `<singleDefinition>` represents things like `x = 3`.
+This is just a name, the token `=`,
 and then an expression.
 
-Intuitively, this grammar allows us to describe in detail the rules that define
-what structure our toy language actually has. These kinds of rules should actually
-be familiar for us, since our lexer used a similar approach. For example, we had things like:
+Intuitively, this grammar allows describes the rules that define
+what structure our toy language has. These kinds of rules should actually
+be familiar for us, since our lexer used a similar approach.
+
+For example, to define what a `token` was, we built
+up a large lexer from smaller possibilities:
 
 ```haskell
 token :: Lexer (Token, String)
 token = keyword <|> operator <|> literal <|> name
 ```
 
-in order to define what makes up a valid token. This matches up naturally with a grammar like:
+This matches up naturally with a grammar like:
 
 ```txt
 <token> ::= <keyword> | <operator> | <literal> | <name>
@@ -243,10 +253,13 @@ in order to define what makes up a valid token. This matches up naturally with a
 ...
 ```
 
-The big difference is that our tokens were completely *flat*. Tokens couldn't end up containing
-other tokens. Grammars, on the other hand, are expressive enough to expressive recursive
-structures. Our toy language itself has a recursive structure: expressions can contain let
-expressions, which also contain expressions. Because of this, you have a kind of recursive nesting:
+The big difference is that our tokens were completely *flat*.
+Tokens never contained
+other tokens. Grammars, on the other hand,
+allow us to talk about *recursive structures* as well.
+Our toy language has a recursive structure: expressions can contain let
+expressions, which also contain expressions. Because of this, you
+can nest expressions inside of eachother:
 
 ```haskell
 let {
@@ -258,11 +271,13 @@ let {
 } in z
 ```
 
-Grammars should also seem eerily familiar to you as Haskeller as well. In Haskell, we
-have *algebraic data types*. For example, let's say we want a type for colors,
-which are going to be either red, blue, green, or an arbitrary hex string like "#ABFE00".
+Grammars should also seem eerily familiar to you as Haskeller. In Haskell, we
+have *algebraic data types*.
 
-We would represent this with an ADT like this:
+For example, let's define a type for *colors*.
+A color can be either red, blue, green, or an arbitrary hex string like "#ABFE00".
+
+We could represent this with an ADT, like this:
 
 ```haskell
 data Color = Red | Blue | Green | Hex String
@@ -286,7 +301,8 @@ If we revisit the grammar for our toy language:
 <singleDefinition> ::= <name> = <expr>
 ```
 
-We can go in the other direction, and model this structure using Haskell types:
+We can go in the other direction, from grammar
+to ADT, modelling this structure using Haskell types:
 
 ```haskell
 data Expr
@@ -303,17 +319,20 @@ with syntactic elements, like semicolons, and braces, and we don't care about th
 here. But the rough structure is the same, especially in terms of how the data type
 references itself recursively.
 
-What's cool with Haskell is that because it has these nice recursive ADTs, we can represent
-our syntax tree in a way that's very similar to the grammar that defines it. We won't be using
-grammars directly, but what we'll be doing will be awfully similar. I also think it's important
+Because Haskell has these nice recursive ADTs, we can
+have our syntax tree look very similar to the grammar
+for our language.
+
+We won't be using grammars directly, but we'll be doing awfully similar things.
+I also think it's important
 to touch on the concept of grammars, at least briefly, since most of the other resources
 you'll read about parsing will use them heavily.
 
 # Parser Combinators
 
-Alright, now it's time to start writing some code. Before we start definiting the structure
+Alright, now it's time to start writing some code. Before we start defining the structure
 of our syntax tree, or writing the parser itself, we first need to write our tool
-of choice for making parsers: the *Parser Combinator*! This is going to be a suped up
+of choice for making parsers: the **Parser Combinator**! This is going to be a suped up
 version of the *Lexer Combinator* tool we made last time, extended to handle
 recursive structures!
 
@@ -338,27 +357,37 @@ import Lexer (Token (..))
 import Ourlude
 ```
 
-We have a `LambdaCase` as a convenient extension in this module. We also import
-`Alternative`, like for Lexer Combinators, as well as some other utilities.
+We have `LambdaCase` as a convenient extension in this module. We also import
+`Alternative`, as well as some other utilities.
 
 ## From Lexer Combinator to Parser Combinator
 
-With Lexer Combinators, we had something like `input -> Maybe (a, input)`. So we take in some input,
-and then either fail, or return a value, and the remaining input. This works well for lexing, since
-a lexer can only produce result, and it's also obvious which of two options we need to choose
-at any point: use the longest match rule.
+With Lexer Combinators, a lexer was essentially just a function:
 
-For parsing, on the other hand, our structure is much more complicated, so it's not always
-obvious that the longest match rule will be correct. What we do instead is that in the presence of
-ambiguity, we just let it happen. Instead of either failing, or returning a single way of consuming
-the input, we return all possible ways to proceed forward. So, we have:
+```haskell
+input -> Maybe (a, input)
+```
+
+We take in some input,
+and then either fail or succeed, returning a value, and the remaining input. This works well for lexing,
+since a lexer can only produce one result,
+and it's always obvious which of two options we need to choose:
+just use the longest match rule.
+
+This won't work for parsing. Our structure is much more complicated, so it's not always
+obvious that the longest match rule will be correct. What we do instead
+is to let ambiguity happen, at least temporarily.
+Instead of either failing, or returning a single way of consuming
+the input, we return all possible ways to proceed forward.
+
+We now have:
 
 ```haskell
 input -> [(a, input)]
 ```
 
-Now, by the time we've parsed the entire source code, there should be only a single element
-in this list. Otherwise, it means there's multiple ways of parsing some code. For example,
+By the time we've parsed the entire source code, there should be only a single element
+in this list. Otherwise, there are multiple ways of parsing some code. For example,
 a parser that doesn't handle operator precedence might see `2 + 3 * 4` and produce both:
 
 ```haskell
@@ -387,13 +416,13 @@ expr = notWhereExpr <|> whereExpr
 ```
 
 Then we'll have some ambiguity here. This is because we can't tell which of these parsers is correct
-until we see the `where` token. Because of this, for the first 3 tokens,
-we'll have multiple options floating around.
+until we see the `where` token. For the first 3 tokens,
+we have multiple options floating around.
 
 {{<note>}}
 It's possible to rearrange how you decompose your parser to avoid unbounded ambiguity
-like this. For example, you could always parse an expression, and then changing the meaning
-of what you parsed previously based on whether or not you see a where. We won't be needing
+like this. For example, you could *always* parse an expression, and then change the meaning
+of what you've just seen based on whether or not you see a `where`. We won't be needing
 these kinds of tricks, but they can make parsing more efficient.
 {{</note>}}
 
@@ -413,28 +442,30 @@ newtype Parser a = Parser {runParser :: [Token] -> [(a, [Token])]}
 ```
 
 This is very similar to our `Lexer` type from the last part. Instead of working over `String`,
-we know work over `[Token]`, a list of tokens, instead. And instead of either failing,
-or returning a result, we instead return multiple possible ways of parsing.
+we know work over `[Token]`, instead.
+We also return multiple possible ways of parsing, as explained earlier.
 
 ### Example Building Blocks
 
-To get a bit more familiar with how this works, let's go ahead and make a couple basic
+To learn how this works better, let's go ahead and make a couple basic
 helpers.
 
-First, a little helper that accepts a single token:
+First, let's make a little helper that accepts a single token:
 
 ```haskell
-satisifies :: (Token -> Bool) -> Parser Token
-satisifies p =
+satisfies :: (Token -> Bool) -> Parser Token
+satisfies p =
   Parser <| \case
     t : ts | p t -> [(t, ts)]
     _ -> []
 ```
 
 This is analogous to `Lexer.satisfies`, which accepted a single *character*.
-We look at the remaining list of tokens, and if we can pull out a token matching
-our predicate, we return that token, along with the remaining input. Otherwise
-we return an empty list, since there's now way for this parser to succeed.
+Our implementation looks at the remaining list of tokens,
+and checks if there is a token matching our predicate
+at the front of the list.
+If so, we return that token, along with the remaining input. Otherwise
+we return an empty list, since there's no way for this parser to succeed.
 
 An immediate application of this `satisfies` function is going to be:
 
@@ -451,10 +482,11 @@ A similar function to `satisfies` is going to be `pluck`:
 pluck :: (Token -> Maybe a) -> Parser a
 ```
 
-The behavior is going to be the same as `satisfies`, except now we return a value
+The behavior is going to be the same as `satisfies`, except now we
+can return a value
 if the predicate matches. This is useful, because we have a few tokens like
-`IntLit i` and `StringLit s` which also have an argument, and this helper
-lets us match against that token, extracting the argument. For example, we can do:
+`IntLit i` and `StringLit s` which also have an argument. This helper
+lets us match against a token like this, extracting the argument. For example, we can do:
 
 ```haskell
 pluck <| \case
@@ -462,7 +494,7 @@ pluck <| \case
   _ -> Nothing
 ```
 
-To get a parser that accepts an int literal, but produces an `Int`.
+to get a parser that accepts an int literal, but produces an `Int`.
 
 The implementation of `pluck` is similar to `satisfies`:
 
@@ -491,34 +523,36 @@ instance Functor Parser where
   fmap f (Parser p) = Parser (p >>> fmap (first f))
 ```
 
-This just maps over the whatever results we might have produced. In fact,
-this definitions is *exactly* the same as for `Lexer`, since `Maybe`
+This just maps over the results that we've produced. In fact,
+this definition is *exactly* the same as for `Lexer`, since `Maybe`
 and `[]` are both `Functor`s!
 
 For `Applicative`, the operations will mean the same thing as
 for `Lexer`. `pure :: a -> Parser a` will give us a parser that always succeeds,
 consuming no input, and `(<*>) :: Parser (a -> b) -> Parser a -> Parser b` will
-give us a parser that runs the first parser, and then runs the second parser
-using the function produced by the first with the argument produced by the second.
+give us a parser that runs the first parser, and then runs the second parser.
+The return value will be the function
+produced by the first with the argument produced by the second.
 The difference with `Lexer` is that now a parser may return *multiple* results.
-What we do here is to simply combine *all the combinations* of first and second results:
+We're going to use *all the combinations* of first and second results:
 
 ```haskell
 instance Applicative Parser where
   pure a = Parser (\input -> [(a, input)])
   Parser pF <*> Parser pA =
     Parser <| \input -> do
-      (f, rest) <- lF input
-      (a, s) <- lA rest
+      (f, rest) <- pF input
+      (a, s) <- pA rest
       return (f a, s) 
 ```
 
 `pure` does exactly what we said it does before, so it's not too surprising.
 
-What's neat with `<*>` is that to implement the "combine all possible functions and arguments",
-we just the fact that `[]` implements the `Monad` class in the same way that `Maybe` does,
+What's neat with `<*>` is that to implement the "combine all possible functions and arguments"
+behavior,
+we can use the fact that `[]` implements the `Monad` class in the same way that `Maybe` does,
 allowing us to use `do` notation. For `[]`, instead of allowing us to handle failure,
-we instead are able to handle "non-determinism". What ends up happening is
+we are now able to handle "non-determinism". What ends up happening is
 that for each possible pair `(f, rest)` of a function, and remaining input,
 we return each possible way of using the second parser on that input, and then
 applying the function on the argument produced.
@@ -537,7 +571,7 @@ On the other hand, if we have:
 (parser1A <|> parser1B) *> (parser2A <|> parser2B)
 ```
 
-then we also have `2 * 2 = 4` paths available to us. We can parse `1A` and then `2A`,
+then we'll get `2 * 2 = 4` paths available to us. We can parse `1A` and then `2A`,
 `1A` and then `2B`, etc.
 
 ## Alternative
@@ -553,32 +587,32 @@ instance Alternative Parser where
     Parser <| \input -> pA input ++ pB input
 ```
 
-So, to get a parser that always fails, we simply return no valid ways that we
-can continue parsing.
+To get a parser that always fails, we return no valid ways
+to continue parsing.
 
 For `<|>`, we run both parsers, and then combine both of their results using `++`.
 Unlike `Lexer`, we don't try to resolve any ambiguity if they both succeed.
 As explained earlier, we let the ambiguity exist, by returning all possible
 ways of parsing. Our final parser should only end up returning one result though,
-even if sub parsers might temporarily have some abiguity.
+even if sub-parsers might temporarily have some ambiguity.
 
 Like last time, the `Alternative` instance gives us plenty of goodies for free.
 For example, we now have `many :: Parser a -> Parser [a]`, which allows
-to turn parser for one item, into a parser for many items, placed one after the other.
-There's also `some`, which does the same thing, but doesn't requires at least one
+to turn a parser for one item, into a parser for many items, placed one after the other.
+There's also `some`, which does the same thing, but requires at least one
 item.
 
-So if `intParser` accepts `3`, then `some intParser` would accept `3 4 5 6`, producing
+For example, if `intParser` accepts `3`, then `some intParser` would accept `3 4 5 6`, producing
 `[3, 4, 5, 6]` as our output.
 
 # Integrating a Parser
 
-We now have our combinator framework we need to build our parser. Before we
-actually start working on parsing our subset of Haskell, let's go ahead and
-get the boilerplate of adding a new stage to our compiler out of the way,
-so we can focus on parsing in the rest of this post.
+We now have the combinators we need to build our parser. Before we
+actually start working on parsing our subset of Haskell, let's go ahead
+and add a new stage to our compiler. We can get all of this boilerplate
+out of the way, letting us focus on parsing.
 
-Let's go ahead and define a stub type for our syntax tree, and for our errors:
+Let's define a stub type for our syntax tree, and for our errors:
 
 ```haskell
 data ParseError = UnimplementedError deriving (Show)
@@ -587,11 +621,11 @@ data AST = AST deriving (Show)
 ```
 
 Like last time, we just have a single error: the error telling
-users that are parser is not implemented yet!
+users that our parser is not implemented yet!
 
 Our `AST` is just a stub data type as well.
 
-We'll be completing both of these soon enough, but for now, we just want
+We'll be completing both of these soon enough. For now, we just want
 to get this stage of the compiler integrated into the command line program.
 
 We also need to write a simple `parser` function that we can expose
@@ -615,8 +649,8 @@ module Parser (AST(..), parser)
 
 {{<note>}}
 Right now, we don't need to export the constructors of `AST` in order
-to make the stage. The stages we'll add in the next parts will be working
-with the details of the syntax tree, so we will be needing to export
+to make the stage. The stages we'll add in the next parts *will* be working
+with the details of the syntax tree, so we'll need to export
 its constructors, as well as the other data types we'll add in this part.
 {{</note>}}
 
@@ -674,12 +708,12 @@ readStage _ = Nothing
 Here we get to use the fancy `>->` operator we defined last time, in order
 to compose the lexing stage with the parsing stage. This works out nicely,
 since the parsing stage consumes the tokens that the lexing stage produced.
-In the end, we end up with a stage taking in a `String` for the source code,
-and producing an `AST`, that we want to print out.
+We end up with a stage taking in a `String` for the source code,
+and producing the `AST` that we want to print out.
 
 We can now run all of this, and see something like:
 
-```haskell
+```txt
 > cabal run haskell-in-haskell -- parse foo.hs
 Parser Error:
 UnimplementedError
