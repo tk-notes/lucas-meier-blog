@@ -725,25 +725,24 @@ fix that!
 # Structure of the AST
 
 Before we can write a parser to convert our tokens into a syntax
-tree, we need to *define* the shape of that syntax tree. This is the part
-where we explicitly define different structures representing everything
-in our language. We're going to be describing the exact subset of Haskell
+tree, we need to *define* the shape of that syntax tree.
+We're going to be describing the exact subset of Haskell
 that we implement, by creating various data types for each construct
 in the language.
 
 For example, we're going to have a data type for *expressions*. One of
 the variants will be a binary expression, for things like `1 + 2`,
 or `4 * 33`. Another variant might be function application, for things like
-`f 1 2 x`. There will, of course, be many other variants.
+`f 1 2 x`. etc.
 
 ## A Rough Idea
 
-Our subset of Haskell is cleaved into two very distinct parts:
+Our subset of Haskell is *almost* cleaved into two distinct parts:
 
 1. The part of the language dealing with defining types
 2. The part of the language dealing with defining values
 
-These 2 parts interact through *declarations*, which allow
+These 2 parts interact through *annotations*, which allow
 us to declare that a given value has a certain type.
 
 For example, if you have:
@@ -755,7 +754,8 @@ x = \x -> x + 1
 
 The `Int -> Int` is squarely in the domain of types, and we'll need some data structures
 to describe function types like `Int -> Int`. The lamdba expression `\x -> x + 1` is clearly
-in the domain of values. And the declaration `x :: ...` is a point of interaction, of sorts. 
+in the domain of values. And the declaration `x :: ...` is a point of interaction
+between both domains.
 
 Because of this, we can think of our language as being roughly groupable
 into 3 sections:
@@ -771,22 +771,23 @@ in our head before we start defining everything we need.
 
 ## Types
 
-So, the first thing we can do is define how we can work with types in this subset
-of Haskell. We need ways to refer to certain types, like `Int`, `String`,
-or more complicated things, like `(Int -> String) -> String`. We'll
-also need ways to define new types, either through custom types, like
-`data Color = Red | Blue | Green`, or type synoyms, like `type MyInt = Int`.
+So, the first thing we can do is define how we'll work with types in this subset
+of Haskell. We need ways to refer to certain types, like `Int`, `String`.
+We also need to be able to use more complicated types,
+like `(Int -> String) -> String`. We'll
+need ways to define new types, either through custom types, like
+`data Color = Red | Blue | Green`, or type synonyms, like `type MyInt = Int`.
 
 ### The Fundamental types
 
-Before we get to definitions of new types, let's first define our data structures
-representing the basic ways of using types that exist. For example,
-when you have `x :: Int -> Int`, you need some way of representing whatever
-type comes after the `::`. This is what we'll be defining now.
+Before we get to the definitions of new types, let's first define our data structures
+representing types that exist. For example,
+when you have `x :: Int -> Int`, you need some way of representing the
+type that comes after the `::`. This is what we'll be defining now.
 
-In effect, what we're doing is defining what a type "is" in our subset of Haskell.
+Essentially, what we're doing is defining what a type "is" in our subset of Haskell.
 In fact, this definition will be useful *beyond* just parsing. We can also use
-this representation of types of in *type checker*, for example. Because of this,
+this representation of types in our *type checker*, for example. Because of this,
 we won't be creating this definition of what at type is in the `Parser` module,
 but instead creating a new module, in `src/Types.hs`, to hold fundamental data
 structures for working with types. We'll expand on this module in further parts,
@@ -795,18 +796,18 @@ as we need to do more things with types.
 {{<note>}}
 There's an argument to be made for never sharing things like this between different
 stages. It might be more maintainable to distinguish between the *syntax* of what
-constitutes a type, and the *semantics* of what a type really is later on. Essentially,
+constitutes a type, and the *semantics* of what a type really is. Essentially,
 the difference is that the former talks about what things the user can type in their
 source code to tell your compiler about types, but the latter defines how the compiler
 itself manipulates types.
 
 For example, this approach allows you to add *syntax sugar* for different types:
 maybe `A <-> B` is syntax sugar for `(A -> B, B -> A)` in your language. Your representation
-of types later on doesn't have to deal with this extra construction if you separate
+of types later on doesn't have to deal with this extra construction, if you separate
 the syntactic types from the "actual" types.
 
 We won't be using a separation like this for our types, but we will have
-a *simplifier* phase for expressions. We'll be going over this phase next time.
+a *simplifier* phase for expressions. We'll be going over this phase in the next post.
 It just turns out that for types, there's not really anything we can simplify,
 so it's a bit more convenient to not bother with the extra boilerplate of having
 two isomorphic representations.
@@ -833,11 +834,12 @@ imports explicit once we've defined our representation of types.
 
 First, let's think about what kind of types you should be able to work with in
 our subset of Haskell. As mentioned already, we're going to have a primitive
-`Int` type, which will be the standard integer type we're used to.
+`Int` type, the standard integer type we're used to.
 Integer literals will have that type, so `3 :: Int`, for example. We've already
 lost the element of surprise by defining boolean and string literals in the lexer,
-so we're going to also have *primitive* boolean and string types in this
-subset. So we have `String` and `Bool` as builtin types as well.
+so we're going to also have *primitive* boolean and string types in
+our language, departing from Haskell slightly.
+So we have `String` and `Bool` as builtin types as well.
 
 {{<note>}}
 Our subset of Haskell would be expressive enough to define these in the language itself:
@@ -854,7 +856,7 @@ we're trying to make with this series.
 {{</note>}}
 
 In addition to builtin types, we need a way for users to define new types,
-and then reference those types. so if a use has `type X = Int`, then
+and then reference those types. If a user has `type X = Int`, then
 they should be able to say:
 
 ```haskell
@@ -870,13 +872,13 @@ Our subset will also have support for polymorphism. You can define functions lik
 id x = x
 ```
 
-The type of this function is of course:
+The type of this function is polymorphic:
 
 ```haskell
 id :: a -> a
 ```
 
-where `a` is not a type *per se*, but rather a *type variable*. We need a way
+Here, `a` is not a type *per se*, but rather a *type variable*. We need a way
 to reference type variables by name as well.
 
 This also means that custom data types can be polymorphic, and have variables of their
@@ -889,7 +891,8 @@ data List a = Cons a (List a) | Nil
 This will be valid in our language, and introduces the type `List _`, where the underscore
 needs to be filled in. So you might have `List Int` as one type,
 `List String` as another, and `List a`, if `a` happens to be a type variable in scope.
-In brief, custom types are referenced by name, and also have multiple variables.
+In brief, custom types are referenced by name, and also have multiple type variables
+as arguments.
 
 Finally, we need a way to talk about the function type `A -> B`, which is also
 built into the language.
@@ -920,7 +923,7 @@ So, we have the basic primitive types as hardcoded options:
 - `Bool` corresponds to `BoolT`
 
 We have 2 type synonyms, to clarify the difference between `TypeVar`, which is a lower
-case name, like `a` used for the name of a type variable, and `TypeName`, which
+case name, like `a`, used for the name of a type variable, and `TypeName`, which
 is an upper case name, like `List` or `Foo`, used to reference the name
 of a newly defined type.
 
@@ -928,7 +931,7 @@ Type variables have the variant `TVar` and take a name as argument. So `a` in Ha
 would be `TVar "a"` in our representation.
 
 For newly defined types, we have the name of that type, as well as a list of arguments,
-which are also types, so `List Int` would be `CustomType "List" [IntT]` in this representation.
+which are also types. `List Int` would be `CustomType "List" [IntT]` in this representation.
 
 You can also nest things, so `List (List Int)` would become
 
@@ -937,7 +940,7 @@ CustomType "List" [CustomType "List" [IntT]]
 ```
 
 Note that type synonyms are also under this category. If you have `type X = Int`,
-then you'd have `CustomType "X" []` to refer to this type synonym.
+then you'd use `CustomType "X" []` to refer to this type synonym.
 
 Finally, we need a way to represent function types. We create a new operator
 `:->` for this. (We need the `:` so that it can be used in types). With this in place
@@ -969,7 +972,7 @@ module Types
 where
 ```
 
-Now, let's use these types to start working on our syntax tree, in `src/Parser.hs`.
+Now, let's use these types to start working on our syntax tree, back in `src/Parser.hs`.
 
 ### Defining new types
 
