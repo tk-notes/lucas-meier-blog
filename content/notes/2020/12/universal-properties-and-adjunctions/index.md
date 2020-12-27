@@ -303,5 +303,6 @@ these statements are equivalent:
 4. ($\forall A \in \mathcal{C}, M \in \mathcal{D}$) $(RL A, \eta_A)$ is initial in $A \downarrow R$,
    and $(LR M, \epsilon_M)$ is terminal in $L \downarrow M$.
 
-I haven't proved $1 \iff 2$ here, but that's for another note, and much more well known.
+In this post, I only proved $3 \iff 4$. $1 \iff 2$ by definition, and $2 \iff 3$ is well
+known.
 
