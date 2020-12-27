@@ -982,7 +982,7 @@ of new types in our language. There are going to be two ways to define new types
 1. Type Synonyms, things like `type X = Int`
 2. Data Definitions, things like `data Animal = Cat | Dog`
 
-In our language, these are both considered as 2 of the kinds of definitions
+In our language, these are both considered as a kind of definitions
 that can appear at the top level. They'll both be variants of a common
 `Definition` type.
 
@@ -1055,14 +1055,14 @@ data ConstructorDefinition
 
 A constructor has a given name, like `VariantA`, or `Cons`, as well as a list
 of types, which are the arguments for the constructor. For clarity,
-we've created a separate synonym for this kind of name. For example,
+we've created a separate synonym, `ConstructorName`, for this kind of name. For example,
 the `VariantB` constructor in our `MyType` example would be represented as:
 
 ```haskell
 ConstructorDefinition "VariantB" [IntT, IntT]
 ```
 
-Now we can add an extra variant in `Definition` for data definitions:
+Now, we can add an extra variant in `Definition` for data definitions:
 
 ```haskell
 data Definition
@@ -1090,13 +1090,13 @@ to represent our language, and we're just getting started!
 
 ## Expressions
 
-In this section, we'll be defining most of the different kinds of expressions in our language.
-For `let` and `where` expressions, which use *definitions*, which we'll define
+In this section, we'll be defining most of the different kinds of expressions in our language,
+except for `let` and `where` expressions. These will use *definitions*, which we'll define
 a bit later.
 
 ### Literals
 
-This first kind of expression we have are *literals*. We have int literals,
+This first expressions we have are *literals*. We have int literals,
 like `2` and `245`, string literals, like `"foo"` and `"bar"`, and finally,
 boolean literals, namely, `True` and `False`. We can define a type `Literal`
 representing these:
@@ -1148,11 +1148,11 @@ data Expr
 
 Semantically, the meaning of `NameExpr "foo"` is whatever expression
 `"foo"` is bound to in a given scope. So if we have `foo = 3`, then
-`NamExpr "foo"` should evaluate to `IntLiteral 3`, using our expression syntax.
+`NameExpr "foo"` should evaluate to `IntLiteral 3`, using our expression syntax.
 
 ### If Expressions
 
-The next kind of expression are *if* expressions, things like:
+Next we have *if* expressions, things like:
 
 ```haskell
 if y then 3 else 4
@@ -1203,7 +1203,7 @@ is valid, and syntax sugar for:
 \x -> y -> x + y
 ```
 
-The simplifier will deal with this syntax sugar, our parser will accept this
+The simplifier will deal with this syntax sugar; our parser will accept this
 verbatim:
 
 ```haskell
@@ -1213,10 +1213,10 @@ data Expr
 ```
 
 We have a list of named parameters, and then an arbitrary expression using them.
-So `\x -> x` becomes:
+So `\x y -> x` becomes:
 
 ```haskell
-LambdaExpr "x" (NameExpr "x")
+LambdaExpr ["x", "y"] (NameExpr "x")
 ```
 
 This is the first time we use the `ValName` synonym, which is defined as:
@@ -1235,8 +1235,8 @@ and `ConstructorName`. We could've used `newtype` instead, to make it impossible
 to confuse them. The problem is that there are situations, like `NameExpr`,
 where both might be valid.
 
-For simplicity I've opted to not add the boilerplate of creating explicit differences,
-the synonyms are mainly there for documentation, not correctness.
+For simplicity I've opted to not add the boilerplate of creating explicit differences.
+The synonyms are mainly there for documentation, not correctness.
 {{</note>}}
 
 ### Function Application
@@ -1262,7 +1262,7 @@ data Expr
   | ApplyExpr Expr [Expr]
 ```
 
-Because of currying, `f 1 2` is really sugar for `(f 1) 2`, but once
+Because of currying, `f 1 2` is really sugar for `(f 1) 2`. But, once
 again, we'll be removing syntax sugar in the *simplifier*; the parser
 needs to accept all of this. So, for now, `f 1 2` would be represented as:
 
@@ -1458,7 +1458,8 @@ case 3 of
 ```
 
 This is like the wildcard, but also assigns the value of whatever it managed to
-match to the given name. So here, `x` would have the value `3` inside of the branch.
+match to the given name. Here, `x` would have the value `3` inside of the branch.
+
 We have:
 
 ```haskell
@@ -1531,7 +1532,7 @@ ConstructorPattern
   ]
 ```
 
-And now that we've defiend patterns, we can immediately define case expressions!
+And now that we've defined patterns, we can immediately define case expressions!
 
 ```haskell
 data Expr
@@ -1539,9 +1540,12 @@ data Expr
   | CaseExpr Expr [(Pattern, Expr)] 
 ```
 
-So, we first have the expression we're scrutinizing, followed by a list of mappings
-from patterns to expressions to use when that pattern matches. So,
-some expression like:
+We first have the expression we're scrutinizing, followed by a list
+of branches. Each branch contains a pattern,
+and the expression to use when that pattern matches.
+
+
+Given an expression like:
 
 ```haskell
 case scrut of
@@ -1562,8 +1566,8 @@ CaseExpr (NameExpr "scrut")
 
 ## Definitions
 
-Now that we've defined *expressions* as well as the structure of *type definitions*,
-we can combine the two, in order to define the structure of value definitions.
+Now that we've defined *expressions* as well as the structure of *types*,
+we can combine the two, in order to define the structure of *value definitions*.
 This is about the structure of defining new values. In Haskell, there are two parts
 to a value definition:
 
@@ -1624,8 +1628,7 @@ instead of having to write:
 id = \x -> x
 ```
 
-You can instead move the parameter to this function to the left side of the `=`,
-to get:
+You can instead move the parameter `x` to the left side of the `=`:
 
 ```haskell
 id x = x
@@ -1647,8 +1650,8 @@ f 0 _ = 2
 f a b = a + b
 ```
 
-A function can be defined with multiple "heads", each of which has a pattern for
-each of its arguments. Because of this, our full structure for name definitions
+A function can be defined with multiple "heads", each of which has patterns for
+its arguments. Because of this, our full structure for name definitions
 becomes:
 
 ```haskell
@@ -1683,13 +1686,14 @@ We have one definition for the type annotation, and 2 more for each of the
 2 heads of the function.
 
 {{<note>}}
-Note that we do no enforcing of some basic integrity checks for these heads,
-like enforcing that they have the same number of patterns. This kind of thing is going
+Note that we don't even do any basic integrity checks for these heads,
+like making sure that they have the same number of patterns. This kind of thing is going
 to be handled in the simplifier.
 {{</note>}}
 
 Now that we have a structure for definitions, we can add the two missing
-types of expressions: `let` and `where` expressions. These are two ways to express
+types of expressions: `let` and `where` expressions. These are
+really two ways to express
 the same thing: local definitions inside an expression. So:
 
 ```haskell
@@ -1722,16 +1726,16 @@ variants. `let` has the definitions before the expression, and `where` has
 the definitions after the expression.
 
 {{<note>}}
-We could've choosed to parse `where` as a `let` expression, or vice-versa,
-but I like the clarity of representing the syntax *exactly*. As you might imagine,
-our simplifier will also remove this redundancy.
+We could've chosen to parse `where` as a `let` expression, or vice-versa,
+but I like the clarity of representing the syntax *exactly*. As you might have guessed,
+our simplifier will remove this redundancy.
 {{</note>}}
 
 Finally, now that we have *definitions* finished, we can actually
-define a realy syntax tree:
+define our *real* syntax tree:
 
 ```haskell
-data AST = AST [Definition] deriving (Eq, Show)
+newtype AST = AST [Definition] deriving (Eq, Show)
 ```
 
 This just says that a Haskell program consists of a sequence of top level definitions.
@@ -1812,10 +1816,10 @@ lowerName =
 
 Here we use the `pluck :: (Token -> Maybe a) -> Parser a` function we defined previously.
 `pluck` lets us match against a certain type of token, and also extract some information
-about that token. Here this is useful, since we want to extract
+about that token. This is useful here, since we want to extract
 the string contained in a `LowerName` token.
 
-We can do the same trick for `UpperName`:
+We can use the same trick for `UpperName`:
 
 ```haskell
 upperName :: Parser TypeName
@@ -1826,7 +1830,7 @@ upperName =
 ```
 
 The only difference here is that we're extracting from `UpperName` instead
-of extracting from `LowerName`.
+of `LowerName`.
 
 We've created a few different synonyms for `String`, to clarify the different
 kinds of names we use throughout our AST: things like
@@ -1857,12 +1861,12 @@ name :: Parser Name
 name = valName <|> constructorName
 ```
 
-Here we use the `<|>` for the first time, to indicate that a `name`,
+Here we use the `<|>` for the first time, to indicate that `name`
 is either a `valName`, or a `constructorName`, i.e. that we should accept either
 the `LowerName` token, or the `UpperName` token here.
 
 The next thing we can add in this section is literals. We want to be able
-to parse ints, strings and bools, which make up the builtin values in our
+to parse ints, strings and bools, which make up the built-in values in our
 subset of Haskell:
 
 ```haskell
@@ -1892,8 +1896,8 @@ makes defining these alternatives very easy:
         _ -> Nothing
 ```
 
-We use the very handy `pluck` once again, in order to both match against
-the right kind of literal token, and pick out the data alongside it. We then
+We use the very handy `pluck` once again, in order to match against
+the right kind of literal token, and pick out the data it contains. We then
 make sure to wrap this data in the right kind of literal for our AST.
 Int literals become `IntLiteral i`, strings `StringLiteral s`, bools `BoolLiteral b`,
 as we went over before.
@@ -1901,7 +1905,7 @@ as we went over before.
 ## Parsing Operators
 
 The next thing we'll add support for is parsing operators.
-Before we jump into the thick of it though, we'll have to think a bit about the right approach.
+This requires a bit of thought before we get to writing out our parser though.
 
 ### Operator Precedence
 
@@ -1915,9 +1919,9 @@ x + y - a + 3
 
 The names and literals are like words composing this arithmetic sentence,
 and the arithmetic operators
-are like the puncutuation between the words. A first approach would have some parser
-for these bottom level words, then use this parser, separated by the arithmetic
-tokens.
+are like the punctuation between the words. A first approach would start with some parser
+for these bottom level words. Then you'd use this parser, separated by the arithmetic
+tokens:
 
 {{<img "4.png">}}
 
@@ -1941,21 +1945,22 @@ and not:
 ```
 
 We would get the latter if we parsed addition and multiplication with the same precedence.
-One approach to fix this is to have multiple layers for each level of precedence:
+One way to fix this is to introduce
+multiple layers, with one layer for each level of precedence:
 
 {{<img "5.png">}}
 
-So, addition would parse multiplication, separated by `+`, and multiplication would
+Addition would parse multiplication, separated by `+`, and multiplication would
 parse literal factors, separated by `*`. This paradigm allows us to skip
 levels too. A single item like `3` falls under the "at least one number separated by `*`"
 category: we just have the single number.
 
 Function application falls under this paradigm as well. We can treate
 function application as a very high precedence kind of operator. Instead of
-parsing "at least one `<sub-factor>`, separated by `<operator>`", we just
-"at least two `<sub-factor>`". This is to make sure that,
+parsing "at least one `<sub-factor>`, separated by `<operator>`", we just parse
+"at least two `<sub-factor>`s". (This makes sure that,
 only `f x` is considered as a function application, since `f` alone
-would just be a name.
+would just be a name).
 
 With multiplication, addition, and function application, our tower of operators
 now looks like this:
@@ -1963,7 +1968,9 @@ now looks like this:
 {{<img "6.png">}}
 
 One aspect is missing though: parentheses! In languages with arithmetic expressions like
-these, you can manually insert parentheses to override the grouping rules:
+these, you can manually insert parentheses to override the grouping rules.
+
+For example, this expression:
 
 ```haskell
 (1 + 2) * 3
@@ -1978,7 +1985,7 @@ is not the same thing as:
 precisely because the parentheses have been inserted. 
 
 There's a simple rule to make this work. Instead of having the bottom of our tower
-just be simple dead-end rules like literals, or simple names, we can instead add
+only have dead-end rules like literals, or simple names, we can instead add
 a rule that goes all the way to the top, parsing any expression surrounded with
 parentheses:
 
@@ -2004,9 +2011,13 @@ function (
 this kind of thing once we expand our expressions to accept more than
 just operators.
 
-A full precedence tower would look like this:
+Using this approach, a full precedence tower including
+all of the operators in our language looks like this:
 
 {{<img "9.png">}}
+
+(See [this link](https://rosettacode.org/wiki/Operator_precedence#Haskell)
+for a good overview of the precedence of different operators).
 
 With that in mind, have enough thinking done to start implementing this precedence tower.
 
@@ -2057,7 +2068,7 @@ sepBy1 p sep = liftA2 (:) p (many (sep *> p))
 ```
 
 Semantically, we first parse `p`, and then zero or more occurrences of
-`sep`, followed by `p`. So:
+`sep` followed by `p`. So:
 
 ```txt
 <p>
@@ -2076,8 +2087,8 @@ produced by the rest of the parser.
 Now, this would work for something simple like multiplication, since we
 could parse out many multiplication factors, separated by `*`. One slight
 problem is that some operators have the *same* precedence. For example,
-`+` and `-`. We need a modified version of this where we remember
-which separator happened each time. In fact, it would be even more useful
+`+` and `-`. We need a modified version of `sepBy1` where we remember
+the separators we see. In fact, it would be even more useful
 if given something like:
 
 ```haskell
@@ -2096,7 +2107,7 @@ and then build up the correct parse tree, using each operator:
 ((1 + 2) - 3) + 4
 ```
 
-This inspires this type for parsing operators:
+This inspires the following type for parsing operators:
 
 ```haskell
 opsL :: Parser (a -> a -> a) -> Parser a -> Parser a
@@ -2105,7 +2116,7 @@ opsL :: Parser (a -> a -> a) -> Parser a -> Parser a
 The first parser is used for separators, and the second parser is used
 for the factors between separators. Semantically, this acts
 like `sepBy1`, with the arguments reversed. The key difference is that
-we use whatever function produced by the separator, to combine the items
+our separator parser produces a function used to combine the items
 to its left and right. For example, for parsing addition and subtraction,
 we could use this as our separator:
 
@@ -2135,7 +2146,7 @@ to each token we encounter:
 
 {{<img "11.png">}}
 
-In practice, this works as we'd like, of course. Given some arithmetic expression
+In practice, this works out nicely. Given some arithmetic expression
 like:
 
 ```haskell
@@ -2155,6 +2166,8 @@ as we scan towards the right.
 Some operators are not left associative though! For example,
 the function arrow `->` between types associates to the *right*:
 
+For example, this snippet:
+
 ```haskell
 Int -> String -> Int
 ```
@@ -2172,7 +2185,7 @@ and not:
 ```
 
 We need to create an `opsR` function, that does the same thing as `opsL`,
-but associates to *right* instead:
+but associates to the *right* instead:
 
 ```haskell
 opsR :: Parser (a -> a -> a) -> Parser a -> Parser a
@@ -2188,9 +2201,9 @@ We end up with:
 
 {{<img "12.png">}}
 
-after grouping the items and the separator.
+after grouping the items and the separator, like we did in `opsL`.
 
-Next let's flip this sequence around, before moving the separator
+Next, let's flip this sequence around, before moving the separator
 to the right one step:
 
 {{<img "13.png">}}
@@ -2219,15 +2232,15 @@ opsR sep p = liftA2 squash p (many (liftA2 (,) sep p))
 ```
 
 Our starting point is the same as with `opsL`, having parsed our
-first item, and the following items along with their separators. From their,
-we do a first scan, where our goal is to end up attaching each separator
-to the item on its left, and have the last item in our starting list
-left alone.
+first item, and the following items along with their separators. From there,
+we do a first scan, where we want to end up with each separator
+attached to the item on its left, and the last item in our starting list
+alone.
 
 We do this with `foldl'`, keeping track of the last item we've seen, and
 the tail of items along with their new separators. When we see a new `(sep, a)`
 pair, `a` becomes our new last item, and the previous item
-is adjoined with `sep` onto the tail.
+is paired up with `sep`, and put onto the tail.
 
 Finally, we can scan over this list as if we were doing a left associative
 operator, with the caveat that we swap the arguments to `combine`.
@@ -2293,7 +2306,8 @@ Next we have `||`:
 And then we have `&&`:
 
 ```haskell
-    andExpr = opsR (BinExpr And <$ token AmpersandAmpersand) comparisonExpr
+    andExpr =
+      opsR (BinExpr And <$ token AmpersandAmpersand) comparisonExpr
 ```
 
 {{<note>}}
