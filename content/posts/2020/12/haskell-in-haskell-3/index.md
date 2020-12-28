@@ -1,7 +1,7 @@
 ---
 title: "(Haskell in Haskell) 3. Parsing"
-date: 2020-12-16
-draft: true
+date: 2020-12-28T08:21:21+01:00
+draft: false
 tags:
   - Haskell
   - Programming Languages
@@ -15,6 +15,10 @@ This stage of the compiler is responsible for taking the tokens that our
 lexer produced in the [previous part](/posts/haskell-in-haskell-3).
 
 <!--more-->
+
+As usual, both the code
+[for this part](https://github.com/cronokirby/haskell-in-haskell/tree/part-3),
+and the [entire compiler](https://github.com/cronokirby/haskell-in-haskell/).
 
 Because of all the work we did last time, this part should actually
 be *simpler*. We've already broken up our source code into
@@ -1369,6 +1373,11 @@ The `/` operator is for division:
   | Div
 ```
 
+We have `++` for string concatenation
+```haskell
+  | Concat
+```
+
 We have the comparision operators `<`, `<=`, `>`, `>=`, which become:
 
 ```haskell
@@ -2283,7 +2292,7 @@ expr = binExpr
 ```
 
 For now, all the expression we have are *binary expressions*. This is where we'll
-do all of our operators.
+have all of our operator parsing.
 
 We have:
 
@@ -2294,8 +2303,8 @@ binExpr = cashExpr
     cashExpr = opsR (BinExpr Cash <$ token Dollar) orExpr
 ```
 
-The lowest precedence operator is at the top. The lowest precedence operator
-being the ubiquituous `$`, of course.
+The lowest precedence operator is at the top:
+the ubiquituous `$`, of course.
 
 Next we have `||`:
 
@@ -2331,9 +2340,9 @@ Next we have comparisons, i.e. `<, <=, >, >=, ==, /=`:
 
 Here we have different possibilities, since all of these operators have the same
 precedence. For each of the possible tokens, we make sure to associate
-the correct binary expression. Each of the operator parser
-always yields exactly the combining function that they represent,
-thanks to `<$`.
+the correct binary expression. Each operator parser
+always yields exactly the combining function that it represents,
+thanks to our use of `<$`.
 
 Continuing on, we have `++`, for string concatenation:
 
@@ -2368,7 +2377,7 @@ And finally, the highest precedence binary operator is function composition with
 ```
 
 Next come unary operators, of which we only have `-x`, for integer negation.
-Note that, `-(+1) 3` is valid haskell, and means `-4`. This still looks
+Note that `-(+1) 3` is valid haskell, and evaluates to `-4`. This still looks
 a bit weird to me, but is pretty simple to handle:
 
 ```haskell
@@ -2435,7 +2444,7 @@ If expressions and lambdas are pretty simple, so let's get them out of the way:
 
 ```haskell
 expr :: Parser Expr
-expr = binExpr <|> ifExpr <| lambdaExpr
+expr = binExpr <|> ifExpr <|> lambdaExpr
   where
 ```
 
@@ -2450,7 +2459,7 @@ For `if`, it's pretty much what it says on the tin:
 ```
 
 We parse the condition after an `if` token, the first branch after
-a `then` token, and the final branch after an `else` token. We use the standard
+a `then` token, and the other branch after an `else` token. We use the standard
 `<$>` and `<*>` operators to plumb these results into the `IfExpr` constructor,
 which takes these three operands.
 
@@ -2482,8 +2491,8 @@ but in order to introduce more complicated patterns as arguments, we need parent
 C (A 2) 2 3 B
 ```
 
-Notice how the `B` constructor takes no arguments, and so can appear without
-any issue as a simple argument here.
+Notice how the `B` constructor takes no arguments,
+and can appear without as a simple argument here.
 
 Our definition for a single pattern looks like this:
 
@@ -2495,7 +2504,7 @@ onePattern = unspacedPattern <|> argfulPattern
       liftA2 ConstructorPattern constructorName (some unspacedPattern)
 ```
 
-A pattern is either an a constructor taking some arguments, or a single
+A pattern is either a constructor taking some arguments, or a single
 argument pattern. `unspacedPattern` will parse any kind of pattern that can
 appear as an argument to a constructor, perhaps requiring parentheses:
 
@@ -2506,15 +2515,15 @@ unspacedPattern = simplePattern <|> parensed onePattern
 ```
 
 So, an `unspacedPattern` is either an entire pattern, wrapped in parentheses,
-or a s *simple pattern*, which can appear as an argument
+or a *simple pattern*, which can appear as an argument
 without any parentheses:
 
 ```haskell
     simplePattern =
-      wildCardPattern
+      singleConstructor
+        <|> wildCardPattern
         <|> varPattern
         <|> litPattern
-        <|> singleConstructor
     singleConstructor = fmap (`ConstructorPattern` []) constructorName
     wildCardPattern = WildcardPattern <$ token Underscore
     varPattern = fmap NamePattern valName
@@ -2569,16 +2578,16 @@ we get around to those.
 
 ## Types
 
-The remaining expressions we need to add are those related to definitions.
-Things like `x = 2`, or `x :: Int`. We can parse the expression part
+The remaining expressions are those related to definitions:
+things like `x = 2`, or `x :: Int`. We can parse the expression part
 of these value definitions just fine, but we haven't added any parsing
-for types yet! Before we can proceed, we'll need to add some parsing
-for types, and then move on to definitions.
+for types yet! We'll take care of this now, before moving
+on to definitions.
 
 Parsing types is going to be *very similar* to parsing patterns.
 We have some types taking in arguments, like `Pair Int String`,
 or `List (List Int)`. We need to distinguish the types
-that are basic enough to appear without parentheses in our parser,
+that are basic enough to appear as arguments without parentheses,
 like we did with patterns.
 
 We'll also need to add in a bit of operator parsing, to parse
@@ -2623,7 +2632,7 @@ typeArgument = namedType <|> singleType
 ```
 
 We have different type "factors", separated by the function arrow `->`. This
-becomes the constructor `:->`, which represents the same thing in our syntax tree.
+becomes the constructor `:->`, representing the same thing in our syntax tree.
 Of course, we make sure that we parse this operator in a *right associative*
 way, so that:
 
@@ -2689,7 +2698,7 @@ A `valueDefinition` is either a `nameDefinition`, or a `typeAnnotation.`
 A `typeAnnotation` is a name, followed by a `::` and some type.
 
 A `nameDefinition` is also a name, but this time with multiple patterns
-as arguments, and then the `=` token, and the expression. We have multiple
+as arguments, the `=` token, and then expression. We have multiple
 patterns, since Haskell allows the syntax sugar:
 
 ```haskell
@@ -2721,13 +2730,13 @@ instead of:
 f (Pair a b) =
 ```
 
-which is possible, but requires explicit parentheses.
+which requires explicit parentheses.
 
 ### Remaining Expressions
 
-With these value definitions in place, we're now ready to completely define all
-possible expressions. The remaining expressions
-we need to add to `expr` are `where`, and `let` expressions:
+With these value definitions in place, we're now ready to finish defining all
+of our expressions. The remaining expressions
+we need to add to `expr` are `where` and `let` expressions:
 
 ```haskell
 expr :: Parser Expr
@@ -2752,8 +2761,8 @@ It should be clear that `notWhereExpr <|> whereExpr` includes every
 kind of expression, unless you're a constructive mathematician.
 
 For let expressions, we just parse the token `let`, followed by
-some value definitions in braces and semicolons, and then the `in` token,
-and the expression.
+some value definitions in braces and semicolons, the `in` token,
+and then an expression.
 
 Remember that `let` introduces a layout, so:
 
@@ -2779,7 +2788,7 @@ Now, for `where` expressions, it's tempting to do something like:
 expr *> token Where *> braced valueDefinition
 ```
 
-but the problem is that this parser recurses infinitely. This is a problem
+but the problem is that this parser recurses infinitely. This is an issue
 we haven't touched upon yet, called *left recursion*. This arises
 in theory for parsing methods like ours, and for parser combinators
 in particular, even in a lazy language like Haskell.
@@ -2791,8 +2800,8 @@ a shot at parsing `expr`, and then, out of curiosity, see
 if maybe parsing `expr` might work, etc.
 
 We aren't able to make any progress, because we have no concrete rules to latch on to.
-The solution is to not have `expr` on the left here, but have `notWhereExpr`
-here. That way, if our parser starts "exploring" this path, it can't immediately
+The solution is to not have `expr` on the left here, but `notWhereExpr`
+instead. This way, if our parser starts "exploring" this path, it can't immediately
 loop back onto itself, but instead has to parse a different rule
 that will allow it to make progress.
 
@@ -2809,7 +2818,7 @@ and type synonyms, which make up the remaining kinds of definition
 in our language.
 
 For type definitions, we'll need a parser for each of the constructors that make
-up a definition like:
+up definitions like:
 
 ```haskell
 data VariantA = A Int String | B String Int
@@ -2823,8 +2832,8 @@ constructorDefinition =
   liftA2 ConstructorDefinition constructorName (many typeArgument)
 ```
 
-Here we can reuse the `typeArgument` we defined earlier, which was
-then used for the simple types that appear as arguments to a custom type,
+We can reuse the `typeArgument` we defined earlier, which was
+used for the simple types that appear as arguments to a custom type,
 like `Pair Int (List String)`. Of course, if we have a constructor:
 
 ```haskell
@@ -2836,7 +2845,7 @@ then it's natural to reuse the same parsing scheme for its arguments.
 A constructor doesn't necessarily have any arguments, hence the `many`,
 instead of `some`.
 
-Finally, we can use this to define the remaining definitions:
+Finally, we can use this to parse the remaining definitions:
 
 ```haskell
 definition :: Parser Definition
@@ -2894,16 +2903,19 @@ new types, through type synonyms, or data definitions.
 We also need to amend our `ParseError` type to be a bit more informative:
 
 ```haskell
-data ParseError = FailedParse | AmbiguousParse [(AST, [Token])] deriving (Show)
+data ParseError
+  = FailedParse
+  | AmbiguousParse [(AST, [Token])]
+  deriving (Show)
 ```
 
 While still not as informative as you really would like, we now have two kinds of errors.
 The first occurrs if our parser found no way to parse the tokens given to us,
-and the second occurrs if for some reason multiple ASTs have been produced
+and the second occurrs if multiple possible ASTs have been produced
 after going through all of the tokens.
 
 I've mentioned ambiguity being a concern when designing some aspects of the parser,
-and avoiding seeing this kind of error is the reasoning behind some of the design.
+and avoiding this kind of error is the reasoning behind some of the design.
 
 With these errors in mind, we can amend our `parser` function to use
 the `ast` parser we just defined:
@@ -2961,6 +2973,16 @@ which is quite a bit more verbose, but matches what we expect. We see the defini
 of `x` pop up, first as a type annotation, and then once more, as the actual
 expression.
 
+{{<note>}}
+We get a minimal amount of pretty printing of our syntax
+tree "for free" thanks to the `pretty-simple` library. For now,
+even though it's a bit verbose, it allows us to see how we've
+converted the different Haskell constructs into our own data types.
+
+If we pretty printed this with Haskell syntax, we'd end up
+with something that looks exactly like the original source code.
+{{</note>}}
+
 We can make more complex arithmetic of course:
 
 ```haskell
@@ -2968,7 +2990,7 @@ x :: Int
 x = 1 + 2 * 3
 ```
 
-This program gives:
+This program gives us:
 
 ```haskell
 AST
@@ -3020,8 +3042,8 @@ AST
     ]
 ```
 
-I'll spare you from putting more complicated expressions as examples here,
-because the parse trees are quite verbose.
+This works for even more complicated programs, of course,
+but I'll spare you the very large syntax trees
 
 As a final example, let's do some basic pattern matching with a custom type:
 
@@ -3081,13 +3103,18 @@ the guts of the compiler. Hopefully the little sprinkling of theory
 was enough to make the implementation understandable, but this post
 did end up being longer than I expected it to be.
 
+The full code
+[for this part](https://github.com/cronokirby/haskell-in-haskell/tree/part-3),
+and the [entire compiler](https://github.com/cronokirby/haskell-in-haskell/)
+are available, as a reference.
+
 As usual, Crafting Interpreters has
 [a great chapter on parsing](https://craftinginterpreters.com/parsing-expressions.html),
 which might be a good read if you're still not sure how exactly
 parsers work, even if the combinator approach works intuitively.
 
 If you want a meatier text that goes into different theoretical methods of parsing,
-including the thorny issues like *left recursion*,
+including thornier issues like *left recursion*,
 I like the book
 [Engineering a Compiler](
 https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-088478-0).
@@ -3098,7 +3125,7 @@ In this next post, we'll be going over the *simplifier*, to prepare
 our syntax tree for consumption by our type checker. The simplifier will have some
 drudge work to do, like resolving information about the type synonyms used
 in our program, and the signatures of each constructor. Another super
-interesting part is remove all of the nesting from pattern matching,
+interesting part is removing all of the nesting from pattern matching,
 making the rest of the compiler much simpler.
 
 Anyways, I'm getting ahead of myself, but that's a bit of a preview for the next
