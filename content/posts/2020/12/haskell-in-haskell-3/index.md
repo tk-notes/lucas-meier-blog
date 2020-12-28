@@ -18,7 +18,8 @@ lexer produced in the [previous part](/posts/haskell-in-haskell-3).
 
 As usual, both the code
 [for this part](https://github.com/cronokirby/haskell-in-haskell/tree/part-3),
-and the [entire compiler](https://github.com/cronokirby/haskell-in-haskell/).
+and the [entire compiler](https://github.com/cronokirby/haskell-in-haskell/)
+are available.
 
 Because of all the work we did last time, this part should actually
 be *simpler*. We've already broken up our source code into
