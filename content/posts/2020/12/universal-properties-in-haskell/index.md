@@ -165,7 +165,7 @@ can represent this *using the property itself*!
 
 ```haskell
 data Terminal where
-  terminal :: forall a. a -> Terminal
+  Terminal :: forall a. a -> Terminal
 ```
 
 Now, we're using GADT syntax, because it makes this construction
@@ -189,7 +189,7 @@ We can do the same trick for the initial object `Void`:
 
 ```haskell
 data Initial where
-  initial :: (forall a. a) -> Initial
+  Initial :: (forall a. a) -> Initial
 ```
 
 We'd like to encode this as `forall a. Initial -> a`,
@@ -239,7 +239,7 @@ earlier:
 
 ```haskell
 data Product a b where
-  product :: forall z. (z -> a) -> (z -> b) -> z -> Product a b
+  Product :: forall z. (z -> a) -> (z -> b) -> z -> Product a b
 ```
 
 For any type `z`, if you have a projector to `a` and `b`,
@@ -291,8 +291,7 @@ Using our standard trick, we can encode `Either a b` as a universal property
 
 ```haskell
 data CoProduct a b where
-  coproduct :: (forall z. (a -> z) -> (b -> z) -> z) -> CoProduct a b
-
+  CoProduct :: (forall z. (a -> z) -> (b -> z) -> z) -> CoProduct a b
 ```
 
 In some sense, this type is the "opposite", or *dual*
