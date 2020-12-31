@@ -1,6 +1,6 @@
 ---
 title: "(Basic) Universal Properties in Haskell"
-date: 2020-12-31T011:47:50+01:00
+date: 2020-12-31T13:17:44+01:00
 draft: false
 katex: true
 tags:
