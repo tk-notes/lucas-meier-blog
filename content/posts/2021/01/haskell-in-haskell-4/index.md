@@ -12,23 +12,13 @@ tags:
 
 # Creating a Stub Simplifier
 
-# The structure of Type Information
+# Gathering Type Information
 
 ## Constructor Information
 
 ## Resolving Synonyms
 
-## Using this information
-
-### Resolution Errors
-
-### Contexts
-
-### Resolving Types
-
-### Looking up Constructors
-
-# Gathering Constructors
+## Using This
 
 # Gathering Synonym Information in Theory
 
@@ -41,6 +31,8 @@ tags:
 # Gathering Synonyms in practice
 
 ## Depth First Search in practice
+
+# Gathering Constructors
 
 # Finishing Type Information
 
