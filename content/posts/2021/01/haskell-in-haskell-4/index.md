@@ -193,15 +193,196 @@ for example.
 
 ## Redundancy
 
+So, we want to extract out the type information strewn across
+our program, but what about the values? We're not going to leave them untouched either.
+
+As mentioned a few times in the last post, our syntax tree after parsing is very
+close to the syntax of the language, and has quite a few redundant constructs. These constructs
+exist because there is syntax for them, and not because they represent truly distinct
+programs.
+
+Another major goal in our simplifier is going to be trimming the fat on our syntax tree,
+and simplifying away all of this redundancy.
+
 ### Let vs Where
+
+The first bit of redundant syntax are `let` expressions and `where` expressions. Syntactically,
+these are different, but they really express the same thing. We can represent
+a `where` expression like:
+
+```haskell
+x + y
+  where
+    x = 2
+    y = 3
+```
+
+using `let` instead:
+
+```haskell
+let x = 2
+    y = 3
+in x + y
+```
+
+By doing this throughout our syntax tree, we get rid of one superfluous constructor in
+our tree, which simplifies our work throughout the remaining stages of our compiler.
 
 ### Lambdas
 
+Syntactically, we allow lambdas with multiple parameters at once:
+
+```haskell
+\x y -> x + y
+```
+
+Our syntax tree represents this verbatim, as:
+
+```haskell
+LambdaExpr ["x", "y"] (BinExpr Add (NameExpr "x") (NameExpr "y"))
+```
+
+It's common knowledge that this snippet of Haskell is equivalent to:
+
+```haskell
+\x -> \y -> x + y
+```
+
+And we could have parsed our original expression as:
+
+```haskell
+LambdaExpr ["x"] (LambdaExpr ["y"] ...)
+```
+
+matching the second version. We've chosen to stick closer to the syntax in our parser,
+but our simplifier will get rid of these variants, having lambda expressions only
+take a _single_ parameter, using multiple nested lambdas for multiple parameters.
+
 ### Applications
+
+In the same way that lambda expressions with multiple parameters can be represented
+as a sequence of curried lambdas, function application with multiple parameters is
+also sugar for curried application. For example:
+
+```haskell
+add 1 2
+```
+
+is syntax sugar for:
+
+```haskell
+(add 1) 2
+```
+
+Our simplifier is going to take care of this as well. In our parser, applications take
+multiple parameters, but now we're going to always represent things as:
+
+```haskell
+Apply f e
+```
+
+where `f` is our function, and `e` our expression. For multiple parameters, we just use currying:
+
+```haskell
+Apply (Apply add 1) 2
+```
+
+{{<note>}}
+I'm using a bit of pseudo-syntax here, but we'll precisely define the structure of our new AST
+soon enough.
+{{</note>}}
 
 ### Builtins
 
+In real Haskell, you have custom operators, and this entails making operators actually functions.
+So something like:
+
+```haskell
+1 + 2 + 3
+```
+
+is actually lingo for:
+
+```haskell
+(+) (((+) 1) 2) 3
+```
+
+(with the specific ordering dependent on the fixity of the operator, of course)
+
+We've opted to instead hardcode the various operators we're going to be using. We'd represent
+this same expression as:
+
+```haskell
+BinExpr Add (BinExpr Add 1 2) 3
+```
+
+having simplified the tree a bit.
+
+Instead of using function application, we have a specific syntactical form
+for operators. What we want to do in our simplifier is to shift this slightly,
+to reuse function application:
+
+```haskell
+Apply (Builtin Add) (Apply (Builtin Add) 1 2) 3
+```
+
+Instead of having a special form for using operators, we now use function application,
+and our operators become expression in their own right. We also need to apply currying here,
+as mentioned in the previous step.
+
+Doing things this way simplifies the next stages quite a bit. We don't have
+this extra kind of expression to deal with. For example, in the typechecker, we just
+treat `Builtin Add` as an expression of type `Int -> Int -> Int`, as if it were a named
+function that happened to be defined.
+
+This is in some sense arriving at the same point Haskell does, where after parsing, operators
+become the application of certain functions. The difference is that we've hardcoded certain
+functions as existing, and these functions are now _builtin_ to the compiler.
+
 ## Multiple Function Heads
+
+So, there are quite a few things we can simplify about _expressions_, but we also
+have a lot on our plate when it comes to definitions. As mentioned before, the definition
+for a given value can be spread out over multiple places:
+
+```haskell
+add :: Int -> Int -> Int
+add 0 0 = 0
+add n m = n + m
+```
+
+In this example, the definition of `add` is separated across 3 different elements.
+We have one type annotation:
+
+```haskell
+add :: Int -> Int -> Int
+```
+
+one definition using pattern matching:
+
+```haskell
+add 0 0 = 0
+```
+
+and a second definition using pattern matching, but with simple name patterns:
+
+```haskell
+add n m = n + m
+```
+
+Our first order of duty is going to be to somehow unify these three different items
+into a _single_ definition. We want each value definition in our program to correspond
+to a single item in our simplified tree.
+
+To accomplish this we need to first gather all of the definitions of a value, along with
+its type annotation. We can do a few integrity checks here, like making sure that each
+definition has the same number of arguments, that multiple type annotations exist, etc.
+Then we simplify this collection into a single definition, which requires a couple
+of things.
+
+### Creating Functions
+
+### Multi Cases
 
 ## Simplifying Cases
 
