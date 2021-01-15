@@ -19,7 +19,7 @@ $\mathbb{N} \to X$ for a space $X$, and study their convergence in this general 
 One problem with sequences is that they're not sufficient to completely characterize
 topological spaces. For example, take the two following theorems:
 
-If a space $X$ is *Hausdorff*, than every sequence converges to at most one point.
+If a space $X$ is *Hausdorff*, then every sequence converges to at most one point.
 
 If there is a sequence inside a subset $S$ converging to $s$, then $s$ is a limit point of $S$.
 
@@ -152,7 +152,7 @@ Nets allow us to work in this general setting though.
 As a reminder, a limit point of a set $S$ is a point $x$ such that every neighborhood
 of $x$ intersects $S$.
 
-Nets allow us to more precisely capture the nature of limit points than sequences.
+Nets allow us to more precisely capture the nature of limit points better than sequences.
 
 A point $x$ is a limit point of $S$ precisely when there exists a net in $S$ converging to $x$.
 
