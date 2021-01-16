@@ -1,7 +1,7 @@
 ---
 title: "Let's Describe Algorithms Better"
 date: 2021-01-16T20:18:19+01:00
-draft: true
+draft: false
 katex: true
 tags:
   - Algorithms
