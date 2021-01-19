@@ -382,9 +382,133 @@ of things.
 
 ### Creating Functions
 
+There are multiple ways of defining a function like `add` above:
+
+```haskell
+add n m = n + m
+
+add n = \n -> n + m
+
+add = \n -> \m -> n + m
+```
+
+All of these are equivalent. The first definition is really syntax sugar for the last
+definition. What we want to do is transform functions declaring parameters
+like this to bindings of a name to a simple lambda instead.
+
 ### Multi Cases
 
+The last change was pretty simple, but this one is a bit more complicated.
+The idea is that in the same way that we transform simple names on the left side
+of `=` into lambdas on the right side, we also need to transform patterns like this:
+
+```haskell
+inc 0 = 1
+inc x = x + 1
+```
+
+into lambdas and case expressions:
+
+```haskell
+inc = \$0 -> case $0 of
+  0 -> 1
+  x -> x = 1
+```
+
+This is straightforward so far, and easy to see. The problem comes with how
+functions can match on _multiple values_. This isn't possible with case expressions.
+
+{{<note>}}
+One solution to this problem is to simply create a case construction allowing
+us to match on multiple values at once, punting the problem this poses until
+after the type-checker.
+
+I opted against doing this, because by tackling this complexity _now_ it makes the type-checker
+simpler as well.
+{{</note>}}
+
+For example, take our ongoing example:
+
+```haskell
+add 0 0 = 0
+add n m = n + m
+```
+
+If we try and desugar this as we did previously, we have a problem:
+
+```haskell
+add = \$0 -> \$1 -> case ? of
+```
+
+We can't simply move each of the patterns we had previously, since we have no way
+matching against both values at the same time. What we need to do is figure
+out a way of nesting our case expressions. In this case, there's a pretty
+simple solution:
+
+```haskell
+add = \$0 -> \$1 ->
+  case $0 of
+    0 -> case $1 of
+      0 -> 0
+      m -> $0 + m
+    n -> n + $1
+```
+
+It's not too hard to translate things like this manually. The difficult
+comes from doing this _automatically_. We want to write
+an algorithm to perform conversions like this.
+
 ## Simplifying Cases
+
+Another detail we'll be tackling at the same time is removing _nested_
+cases completely. Right now, we can do things like this:
+
+```haskell
+data List a = Cons a (List a) | Nil
+
+drop3 :: List a -> List a
+drop3 = \xs -> case xs of
+  Cons _ (Cons _ (Cons _ rest)) -> rest
+  _ -> Nil
+```
+
+This function drops off 3 elements from the front of a list.
+To do this, we need to use _multiple_ nested patterns, in order to
+match against the tail of different lists.
+
+In fact, we allow _arbitrary_ patterns to be used inside of a constructor.
+
+We're going to be simplifying case expressions like this, to only
+use simple patterns inside of constructors. One way of simplifying
+this would be:
+
+```haskell
+drop3 = \xs -> case xs of
+  Nil -> Nil
+  Cons _ $0 -> case $0 of
+    Nil -> Nil
+    Cons _ $1 -> case $1 of
+      Nil -> Nil
+      Cons _ rest -> rest
+```
+
+Once again, we can do this by hand without all that much effort,
+but the trickiness comes from being able to do this *automatically*.
+
+In fact, we'll be felling two birds with one stone here. We'll write an algorithm
+that converts multiple nested pattern matching, into single pattern matching
+without any nesting. This way, we can tackle the problems of patterns in functions,
+and simplifying normal case expressions with the same tool.
+
+{{<note>}}
+We do this not out of necessity, but because we need to do
+this _eventually_, and getting this out of the way now is convenient,
+since we already need to apply a simplification algorithm to our cases,
+to remove multiple pattern matching in functions.
+
+Doing this now allows us to simplify the type-checker. Otherwise, we'd
+have to do all of this afterwards.
+{{</note>}}
 
 # Creating a Stub Simplifier
 
