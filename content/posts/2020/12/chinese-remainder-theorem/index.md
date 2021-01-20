@@ -237,7 +237,7 @@ We can write out a similar algorithm pretty easily:
 
 ```haskell
 bezout :: Integer -> Integer -> (Integer, Integer)
-bezout a b | a < b = bezout b a
+bezout a b | a < b = let (x, y) = bezout b a in (y, x)
 bezout a 0 = (1, 0)
 bezout a b =
   let q = div a b
