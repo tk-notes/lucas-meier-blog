@@ -512,6 +512,61 @@ have to do all of this afterwards.
 
 # Creating a Stub Simplifier
 
+As usual for this series, we're going to start by creating a dummy module for our Simplifier,
+and integrating it with the rest of the compiler, before coming back and slowly
+filling out its various components.
+
+Let's go ahead and add a `Simplifier` module to our `.cabal` file:
+
+```cabal
+  exposed-modules:     Ourlude
+                     , Lexer
+                     , Parser
+                     , Simplifier
+                     , Types
+```
+
+Next, let's create our actual module in `src/Simplifier.hs`
+
+
+```haskell
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
+
+module Simplifier
+  ( AST (..),
+    SimplifierError (..),
+    simplifier
+  )
+where
+
+import Ourlude
+```
+
+We have the standard import for our Prelude, of course, but we'll
+be expanding this progressively as we actually implement things.
+
+Except for `FlexibleContexts`, we've seen all of these extensions before.
+
+We'll be using `FlexibleContexts` to work with some typeclasses that take
+multiple types, namely `MonadError`. This extension allows us to write constraints like:
+
+```haskell
+doSomething :: MonadError Concrete generic => ...
+```
+
+In this example, we use a concrete type inside of a constraint, which is enabled
+by `FlexibleContexts`.
+
+`AST` is going to be the simplified syntax tree eventually, but we can just create
+a stub value for now:
+
+```haskell
+data AST = AST
+```
+
 # Gathering Type Information
 
 ## Constructor Information
