@@ -1,7 +1,7 @@
 ---
 title: "On Strings in Compilers"
 date: 2021-01-24T10:44:25+01:00
-draft: true
+draft: false
 tags:
   - Compiler
   - Programming Languages
