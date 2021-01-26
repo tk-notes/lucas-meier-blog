@@ -21,7 +21,7 @@ that we can compile into a functional executable. We'll be going over
 
 The goal of the series is not to make
 a reference compiler for the Haskell language, nor try to rival with GHC
-in terms of compilation speed our output quality.
+in terms of compilation speed or output quality.
 Instead, I want to provide a good introduction to the concepts that go into
 writing a compiler, and provide an understandable bridge into the world of
 programming language implementations.
