@@ -150,7 +150,7 @@ does have quite a lot of *breadth*, and that breadth isn't novel compared other 
 I don't think spending a lot of time worrying about cross-module name resolution and things like
 that would help explain the difficulties of Haskell.
 
-Finally, if you want to make a subset that conforms to the a Haskell specification, you need to add
+Finally, if you want to make a subset that conforms to a Haskell specification, you need to add
 a *lot* of things. I mean a **lot**. This would've included a lot of boilerplate implementations of
 primitive types and functions, not really explaining anything new. Once again, my goal here is to explain
 the things that seem a bit mysterious about implementing Haskell. I think that implementing a full subset
