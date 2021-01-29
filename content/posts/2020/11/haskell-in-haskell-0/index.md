@@ -222,9 +222,9 @@ f
 ```
 
 We correctly identify that `Int` is a single token, marking a primitive type, and `::` is an operator,
-etc. We will accept programs that make very no sense syntactically however, like `f = = = = 4 = 4`.
+etc. We will accept programs that make no sense syntactically however, like `f = = = = 4 = 4`.
 It's not that this program fails to type check, it's that it doesn't even represent something we
-know as a Haskell program. Our lexer is perfectly happen with these tokens though.
+know as a Haskell program. Our lexer is perfectly happy with these tokens though.
 
 Another aspect of Haskell is *whitespace*. Haskell uses whitespace to automatically insert braces and semicolons.
 In fact, many people don't even realize that Haskell accepts braces and semicolons at all! It's the lexer's

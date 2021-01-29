@@ -45,7 +45,7 @@ concerns, at the same time as higher level structure.
 Having a separate lexing phase
 gives us a nice separation of concerns here.
 
-The Parser will needs to use context to do its job.
+The Parser will need to use context to do its job.
 For example, when parsing an expression, it knows not to try
 and read out things related to types. On the other hand,
 the lexer (at least the part that spits out tokens) can
