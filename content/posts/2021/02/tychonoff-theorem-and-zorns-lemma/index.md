@@ -1,7 +1,7 @@
 ---
 title: "Tychonoff's Theorem and Zorn's Lemma"
-date: 2021-02-02T11:20:32+01:00
-draft: true
+date: 2021-02-02T18:34:29+01:00
+draft: false
 katex: true
 tags:
   - Math
