@@ -103,6 +103,17 @@ Now this collection "hones in" precisely on the point $(\frac{1}{3}, \frac{1}{3}
 and our method of construction works, since the projections of this set have
 to end up at $\frac{1}{3}$ as well.
 
+The reason our original collection didn't work is because
+$\pi_1(C) \times \pi_2(C) \neq C$ in general, and especially not in this case.
+When we project down the line segment, and then glue each projection back up,
+we end up with something way too big:
+
+{{<img "6.png">}}
+
+On the other hand, when we have a single point, things work out just fine:
+
+{{<img "7.png">}}
+
 ### Lessons Learned
 
 In a sense, the collection $\mathcal{A}$ was not strict enough to force
