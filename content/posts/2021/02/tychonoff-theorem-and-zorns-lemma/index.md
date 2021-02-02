@@ -237,14 +237,35 @@ by definition, two collections $\mathcal{B}_1$ and $\mathcal{B}_2$, with
 $C_1 \in \mathcal{B}_1$ and $C_2 \in \mathcal{B}_2$. Without loss of generality,
 assume $\mathcal{B}_1 \subseteq \mathcal{B}_2$. Then,
 $C_1 \in \mathcal{B}_2$ as well, alongside $C_2$. Their intersection,
-$C_1 \cap C_2$ is also in $\mathcal{B}_2$, and therefore in $\mathcal{U}$.
+$C_1 \cap C_2$ is also in $\mathcal{B}_2$, and therefore not empty.
 
 Having shown that every chain in $\mathcal{A}_\subseteq$ has an upper bound,
 we can now apply Zorn's lemma, and find our maximal collection $\mathcal{D}$.
 
 $\square$
 
+This collection is so all-encompassing, that if a set touches
+every set in the collection, it must *itself* be in the collection.
+
+Concretely
+
+**Lemma:** If $B$ is a subset of $X$, intersecting every element of $\mathcal{D}$, then $B \in \mathcal{D}$
+**Proof:**
+We show that $\mathcal{D} \cup \\{B\\}$ has the FIP, which makes it equal
+to $\mathcal{D}$, meaning $B \in \mathcal{D}$ in the first place.
+
+Given $D_1, D_2 \in \mathcal{D} \cup \\{B\\}$, either both are drawn from $\mathcal{D}$,
+in which case their intersection is in this collection, since $\mathcal{D}$ has the FIP,
+or both are $B$, in which case $B \cap B = B$ is evidently in the collection, *or*
+we have $D \in \mathcal{D}$ and $B$.
+
+But, $B \cap D$ is non-empty by assumption, since $B$ intersects every $D \in \mathcal{D}$.
+
+$\square$
+
 ## Proving our Theorem
+
+We can now use this strategy
 
 # Conclusion
 
