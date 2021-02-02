@@ -9,13 +9,15 @@ tags:
   - Topology
 ---
 
-Tychnoff's theorem proves that the product (even infinite) of compact spaces
-is also compact. The proof makes judicious use of Zorn's lemma, and made
-me appreciate how fun its application can be.
+Tychonoff's theorem proves that the product (even infinite) of compact spaces is also compact.
+The proof makes judicious use of Zorn's lemma. In fact,
+it uses it so well, that I gained an appreciation for how
+fun the lemma can be.
 
 <!--more-->
 
-In this post, I'll be going over the notion of *Product space* and *Compact space*,
+In this post, we'll be going over the notion of
+*product space* and *compact space*,
 building up to the final result.
 
 I think that the final proof makes elegant use of a powerful tool:
@@ -23,31 +25,36 @@ Zorn's lemma. This use is so elegant, in fact, that as soon as I first read
 the proof, I felt compelled to write a blog post exposing the proof,
 and trying to describe its elegance to others.
 
-All the proofs are inspired by Munkres {{<ref-link "1">}}, which is the standard
-introductory text on Topology. I won't be going over the basics of Topological
-spaces and continuous functions here, so I recommend this book if you'd like
+All the proofs are inspired by,
+and sometimes even taken from, Munkres {{<ref-link "1">}}, which is the standard
+introductory text on Topology.
+I won't be going over the basics of Topological
+spaces and continuous functions here,
+nor will I be exposing all of the details around product
+and compact spaces,
+so I recommend this book if you'd like
 to see these fundamentals, or learn more about Topology.
 
 # Compactness
 
 The first notion we need to develop is that of a *Compact*
 space. In some sense, a Compact space is analogous
-to a closed interval $[a, b] \subseteq \mathbb{R}$.
+to the closed interval $[0, 1] \subseteq \mathbb{R}$.
 An interval like this has an uncountable number of points,
-but it is still "small" in some sense, because we can't
+but is still "small" in some sense: we can't
 keep squeezing stuff into it.
 
-Concretely:
+Formally:
 
-A space $X$ is *Compact* precisely when for any collection
+A space $X$ is *Compact* precisely when any collection
 of open sets
-$\\{U_\alpha\\}$, that cover $X$,
+$\\{U_\alpha\\}$ that cover $X$,
 (i.e. $\bigcup_\alpha U_\alpha = X$),
 a finite sub-collection $U_1, \ldots, U_n$ suffices to
 cover $X$.
 
 The intuition here goes back to the closed interval.
-We could try and cover it to make sure that no finite
+We could try and cover in such a way that no finite
 sub-cover can exist. For example, by making smaller and smaller
 advances towards one side of the interval:
 
@@ -56,7 +63,7 @@ advances towards one side of the interval:
 The problem is that we never reach the other side,
 which *is included* in our interval. So this fails
 to cover the entire interval.
-If we had the half open interval $(0, 1]$ (for example)
+If we had the half open interval $(0, 1]$
 instead, then this attempt would work. In some sense,
 openness makes things not compact, because you can
 inch towards some point that you reach "in the limit",
@@ -83,7 +90,7 @@ is non-empty.
 
 **Proof:**
 
-This is an exercise in rewriting definitions:
+This is an exercise in rewriting definitions.
 
 Mathematically, for a space $X$ to be compact, we need:
 
@@ -132,8 +139,8 @@ X - \bigcup_{i = 1}^n U_{\alpha_i} = \emptyset
 $$
 
 All of these are equivalent, and the last one says
-that every collection of closed subsets,
-for which no finite intersection is empty,
+that for every collection of closed subsets
+in which no finite intersection is empty,
 the intersection of the collection is also not empty.
 
 This is precisely the statement we wanted to show as equivalent
@@ -144,7 +151,7 @@ $\square$
 Back to our example of a closed interval of the real line,
 instead of having a growing open cover that can't keep
 growing forever without missing an endpoint, we now
-have a receding closed sets, which much have a common region:
+have receding closed sets, which must have a common region:
 
 {{<img "9.png">}}
 
@@ -171,21 +178,23 @@ is also open:
 {{<img "11.png">}}
 
 This collection is only a *basis* for this topology.
-A set is open if every point contains such a product
-set:
+
+More generally, set is open precisely
+when every point contains such a product set:
 
 {{<img "12.png">}}
 
 ## Finite Products
 
-We can provide a formal definition, at least for finite products.
+We can go ahead an provide a formal definition of this
+construction, for finite products.
 
 Given Topological spaces $X$ and $Y$, the cartesian
 product $X \times Y$ can be endowed with a topology,
 whose basis consists of products $U \times V$,
 with $U$ open in $X$, and $V$ open in $Y$.
 
-We also have continuous projections:
+The standard projections:
 
 $$
 \begin{aligned}
@@ -194,7 +203,7 @@ $$
 \end{aligned}
 $$
 
-These are continuous because:
+can be shown to be continuous. This is because:
 
 $$
 \begin{aligned}
@@ -203,13 +212,16 @@ $$
 \end{aligned}
 $$
 
-In fact, these slices $pi^{-1}_i(U)$ are a *sub-basis*,
-in that finite intersections of these slices form a
+In fact, these slices $\pi^{-1}_i(U)$ form a *sub-basis*:
+finite intersections of these slices form a
 basis for this topology.
 
 With this in mind, one way of looking at the product topology
 is as the simplest way to to make the projections
-$\pi_1$ and $\pi_2$ continuous.
+$\pi_1$ and $\pi_2$ continuous. For the projections to be continuous,
+all of the slices need to be open. Having declared
+these slices to be open, the product topology emerges
+freely using the axioms of a topological space.
 
 ## Extending to the infinite case
 
@@ -241,15 +253,24 @@ but finitely many $\alpha$.
 
 Formally, the product topology is defined by taking these
 special products as our basis. In the case
-of a finite product, the "$U_\alpha = X_\alpha$ almost everywhere
+of a finite product, the "$U_\alpha = X_\alpha$ almost everywhere"
 disappears, since it's not possible to violate
 this condition, taking a finite product.
+
+Another way of looking at the infinite product of spaces is
+by arranging the spaces one after the other as a big cake.
+The points in this space are then paths through each layer.
+We can choose a finite number of slices,
+restricting the paths in that layer, but the other
+layers remain unconstrained:
+
+{{<img "13.png">}}
 
 
 # Tychonoff's Theorem
 
-We've seen the notion of a *Product* and of *Compactness*. A natural
-question to ask is whether these properties are compatible:
+We've seen the notion of a *compactness*, and *product spaces*.
+A natural question to ask is whether these properties are compatible:
 
 Given a collection $\\{X_\alpha\\}$ of compact spaces, is the product $\prod_{\alpha} X_\alpha$
 also a compact space?
@@ -262,8 +283,8 @@ It's more convenient to use the finite intersection version of compactness here.
 Given a collection $\mathcal{A}$ of closed subsets of our product space, with
 the finite intersection property, we need to find a point in the intersection $\bigcap \mathcal{A}$.
 
-The idea is that we can find this point component by component, using that fact that each part
-of our product space is already compact.
+One idea is to try finding this point component by component, using that fact that each part
+of our product space is already known to be compact.
 
 Concretely, consider the product $[0, 1] \times [0, 1]$. Let $a = (\frac{1}{3}, \frac{1}{3})$
 and $b = (\frac{2}{3}, \frac{2}{3})$. Our collection $\mathcal{A}$ consists of rectangles
@@ -274,6 +295,9 @@ centered along the segment $ab$:
 This has the finite intersection property. This is because for any two rectangles centered
 on this line, the
 smaller one will always be contained in the larger one.
+It then follows, by induction, that the intersection of any number
+of these rectangles is also in the collection, and
+thus non-empty.
 
 In fact, we can see the final intersection of this collection. It is the
 segment $ab$ itself:
@@ -293,13 +317,15 @@ in the product $[0, 1] \times [0, 1]$:
 
 {{<img "4.png">}}
 
-It's possible to make the "wrong" choice when considering each of the points individually.
+It's possible to make the "wrong" choice when considering each
+component in isolation.
 We need to use the way that our collection $\mathcal{A}$ puts constraints
-on each component *at the same time*, when considering how to make each component.
+on each component *at the same time*, when
+finding our point.
 We've gotten rid of this global information by limiting ourselves to considering
 just the component collections $\pi_X(\mathcal{A})$, and $\pi_Y(\mathcal{A})$.
 
-We can amend this by choosing a collection of sets that contains $\mathcal{A}$.
+We can amend this by choosing a larger collection of sets that contains $\mathcal{A}$.
 Let's now add in all the rectangles centered on the same segment $ab$,
 but where the "top" can vary as well:
 
@@ -325,7 +351,8 @@ On the other hand, when we have a single point, things work out just fine:
 In a sense, the collection $\mathcal{A}$ was not strict enough to force
 each component to be coherent, and so it was possible to make the "wrong" choice.
 We have too much freedom in our choice for each component, so it's possible
-to not respect the conditions that $\mathcal{A}$ imposes only on the *product space*.
+to not respect the conditions that $\mathcal{A}$ imposes
+between the different components.
 
 Now, in this specific case, it's easy to find a collection $\mathcal{B} \supseteq \mathcal{A}$
 that that's strong enough to force our components to be coherent. But in general,
@@ -346,6 +373,13 @@ in the intersection of these sets. By using the biggest possible collection
 containing $\mathcal{A}$, we exercise the full power of our assumption that
 $X_\alpha$ is compact.
 
+A general lesson about proving theorems is that you should
+try and use exactly the power you've assumed. If you can
+prove something without one of your assumptions, you
+should remove the assumption, and obtain a more general theorem.
+If you don't exercise the full power you've acquired,
+you're making the proof harder to obtain.
+
 ## Zorn's Lemma
 
 Given some collection $\mathcal{A}$, with the finite intersection property,
@@ -357,14 +391,18 @@ $$
 \\{\mathcal{D} \ |\ \mathcal{D} \supseteq \mathcal{A},\ \mathcal{D} \text{ FIP} \\}
 $$
 is pretty unwieldy. In fact, it's very uncountable. Super uncountable, if you will.
-Trying to build it directly, or to use induction are going to fail immediately.
+Trying to build it directly, or using induction, is going to fail immediately.
 
-On the other hand, there's never any obstacle to us continuing to build this
-mega-set. If at some point we're working on our collection $\mathcal{D}$, and we
-realized that there's an even bigger $\mathcal{D'}$ that works, then we can just
-use that instead, and keep working.
+On the other hand, there's never any obstacle stopping us
+from buildind this
+mega-set.
+If at some point we're working on our collection $\mathcal{D}$, and we've
+realized that there's an even bigger
+$\mathcal{D'}$ that works, then we can just
+use that instead, and keep chugging on.
 
-If we ever encounter some kind of obstacle, we can swiftly adjust our course around it,
+If we ever encounter some kind of obstacle,
+we can swiftly adjust our course around it,
 or incorporate whatever information it's signalling to us.
 
 This is the kind of situation in which Zorn's lemma applies. We're trying to build
@@ -395,13 +433,28 @@ you have no choice but to accept Zorn's lemma as well.
 Thankfully, I have no moral qualms about using Zorn's lemma, and I actually find it kind
 of cool when I do get to use it, so let me show you how to apply it in our case.
 
+Another way of thinking about this is that if you want to show
+me that there's always a bigger object that exists, you'd need
+to come up with some kind of chain in this order that goes on forever:
+
+{{<img "14.png">}}
+
+The thing is, if I can show that any chain, by virtue of being a chain,
+without any assumption of finiteness, or any other condition
+on its size, is bounded, then I can prevent you from ever
+finding a witness to the non-existence of my mega-object.
+
+This is chiefly non-constructive, since we're saying
+that an object exists by virtue of our inability to disprove
+its existence, but I digress.
+
 ## The biggest FIP
 
 Concretely, we'll be proving the following theorem:
 
 **Theorem:** Given a set $X$, and a collection of subsets $\mathcal{A}$ of $X$, with the FIP property,
 there exists a collection $\mathcal{D}$ containing $\mathcal{A}$ and with the FIP property,
-that is not strictly contained in any other such collection
+that is not strictly contained in any other such collection.
 
 **Proof:**
 
@@ -438,47 +491,30 @@ we have some $\mathcal{B} \subseteq \mathcal{U}$. By assumption $\mathcal{A} \su
 since we've taken a chain in $\mathcal{A}_\subseteq$.
 
 Secondly, it satisfies the FIP property.
-Given two sets $C_1$ and $C_2$ in $\mathcal{U}$, there exists,
-by definition, two collections $\mathcal{B}_1$ and $\mathcal{B}_2$, with
-$C_1 \in \mathcal{B}_1$ and $C_2 \in \mathcal{B}_2$. Without loss of generality,
-assume $\mathcal{B}_1 \subseteq \mathcal{B}_2$. Then,
-$C_1 \in \mathcal{B}_2$ as well, alongside $C_2$. Their intersection,
-$C_1 \cap C_2$ is also in $\mathcal{B}_2$, and therefore not empty.
+Given sets $C_1, \ldots, C_n \in \mathcal{U}$, there exists,
+by definition, collections $\mathcal{B}_1, \ldots, \mathcal{B}_n$, with
+$C_i \in \mathcal{B}_i$. Since the indices are arbitrary,
+assume $\mathcal{B}_i \subseteq \mathcal{B}_n$. Then,
+$C_i \in \mathcal{B}_n$ as well, alongside
+all of the others. Their intersection,
+$C_1 \cap \cdots \cap C_n$ is non-empty, since
+$\mathcal{B}_n$ has the FIP.
 
 Having shown that every chain in $\mathcal{A}_\subseteq$ has an upper bound,
-we can now apply Zorn's lemma, and find our maximal collection $\mathcal{D}$.
+we can now apply Zorn's lemma, and obtain a
+maximal collection $\mathcal{D}$.
 
 $\square$
 
-This collection is so all-encompassing, that if a set touches
-every set in the collection, it must *itself* be in the collection.
 
-Concretely
+This collection is closed under finite intersection:
 
-**Lemma:** If $B$ is a subset of $X$, intersecting every element of $\mathcal{D}$, then $B \in \mathcal{D}$
-**Proof:**
-We show that $\mathcal{D} \cup \\{B\\}$ has the FIP, which makes it equal
-to $\mathcal{D}$, meaning $B \in \mathcal{D}$ in the first place.
-
-Given $D_1, D_2 \in \mathcal{D} \cup \\{B\\}$, either both are drawn from $\mathcal{D}$,
-in which case their intersection is in this collection, since $\mathcal{D}$ has the FIP,
-or both are $B$, in which case $B \cap B = B$ is evidently in the collection, *or*
-we have $D \in \mathcal{D}$ and $B$.
-
-But, $B \cap D$ is non-empty by assumption, since $B$ intersects every $D \in \mathcal{D}$.
-
-$\square$
-
-This collection is also closed under finite intersection:
-
-Concretely
 **Lemma:** Given $D_1, \ldots, D_n \in \mathcal{D}$,
 the intersection $D_1 \cap \cdots \cap D_n$ is also in
 $\mathcal{D}$.
 
 **Proof:**
 
-We use a similar strategy as before.
 Given $D_1, \ldots, D_n \in \mathcal{D}$,
 define:
 $$
@@ -514,6 +550,35 @@ so non-empty.
 We now conclude that $D_1 \cap \cdots \cap D_n \in \mathcal{D}$.
 
 $\square$
+
+This collection is so all-encompassing, that if a set touches
+every set in the collection, it must *itself* be in the collection.
+
+**Lemma:** If $B$ is a subset of $X$, intersecting every element of $\mathcal{D}$, then $B \in \mathcal{D}$
+
+**Proof:**
+
+We show that $\mathcal{D} \cup \\{B\\}$ has the FIP, which makes it equal
+to $\mathcal{D}$, meaning $B \in \mathcal{D}$ in the first place.
+
+We use a similar strategy as before.
+
+Given $D_1, \ldots, D_n \in \mathcal{D} \cup \\{B\\}$,
+we need to show that their intersection is non-empty.
+
+If each $D_i$ is in $\mathcal{D}$, then this is true by assumption.
+
+Therefore, assume we're in the situation with
+$B, D_1, \ldots, D_n$.
+By the previous lemma the intersection:
+$$
+D := D_1 \cap \cdots \cap D_n
+$$
+is in $\mathcal{D}$.
+Then we have that $B \cap D$ is non-empty by assumption, since $B$ intersects every $D \in \mathcal{D}$.
+
+$\square$
+
 
 ## Proving our Theorem
 
@@ -590,7 +655,7 @@ intersects every other element. Thus,
 any basis element containing $\bold{x}$
 intersects every $D \in \mathcal{D}$. This means
 that any neighborhood of $\bold{x}$ intersects
-every $D \in mathcal{D}$, that is to say:
+every $D \in \mathcal{D}$, that is to say:
 
 $$
 \bold{x} \in \bigcap_{D \in \mathcal{D}} \overline{D}
@@ -605,6 +670,12 @@ which implies that $\prod_\alpha X_\alpha$ is compact.
 $\square$
 
 # Conclusion
+
+This post likely wasn't all that enlightening unless you
+were already familiar with products and compactness.
+If you liked the illustrations nonetheless, and are curious
+to learn more, I'd recommend reading a bit of Munkres,
+which is linked in the next section.
 
 # References
 
