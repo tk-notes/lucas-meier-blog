@@ -265,9 +265,96 @@ $\square$
 
 ## Proving our Theorem
 
-We can now use this strategy
+We can now use this strategy to prove our theorem:
+
+**Tychnoff's Theorem:** Given a collection $\\{X_\alpha\\}$ of Compact spaces,
+the product $\prod_\alpha X_\alpha$ is also a Compact space.
+
+**Proof:**
+Let $\mathcal{A}$ be a collection of closed sets with the FIP. We show that
+the intersection:
+
+$$
+\bigcap_{A \in \mathcal{A}} \overline{A}
+$$
+
+is non-empty. If this were a collection of closed sets, this would be the intersection $\bigcap \mathcal{A}$.
+Compactness thus follows from showing this.
+
+Now, we can find a maximal collection $\mathcal{D}$ containing $\mathcal{A}$, and satisfying the FIP,
+as we've developed earlier.
+
+If $\bigcap_{D \in \mathcal{D}} \overline{D}$ is non-empty,
+then certainly $\bigcap_{A \in \mathcal{A}} \overline{A}$
+would also be non-empty.
+
+Consider the collection:
+
+$$
+\\{\pi_\alpha(D) \ |\ D \in \mathcal{D}\\}
+$$
+
+This set satisfies the FIP, because:
+
+$$
+\pi_\alpha(D_1 \cap D_2) \subseteq \pi_\alpha(D_1) \cap \pi_\alpha(D_2)
+$$
+
+(this observation holds for any function $f$)
+
+By compactness of each $X_\alpha$, we can then choose
+a point $x_\alpha$ such that:
+
+$$
+x_\alpha \in \bigcap_{D \in \mathcal{D}} \overline{\pi_\alpha(D)}
+$$
+
+Let $\bold{x} = (x_\alpha)$ by the product of these components.
+We need to show that
+$\bold{x} \in \bigcap_{D \in \mathcal{D}} \overline{D}$.
+
+If we have a sub-basis element $\pi_\alpha^{-1}(U_\alpha)$,
+then we can show that it intersects every $D \in \mathcal{D}$.
+
+Since $x_\alpha \in \overline{\pi_\alpha(D)}$ by definition,
+so we have $U_\alpha$ intersecting $\pi_\alpha(D)$
+in some point $\pi_\alpha(\bold{y})$,
+with $\bold{y} \in D$.
+It's clear that $\bold{y} \in \pi_\alpha^{-1}(U_\alpha) \cap D$.
+
+Since $\pi_\alpha^{-1}(U_\alpha)$ intersects every
+$D \in \mathcal{D}$, it belongs to $\mathcal{D}$,
+because of $\mathcal{D}$ being maximal,
+as we proved earlier.
+
+Since basis elements in the Product Topology
+consist of finite intersections of these subsets,
+basis elements containing $\bold{x}$ are also
+in $\mathcal{D}$, since $\mathcal{D}$ is closed under
+finite intersection, as we showed earlier.
+
+Since $\mathcal{D}$ has the FIP, any element in $\mathcal{D}$
+intersects every other element. Thus,
+any basis element containing $\bold{x}$
+intersects every $D \in \mathcal{D}$. This means
+that any neighborhood of $\bold{x}$ intersects
+every $D \in mathcal{D}$, that is to say:
+
+$$
+\bold{x} \in \bigcap_{D \in \mathcal{D}} \overline{D}
+$$
+
+This means that
+$$
+\bigcap_{A \in \mathcal{A}} \overline{A} \neq \emptyset
+$$
+which implies that $\prod_\alpha X_\alpha$ is compact.
+
+$\square$
 
 # Conclusion
+
+# References
 
 {{<ref
   "1"
