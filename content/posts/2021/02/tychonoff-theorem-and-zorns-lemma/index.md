@@ -469,6 +469,52 @@ But, $B \cap D$ is non-empty by assumption, since $B$ intersects every $D \in \m
 
 $\square$
 
+This collection is also closed under finite intersection:
+
+Concretely
+**Lemma:** Given $D_1, \ldots, D_n \in \mathcal{D}$,
+the intersection $D_1 \cap \cdots \cap D_n$ is also in
+$\mathcal{D}$.
+
+**Proof:**
+
+We use a similar strategy as before.
+Given $D_1, \ldots, D_n \in \mathcal{D}$,
+define:
+$$
+\begin{aligned}
+E &:= \bigcap_{i = 1}^n D_i \cr
+\mathcal{E} &:= \mathcal{D} \cup \\{E\\}
+\end{aligned}
+$$
+We now show that $\mathcal{E}$ has the FIP, which implies
+$\mathcal{E} = \mathcal{D}$, and thus $E \in \mathcal{D}$,
+by maximality.
+
+Let's say we have $E_1, \ldots, E_m  \in \mathcal{E}$.
+If these consist entirely of elements of $\mathcal{D}$,
+then we have no work to do, since their intersection is
+non-empty, by assumption.
+
+So, we only need to consider the case where we have:
+$E, E_1, \ldots, E_m \in \mathcal{E}$.
+
+We have:
+
+$$
+\begin{aligned}
+E \cap E_1 \cap \cdots \cap E_m \cr
+D_1 \cap \cdots \cap D_n \cap E_1 \cap \cdots \cap D_m
+\end{aligned}
+$$
+
+This is a finite intersection of elements of $\mathcal{D}$,
+so non-empty.
+
+We now conclude that $D_1 \cap \cdots \cap D_n \in \mathcal{D}$.
+
+$\square$
+
 ## Proving our Theorem
 
 We can now use this strategy to prove our theorem:
