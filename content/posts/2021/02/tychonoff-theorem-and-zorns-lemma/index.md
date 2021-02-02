@@ -150,9 +150,101 @@ have a receding closed sets, which much have a common region:
 
 # Products
 
+The next notion we need to develop is that of a product
+space.
+
+As a motivating example, take our closed interval $[0, 1]$,
+and consider the set $[0, 1]^2$, whose elements
+are pairs $(x, y)$ with $x, y \in [0, 1]$:
+
+{{<img "10.png">}}
+
+If we have two open sets $U, V \subseteq [0, 1]$,
+then the product:
+
+$$
+U \times V := \\{(x, y) \ |\  x \in X, y \in V\\}
+$$
+
+is also open:
+
+{{<img "11.png">}}
+
+This collection is only a *basis* for this topology.
+A set is open if every point contains such a product
+set:
+
+{{<img "12.png">}}
+
 ## Finite Products
 
+We can provide a formal definition, at least for finite products.
+
+Given Topological spaces $X$ and $Y$, the cartesian
+product $X \times Y$ can be endowed with a topology,
+whose basis consists of products $U \times V$,
+with $U$ open in $X$, and $V$ open in $Y$.
+
+We also have continuous projections:
+
+$$
+\begin{aligned}
+\pi_1 : X \times Y \to X \cr
+\pi_2 : X \times Y \to Y
+\end{aligned}
+$$
+
+These are continuous because:
+
+$$
+\begin{aligned}
+\pi_1^{-1}(U) = U \times Y \cr
+\pi_2^{-1}(V) = X \times V \cr
+\end{aligned}
+$$
+
+In fact, these slices $pi^{-1}_i(U)$ are a *sub-basis*,
+in that finite intersections of these slices form a
+basis for this topology.
+
+With this in mind, one way of looking at the product topology
+is as the simplest way to to make the projections
+$\pi_1$ and $\pi_2$ continuous.
+
 ## Extending to the infinite case
+
+We've just seen how the topology can be defined in terms
+of slices $\pi_i^{-1}(U)$ as a sub-basis. This characterization
+extends naturally to the case where we have an arbitrary
+collection $\\{X_\alpha\\}$ of spaces, and consider
+the infinite product $\prod_\alpha X_\alpha$.
+
+The elements of this set are dependent functions
+$(\alpha : \Alpha) \to X_\alpha$ for some indexing
+set $\Alpha$.
+
+We have a set function $\pi_\alpha : \prod_\alpha X_\alpha
+\to X_\alpha$. And we can define
+the slices
+$$
+\\{\pi_\alpha^{-1}(U) \ | \ X_\alpha \supseteq U \text{ open}\\}
+$$
+
+as our sub-basis.
+
+This means that finite intersections of these slices form
+our basis. But a finite intersection of slices can be
+more precisely described as
+a product $\prod_\alpha U_\alpha$ with $U_\alpha$ open
+in $X_\alpha$, and $U_\alpha = X_\alpha$, for all
+but finitely many $\alpha$.
+
+Formally, the product topology is defined by taking these
+special products as our basis. In the case
+of a finite product, the "$U_\alpha = X_\alpha$ almost everywhere
+disappears, since it's not possible to violate
+this condition, taking a finite product.
+
 
 # Tychonoff's Theorem
 
