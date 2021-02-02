@@ -28,17 +28,131 @@ introductory text on Topology. I won't be going over the basics of Topological
 spaces and continuous functions here, so I recommend this book if you'd like
 to see these fundamentals, or learn more about Topology.
 
+# Compactness
+
+The first notion we need to develop is that of a *Compact*
+space. In some sense, a Compact space is analogous
+to a closed interval $[a, b] \subseteq \mathbb{R}$.
+An interval like this has an uncountable number of points,
+but it is still "small" in some sense, because we can't
+keep squeezing stuff into it.
+
+Concretely:
+
+A space $X$ is *Compact* precisely when for any collection
+of open sets
+$\\{U_\alpha\\}$, that cover $X$,
+(i.e. $\bigcup_\alpha U_\alpha = X$),
+a finite sub-collection $U_1, \ldots, U_n$ suffices to
+cover $X$.
+
+The intuition here goes back to the closed interval.
+We could try and cover it to make sure that no finite
+sub-cover can exist. For example, by making smaller and smaller
+advances towards one side of the interval:
+
+{{<img "8.png">}}
+
+The problem is that we never reach the other side,
+which *is included* in our interval. So this fails
+to cover the entire interval.
+If we had the half open interval $(0, 1]$ (for example)
+instead, then this attempt would work. In some sense,
+openness makes things not compact, because you can
+inch towards some point that you reach "in the limit",
+but that you miss at every single step. With a closed
+interval, you need to actually reach every point to cover
+the interval, not just in a limiting way.
+
+## Finite Intersection Property
+
+An opposite, but equivalent formulation of compactness
+can be given in terms of closed sets and intersections.
+
+First, a definition:
+
+A collection of subsets $\mathcal{A}$ has the
+*Finite Intersection Property* (FIP, for short)
+precisely when any finite intersection of sets
+in this collection is non-empty.
+
+**Theorem:** A space $X$ is *Compact* $\iff$
+for any collection of closed sets $\mathcal{C}$
+satisfying the FIP, the intersection of this collection
+is non-empty.
+
+**Proof:**
+
+This is an exercise in rewriting definitions:
+
+Mathematically, for a space $X$ to be compact, we need:
+
+$$
+\begin{aligned}
+&\forall \\{U_\alpha\\},\ U_\alpha \text{ open},
+\ \bigcup_{\alpha} U_\alpha = X
+\ .\quad
+\exists \alpha_1, \ldots \alpha_n . \quad
+\bigcup_{i = 1}^n U_{\alpha_i} = X
+\cr
+&\forall \\{U_\alpha\\},\ U_\alpha \text{ open},
+\ X - \bigcup_{\alpha} U_\alpha = \emptyset
+\ .\quad
+\exists \alpha_1, \ldots \alpha_n . \quad
+X - \bigcup_{i = 1}^n U_{\alpha_i} = \emptyset
+\cr
+&\forall \\{U_\alpha\\},\ U_\alpha \text{ open},
+\ \bigcap_{\alpha}(X - U_\alpha) = \emptyset
+\ .\quad
+\exists \alpha_1, \ldots \alpha_n . \quad
+\bigcap_{i=1}^n(X - U_{\alpha_i}) = \emptyset
+\cr
+&\forall \\{C_\alpha\\},\ C_\alpha \text{ closed},
+\ \bigcap_{\alpha} C_\alpha = \emptyset
+\ .\quad
+\exists \alpha_1, \ldots \alpha_n . \quad
+\bigcap_{i=1}^nC_{\alpha_i} = \emptyset
+\cr
+&\forall \\{C_\alpha\\},\ C_\alpha \text{ closed}.\quad
+\bigcap_{\alpha} C_\alpha = \emptyset \implies
+\exists \alpha_1, \ldots \alpha_n . \quad
+\bigcap_{i=1}^nC_{\alpha_i} = \emptyset
+\cr
+&\forall \\{C_\alpha\\},\ C_\alpha \text{ closed}.\quad
+\nexists \alpha_1, \ldots \alpha_n.
+\ \bigcap_{i=1}^nC_{\alpha_i} = \emptyset \implies
+\bigcap_{\alpha} C_\alpha \neq \emptyset
+\cr
+&\forall \\{C_\alpha\\},\ C_\alpha \text{ closed},
+\ \nexists \alpha_1, \ldots \alpha_n
+\ \bigcap_{i=1}^nC_{\alpha_i} = \emptyset. \quad
+\bigcap_{\alpha} C_\alpha \neq \emptyset
+\cr
+\end{aligned}
+$$
+
+All of these are equivalent, and the last one says
+that every collection of closed subsets,
+for which no finite intersection is empty,
+the intersection of the collection is also not empty.
+
+This is precisely the statement we wanted to show as equivalent
+to compactness.
+
+$\square$
+
+Back to our example of a closed interval of the real line,
+instead of having a growing open cover that can't keep
+growing forever without missing an endpoint, we now
+have a receding closed sets, which much have a common region:
+
+{{<img "9.png">}}
+
 # Products
 
 ## Finite Products
 
 ## Extending to the infinite case
-
-# Compactness
-
-## A notion of smallness
-
-**TODO: Add prerequisite theorems here**
 
 # Tychonoff's Theorem
 
