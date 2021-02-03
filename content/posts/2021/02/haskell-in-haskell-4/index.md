@@ -1,6 +1,6 @@
 ---
 title: "(Haskell in Haskell) 4. Simplification"
-date: 2021-01-11T11:04:03+01:00
+date: 2021-02-03T17:08:09+01:00
 draft: true
 tags:
   - Haskell
@@ -518,7 +518,7 @@ filling out its various components.
 
 Let's go ahead and add a `Simplifier` module to our `.cabal` file:
 
-```cabal
+```txt
   exposed-modules:     Ourlude
                      , Lexer
                      , Parser
@@ -538,15 +538,18 @@ Next, let's create our actual module in `src/Simplifier.hs`
 module Simplifier
   ( AST (..),
     SimplifierError (..),
-    simplifier
+    simplifier,
   )
 where
 
 import Ourlude
+import qualified Parser as P
 ```
 
-We have the standard import for our Prelude, of course, but we'll
-be expanding this progressively as we actually implement things.
+We have the standard import for our Prelude, of course,
+and a qualified import to be able to easily access everything
+in our parser stage. We'll be expanding this with other
+imports as necessary.
 
 Except for `FlexibleContexts`, we've seen all of these extensions before.
 
@@ -564,10 +567,82 @@ by `FlexibleContexts`.
 a stub value for now:
 
 ```haskell
-data AST = AST
+data AST t = AST deriving (Show)
 ```
 
-# Gathering Type Information
+The parameter `t` will eventually be used to hold the kind
+of type stored in the AST. This isn't used right now,
+but will be soon enough.
+
+We'll be needing a type for the errors emitted by this stage,
+so let's go ahead and create the `SimplifierError` type as well:
+
+```haskell
+data SimplifierError = NotImplementedYet deriving (Eq, Show)
+```
+
+This is just a stub type for now, indicating that we haven't
+implemented this stage yet. We'll be coming back to this
+type and actually adding useful errors later.
+
+The last thing we'll be adding for now is our stage function:
+
+```haskell
+simplifier :: P.AST -> Either SimplifierError (AST ())
+simplifier _ = Left NotImplementedYet
+```
+
+For now, we just report an error, since we haven't implemented
+anything yet. Note how we use `AST ()` here. This is because
+after the simplification stage, we haven't done any type inference,
+so we use the type `()` for the types in our AST. The type-checker
+will be filling these slots with something useful, but that's
+for the next part.
+
+## Adding a new Stage
+
+With this stub stage defined, we can go ahead and integrate
+it with the rest of our CLI.
+
+Inside of `Main.hs`, let's import our newly created module:
+
+```haskell
+import qualified Simplifier
+```
+
+Let's now create a stage object for the Simplifier:
+
+```haskell
+simplifierStage :: Stage Parser.AST (Simplifier.AST ())
+simplifierStage = makeStage "Simplifier" Simplifier.simplifier
+```
+
+Finally, let's modify `readStage` to include this stage as
+an additional option:
+
+```haskell
+readStage :: String -> Maybe String -> Maybe (String -> IO ())
+readStage "lex" _ =
+  lexerStage |> printStage |> Just
+readStage "parse" _ =
+  lexerStage >-> parserStage |> printStage |> Just
+readStage "simplify" _ =
+  lexerStage >-> parserStage >-> simplifierStage |> printStage |> Just
+```
+
+We can now run this new command in the terminal:
+
+```txt
+$ cabal run haskell-in-haskell -- simplify foo.hs
+Up to date
+Simplifier Error:
+NotImplementedYet
+```
+
+As expected, we immediately report an error in our simplifier stage.
+To fix this, we need to actually implement our simplifier stage!
+
+# Defining Type Information
 
 ## Constructor Information
 
