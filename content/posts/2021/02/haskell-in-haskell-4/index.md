@@ -642,13 +642,21 @@ NotImplementedYet
 As expected, we immediately report an error in our simplifier stage.
 To fix this, we need to actually implement our simplifier stage!
 
+# Schemes
+
+## Defining Them
+
+## Using Them
+
 # Defining Type Information
 
 ## Constructor Information
 
-## Resolving Synonyms
+### Resolving Constructors
 
-## Using This
+## Synonym Information
+
+### Resolving Types
 
 # Gathering Synonym Information in Theory
 
