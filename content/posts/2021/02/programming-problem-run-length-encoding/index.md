@@ -1,6 +1,6 @@
 ---
 title: "Programming Problem: Run-Length Encoding"
-date: 2021-02-03T17:08:09+01:00
+date: 2021-02-05T10:17:13+01:00
 draft: false
 katex: true
 tags:
