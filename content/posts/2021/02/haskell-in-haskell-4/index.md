@@ -644,7 +644,86 @@ To fix this, we need to actually implement our simplifier stage!
 
 # Schemes
 
+Our next goal is to define the kinds of type information that our simplifier
+needs to gather from our parsed program. Before we can do that, however,
+we need to expand our vocabulary around types a bit more.
+
+At the moment, we have a module for type related data, defined
+in `src/Types.hs`. All of the things we've defined in there so far
+were necessary to talk about types *syntactically*. If we see:
+
+```haskell
+f :: Int -> Int
+```
+
+Then we need a way to talk about the type `Int -> Int`, in our own compiler.
+Concretely, we represent this as `IntT :-> IntT`, in our `Type` data structure.
+
+We also included variables, allowing us to talk about polymorphic function
+signatures:
+
+```haskell
+id :: a -> a
+```
+
+We'd represent this type signature as:
+
+```haskell
+TVar "a" :-> TVar "a"
+```
+
+The polymorphic variable `a` is **implicit** in this type signature. We never
+declare the variable at all, but (our subset of) Haskell knows that we mean a polymorphic
+signature, because the `a` is lowercase. The signature
+`A -> A` would be quite different, referencing a *concrete type* `A`, which would
+have to be defined somewhere else.
+
+In actual Haskell, you could instead write `id`'s signature with an explicit
+polymorphic variable:
+
+```haskell
+id :: forall a. a -> a
+```
+
+We don't allow this syntactically, but after the simplifier stage, we'd like to resolve
+the implicit polymorphism we have now, and move towards explicitly qualified polymorphism.
+
+We call these kinds of things **schemes** (No relation to algebraic geometry).
+
+We want to be able to represent different signatures, like:
+
+```haskell
+forall a. a -> a
+forall a b. a -> b -> b
+```
+
+etc.
+
 ## Defining Them
+
+So, in `src/Types.hs`, let's go ahead and create a definition for a Scheme:
+
+```haskell
+data Scheme = Scheme [TypeVar] Type deriving (Eq, Show)
+``` 
+
+Note that `TypeVar` and `Type` have already been defined by us previously.
+We're just saying that a scheme is nothing but some type, referencing a list
+of explicitly defined variables.
+
+For example, the signature `forall a. a -> a` would be represented as:
+
+```haskell
+Scheme ["a"] (TVar "a" :-> TVar "a")
+```
+
+{{<note>}}
+Strictly speaking, we could've represented a scheme as a type, quantified
+with a *set* of type variables, instead of a list, as we've done here.
+
+Having a list is slightly more convenient, and more conventional. In practice,
+this list is going to be unique, having been created from a set.
+{{</note>}}
 
 ## Using Them
 
