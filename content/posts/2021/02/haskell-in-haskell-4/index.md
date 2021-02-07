@@ -727,6 +727,142 @@ this list is going to be unique, having been created from a set.
 
 ## Using Them
 
+We can go ahead and define a few useful operations on Schemes, that we'll
+be needing later on. The main operation we'd like to have is one going from an implicit
+signature like:
+
+```haskell
+a -> b -> b
+```
+
+into an explicit Scheme:
+
+```haskell
+forall a b. a -> b -> b
+```
+
+All we need to do is make a list of all the different variables appearing in that type
+signature. We call the variables that appear unbound in a signature like this "free".
+Not only can we look at the free variables in some *type*, but this concept also makes sense
+for schemes. For example, a scheme like:
+
+```haskell
+forall a. a -> b -> b
+```
+
+Only quantifies over `a`. The variable `b` is "free" inside of this scheme. At the top level,
+this kind of thing doesn't occurr, but we will actually be making use of this
+for inferring types *inside* of definitions, where intermediate definitions can make use of
+type variables defined in the outer scope. We'll be seeing all of that in the next part,
+when we focus on type-checking. For now, let's just realize that the different
+data structures might contain free type variables in one way or another.
+
+Because we have a similar operation across different types, let's create
+a class for different things containing free type variables:
+
+```haskell
+import qualified Data.Set as Set
+-- ...
+
+class FreeTypeVars a where
+  ftv :: a -> Set.Set TypeName
+```
+
+(We need to use the `Set` data structure, and so need an extra import now)
+
+This class allows us to extract a set containing the names of the free type
+variables occurring in an object.
+
+Let's implement this for types:
+
+```haskell
+instance FreeTypeVars Type where
+  ftv IntT = Set.empty
+  ftv StringT = Set.empty
+  ftv BoolT = Set.empty
+  ftv (TVar a) = Set.singleton a
+  ftv (t1 :-> t2) = ftv t1 <> ftv t2
+  ftv (CustomType _ ts) = foldMap ftv ts
+```
+
+For types, since they don't introduce any type variables themselves,
+any type variable ocurring inside of a type is free by definition.
+This function just has to find the set of type variables contained
+inside of this type.
+
+For primitives, they obviously contain no type variables. A type variable
+gives us a single set, containing just that variable, and other composite
+types have us take the unions of all the variables in each part.
+This way, `ftv (TVar "a" :-> TVar "b")` correctly detects both type variables
+contained inside this function signature.
+
+Out of convenience, we can also give an instance for `TypeName`:
+
+```haskell
+instance FreeTypeVars TypeName where
+  ftv = Set.singleton
+```
+
+Seeing a name `"a"` as lingo for `TVar "a"`, the free variables occurring
+in this "type" are just this one variable.
+
+Things get a bit more interesting for schemes:
+
+```haskell
+instance FreeTypeVars Scheme where
+  ftv (Scheme vars t) = Set.difference (ftv t) (Set.fromList vars)
+```
+
+Since a scheme like `forall a. a -> b -> b` introduces
+a type variable `a`, we need to *remove* it from all of the variables
+that ocurr in the type `a -> b -> b`, leaving us with just the set `{b}`.
+
+Finally, it'd be nice to take a set of objects containing type variables,
+and get the union of all the variables containing in this big bag.
+
+To do so, let's first add a languag extension at the top of this file:
+
+```haskell
+{-# LANGUAGE FlexibleInstances #-}
+```
+
+which is required to even declare the following instance:
+
+```haskell
+instance FreeTypeVars a => FreeTypeVars (Set.Set a) where
+  ftv = foldMap ftv
+```
+
+Once again, we use the fact that `<>` for sets takes the union, allowing
+us to take all of the type variables strewn throughout a collection of objects.
+
+With all of this in place, we can go ahead and make the original operation
+we wanted to make in this section: making all the variables in some type
+explicitly quantified:
+
+```haskell
+closeType :: Type -> Scheme
+closeType t = Scheme (ftv t |> Set.toList) t
+```
+
+This takes some type signature, like `a -> a`, potentially containing
+implicit polymorphism, and then explicitly quantifies over all the type
+variables occurring in that signature. An obvious application of this is transforming
+top level signatures like:
+
+```haskell
+id :: a -> a
+```
+
+into explicit signatures like:
+
+```haskell
+id :: forall a. a -> a
+```
+
+With all of this scheme stuff in place, we can move on to defining
+the type information produced by our simplifier.
+
 # Defining Type Information
 
 ## Constructor Information
