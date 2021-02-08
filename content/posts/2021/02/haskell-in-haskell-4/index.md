@@ -1058,9 +1058,163 @@ used in our program actually exist.
 
 ## Synonym Information
 
+Now, the types contained in each constructor are going to
+be *resolved*, in the sense that all of the type synonyms
+that might have appeared in the constructor's signature reference
+the most basic type.
+
+So, for example:
+
+```haskell
+data MyType = MkMyType X
+
+type X = Int
+```
+
+The constructor `MkMyType` would have signature:
+
+```haskell
+Int -> MyType
+```
+
+and not:
+
+```haskell
+X -> MyType
+```
+
+In fact, all of the types that come out of the simplifier
+stage will be fully resolved in this fashion.
+
+To accomplish this, we do need to have an internal map
+from type names like `X` to the actual type it references.
+So, let's define the following synonym:
+
+```haskell
+type ResolutionMap = Map.Map TypeName ResolvingInformation
+```
+
+For each type name, like `X`, or `MyType`, we have some information
+about what kind of type that is. Note that primitive types
+like `Int` or `Bool` are already parsed as *syntactically* different,
+as `IntT` or `BoolT`, instead of `CustomType "Int" []`
+and `CustomType "Bool" []`.
+
+But, what kind of information do we have about each type name?
+
+There are two situations we can have. Either a type is a synonym,
+like `type X = Int`, or it's a full type in its own right,
+like `MyType`. A name might also reference a polymorphic type, like:
+
+```haskell
+data Pair a b = MkPair a b
+```
+
+In this case, when we see the name `Pair`, we'd like to record
+that this is in fact a custom type, and has 2 type parameters.
+
+This gives us the following definition:
+
+```haskell
+data ResolvingInformation
+  = Synonym Type
+  | Custom Int
+  deriving (Eq, Show)
+```
+
+`Synonym` represents the case where some name represents a synonym
+for some other type. Note that this is fully resolved, so if we
+had something like:
+
+```haskell
+type X = Y
+type Y = Int
+```
+
+Then both `X` and `Y` would resolve to `Synonym IntT`.
+
+For custom types, we record the number of type arguments that this
+type takes. This allow us to tell that `Pair Int Int Int` is
+malformed, because `Pair` only takes 2 arguments, as a custom type.
+
 ### Resolving Types
 
+Internally, we'd like to use this information, and be able
+to turn types referencing synonyms into fully resolved types,
+fullfilling our promise of only exporting fully resolved
+synonyms from this module.
+
+Before we can do that, let's first add a few more errors
+to our error type:
+
+```haskell
+data SimplifierError
+  = UnknownType TypeName
+  | MismatchedTypeArgs TypeName Int Int
+  | ...
+  deriving (Eq, Show)
+```
+
+`UnknownType` signals the fact that we've encountered
+some type that doesn't exist.
+
+`MismatchedTypeArgs` is raised when we encounter a type
+name, with a certain expected number of arguments, that doesn't
+match the *actual* number provided.
+
+With these errors in place, we can write a function to
+resolve any type, replacing synonyms with actual types,
+provided we have a `ResolutionMap`:
+
+```haskell
+resolve :: ResolutionMap -> Type -> Either SimplifierError Type
+resolve mp = go
+  where
+    go :: Type -> Either SimplifierError Type
+    go = \case
+      CustomType name ts -> do
+        ts' <- mapM go ts
+        let arity = length ts'
+        case Map.lookup name mp of
+          Nothing -> Left (UnknownType name)
+          Just (Synonym _) | arity /= 0 ->
+            Left (MismatchedTypeArgs name 0 arity)
+          Just (Synonym t) -> return t
+          Just (Custom expected) | arity /= expected ->
+            Left (MismatchedTypeArgs name expected arity)
+          Just (Custom _) -> return (CustomType name ts')
+      t1 :-> t2 -> (:->) <$> go t1 <*> go t2
+      terminal -> return terminal
+```
+
+(Remember that type synonyms like `X` will be represented as
+`CustomType "X" []`)
+
+Now, we only have work to do if we have a recursive type
+like `:->`, or if we have a custom type of some kind.
+If we have a compound type, we first resolve each of its sub-components.
+
+Then, we lookup the name referenced in the custom type.
+
+If we have no information about the type, then we throw an error.
+
+If it's a synonym, then we make sure that no extra arguments
+have been passed. THis is because we don't allow things like:
+
+```haskell
+data MyPair a b = MkPair a b
+
+type P = MyPair
+```
+
+If this is a custom type, we make sure that the number of arguments
+matches the number we expect to say.
+
 # Gathering Synonym Information in Theory
+
+This `ResolutionMap` would solve all of our problems in terms
+of type synonyms, but how do we go about actually *creating*
+this map in the first place?
 
 ## Type Synonyms as a Graph
 
