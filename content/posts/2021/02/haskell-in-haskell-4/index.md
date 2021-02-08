@@ -865,9 +865,196 @@ the type information produced by our simplifier.
 
 # Defining Type Information
 
+As we went over earlier, our simplifier will need to gather information
+about the types in our program. Before we write code to do the
+actual gathering, let's first define what kind of information we
+want to gather in the first place, and write some utilities to
+make use of this information.
+
+Now that we're actually doing interesting things
+in our simplifier module, let's go ahead and add all the imports
+we'll be needing
+
+```haskell
+import Control.Monad (forM_, replicateM, unless, when)
+import Control.Monad.Except (Except, MonadError (..), liftEither, runExcept)
+import Control.Monad.Reader (MonadReader (..), ReaderT (..), ask, asks, local)
+import Control.Monad.State (MonadState, StateT (..), execStateT, get, gets, modify', put)
+import Data.Foldable (asum)
+import Data.Function (on)
+import Data.List (elemIndex, foldl', groupBy, transpose)
+import qualified Data.Map as Map
+import Data.Maybe (catMaybes)
+import qualified Data.Set as Set
+import Ourlude
+import Parser (ConstructorDefinition (..), ConstructorName, Literal (..), Name, ValName)
+import qualified Parser as P
+import Types (FreeTypeVars (..), Scheme (..), Type (..), TypeName, TypeVar, closeType)
+```
+
+We have quite a few imports related to different Monad Transformers,
+and related utilities. We won't be using these immediately,
+but our transformations will be making good use of these transformers
+later on.
+
+We need the Map and Set data structures as well, along with a few
+related utilities from various modules.
+
+We also import a handful of types directly from our parser,
+and then import the rest of the parser module in a qualified way.
+
+Finally, we import most of everything from `src/Types.hs`,
+including the newly defined scheme type.
+
 ## Constructor Information
 
+If a user defines a custom type, like:
+
+```haskell
+data MyType = MyPair Int String | MySingle
+```
+
+We have two constructors, `MyPair`, and `MySingle`, and it's nice
+to have some information about them available for the later stages.
+For example, our type checker needs to know that
+each constructor has a given type:
+
+```haskell
+MyPair :: Int -> String -> MyType
+MySingle :: MyType
+```
+
+We would also like to assign a "tag" to each constructor of a type.
+For example, if we have a simple enum, like:
+
+```haskell
+data Color = Red | Blue | Green
+```
+
+then to distinguish the different variants, we might represent
+this type as just an integer, with a different tag for
+each variant:
+
+```haskell
+Red = 0
+Blue = 1
+Green = 2
+```
+
+The way we assign a tag to each variant doesn't matter too much,
+as long as each variant gets a different tag.
+
+Let's define a `ConstructorInfo` type, holding
+the information we'd like to know about any given constructor:
+
+```haskell
+data ConstructorInfo = ConstructorInfo
+  { constructorArity :: Int,
+    constructorType :: Scheme,
+    constructorNumber :: Int
+  }
+  deriving (Eq, Show)
+```
+
+We have a number assigned to each constructor. This number
+is different for each constructor, and can serve the purpose
+of the "tag" we talked about earlier.
+
+The `constructorType` field gives us the type of the constructor,
+as a function. Note that this is polymorphic, and uses a scheme.
+This lets us do polymorphic constructors, like:
+
+```haskell
+data Pair a b = MkPair a b
+```
+
+The `MkPair` constructor would have as scheme:
+
+```haskell
+forall a b. a -> b -> Pair a b
+```
+
+Finally, the `constructorArity` field encodes the number
+of arguments that a constructor takes. We could derive
+this from the type signature of the constructor, by looking
+at the number of arguments the function takes, but it's convenient
+to be able to access this information directly, having
+computed it in advance.
+
+We'd like to gather this information for all of the constructors
+in the program, and we need to be able to lookup this information
+for any constructor on demand. So, let's define the following
+type synonym:
+
+```haskell
+type ConstructorMap = Map.Map ConstructorName ConstructorInfo
+```
+
+This will map each constructor, to the corresponding information
+we have about that constructor, using its name.
+
 ### Resolving Constructors
+
+We'll be needing this constructor information not just when
+type checking, but later on in the compiler as well. Because
+of this, we can make a few generic utilities for contexts
+which have access to this constructor information:
+
+```haskell
+class Monad m => HasConstructorMap m where
+  constructorMap :: m ConstructorMap
+```
+
+The idea behind this class is that in later stages, where
+we have some kind of Monadic context used to perform
+some transformation, we might have this constructor information
+embedded somewhere in this context, and this class lets us
+abstract over that fact.
+
+A convenient utility we can make using this class is
+a function letting us check if a given name is a constructor:
+
+```haskell
+isConstructor :: HasConstructorMap m => Name -> m Bool
+isConstructor name =
+  Map.member name <$> constructorMap
+```
+
+This will be useful in the later STG stage, where we need
+to distinguish function application from constructor application.
+
+We'll also be using this information inside of our simplifier.
+In this case, what should we do if a constructor that doesn't
+exist is referenced? Well, we should catch this error in
+our simplifier! Let's add a variant to our `SimplifierError` type:
+
+```haskell
+data SimplifierError
+  = UnknownConstructor ConstructorName
+  deriving (Eq, Show)
+```
+
+This error should be raised whenever we encounter a constructor
+that doesn't exist, as the name suggests.
+
+Outside of the simplifier, we know that the constructors
+present in the program actually exist, so we can make a utility
+that looks up a constructor, crashing if this constructor
+doesn't exist:
+
+```haskell
+lookupConstructorOrFail ::
+  HasConstructorMap m => ConstructorName -> m ConstructorInfo
+lookupConstructorOrFail name =
+  Map.findWithDefault err name <$> constructorMap
+  where
+    err = UnknownConstructor name |> show |> error
+```
+
+If this fails after the simplifier stage, then that indicates
+an error on *our part* as a compiler writer, since our simplifier
+stage is responsible for making sure that the constructors
+used in our program actually exist.
 
 ## Synonym Information
 
