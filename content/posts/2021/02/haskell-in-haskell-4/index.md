@@ -1216,6 +1216,90 @@ This `ResolutionMap` would solve all of our problems in terms
 of type synonyms, but how do we go about actually *creating*
 this map in the first place?
 
+Let's say we have multiple type synonyms in our program:
+
+```haskell
+type X = Int
+type Y = String
+type Z = Bool
+```
+
+We want to make a map from each type synonym's name to the actual
+type that it corresponds to. A first attempt would be to take
+these definitions, and create a simple direct mapping:
+
+```txt
+X -> Int
+Y -> String
+Z -> Bool
+```
+
+This happens to work in this case, but this is because our type synonyms
+are *already* fully resolved. It might be the case that our synonyms
+reference other synonyms:
+
+```haskell
+type X = Int
+type Y = X
+type Z = Y
+```
+
+If we make a map with these direct mappings once again, we get the
+wrong result:
+
+```txt
+X -> Int
+Y -> X
+Z -> Y
+```
+
+We want to make sure that the mappings we have are fully resolved,
+so we can't simply leave `X` and `Y` on the right side there.
+
+In this case, the type synonyms are already presented in a convenient
+order. If we go over the program from top to bottom, we can use
+the map we've built up so far in order to keep building it.
+
+At first, we have:
+
+```txt
+X -> Int
+```
+
+Then, we see `type Y = X`. If we resolve the type `X`, we get
+`Int`, since that's already in the map, giving us:
+
+```txt
+X -> Int
+Y -> Int
+```
+
+Finally, we can do the same with `type Z = Y`, having resolved `Y`,
+giving us:
+
+```txt
+X -> Int
+Y -> Int
+Z -> Int
+```
+
+This is the fully resolved map that we needed to make in the first place,
+so this approach seems promising.
+
+Another difficulty is that the order may not be so convenient.
+In fact, it's possible in Haskell to reference type synonyms defined
+later on in the file:
+
+```haskell
+type X = Int
+type Z = Y
+type Y = X
+```
+
+Here no simple top to bottom ordering, or bottom to top ordering
+suffices to resolve things. Instead, we need to make use of the
+dependencies between different synonyms to make a resolution map.
+
 ## Type Synonyms as a Graph
 
 ## Topological Sort
