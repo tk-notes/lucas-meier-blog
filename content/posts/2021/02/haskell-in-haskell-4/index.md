@@ -1302,6 +1302,54 @@ dependencies between different synonyms to make a resolution map.
 
 ## Type Synonyms as a Graph
 
+If we go back to our initial example:
+
+```haskell
+type X = Int
+type Y = X
+type Z = Y
+```
+
+We can see this setup as a kind of graph, where each type synonym
+is connected to the types that it depends on:
+
+{{<img "1.png">}}
+
+This also works if we have a more complicated ordering.
+This setup:
+
+```haskell
+type X = Int
+type Z = Y
+type Y = X
+```
+
+Would be represented as:
+
+{{<img "2.png">}}
+
+In both of these graphs, we had a simple linear setup, and it was
+clear how to order things to make our map easily. We might have a more
+complex dependency setup, however.
+Consider the following:
+
+```haskell
+type Z = X
+
+type X = Int
+
+data D = D Z Y
+
+type Y = X
+```
+
+This would lead to the following graph:
+
+{{<img "3.png">}}
+
+At a first glance, it's not exactly clear what the best order
+to resolve things in would be.
+
 ## Topological Sort
 
 ### Depth First Search
