@@ -1427,6 +1427,49 @@ allowing us to stop the search from going on forever.
 
 ### Ordering Vertices
 
+We have a convenient procedure, or at least the *idea* of a procedure,
+for traversing the dependency graph, but how can we use this to generate
+an ordering of these vertices?
+
+The key idea is that all of the dependencies need to come *before*
+that vertex.
+
+{{<img "8.png">}}
+
+In this example, we'd make sure to output `{A, B, C}` in
+a good order,
+as well as `Y`, before finally outputting `X`. One way to
+implement this rule, is that after recursing on each outgoing edge,
+we append the vertex to the list.
+
+Essentially, this gives us the following procedure:
+
+```txt
+dfs(vertex):
+  seen.insert(vertex)
+  for v in neighbors(vertex):
+    if not seen.contains(v):
+      dfs(v)
+  emit(vertex)
+```
+
+We can illustrate this ordering on the graph. We circle a vertex
+when visited, and mark it when emitted:
+
+{{<img "9.png">}}
+
+The final ordering reflects the dependencies in the graph correctly,
+because we only emit a vertex after all of is dependents, direct,
+or indirect, have been emitted as well.
+
+This yields a linear ordering respecting the dependencies.
+
+Note how `Y` and `A B C` are independent, and the exact order
+depends on how we traverse the edges. This is fine, since
+there are no dependencies between these vertices, if there *were*,
+since DFS always recursively traverses as much as possible, we would
+detect that as well.
+
 ### Detecting Cycles
 
 # Gathering Synonyms in practice
