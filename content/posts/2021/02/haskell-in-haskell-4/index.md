@@ -1472,6 +1472,23 @@ detect that as well.
 
 ### Detecting Cycles
 
+This algorithm works great, except when there's cycles. We can make
+a slight amendment to this in order to detect cycles. The idea is
+to simply keep track of a list of ancestors, vertices preceding
+the current vertex. Then, when visiting a new vertex, we check
+that it isn't in this list, otherwise we'd have a cycle:
+
+{{<img "10.png">}}
+
+When visiting a vertex, we mark it as part of the ancestor set,
+until we've finished recursing through all of its outgoing edges.
+
+Well, with that done, we've sketched out the algorithm we'll be
+using to resolve all of the type synonyms in our program! If this
+isn't all that clear, don't worry too much, since now we get
+to actually write the code that implements all of this with
+all the necessary detail.
+
 # Gathering Synonyms in practice
 
 ## Depth First Search in practice
