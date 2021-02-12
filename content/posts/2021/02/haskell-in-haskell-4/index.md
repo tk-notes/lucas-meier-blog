@@ -1352,7 +1352,82 @@ to resolve things in would be.
 
 ## Topological Sort
 
+Thankfully, other people have actually spent time thinking about this problem,
+and there's an elegant solution to the problem. What we've been drawing
+each time is a *dependency graph*. Each type is connected, via arrows,
+to all the other types that it depends on, in terms of definitions.
+What we'd like to find is a linear ordering of the types that respects
+this chain of dependencies.
+
+If we look at the previous graph, then this ordering:
+
+```txt
+X <- Z <- Y <- D
+```
+
+would respect the dependencies between each type. After finding this order,
+we could build up our map of type synonyms in an incremental way,
+and never run into a type that we haven't seen before.
+
+Topological sorting is an algorithm that solves our problem exactly.
+Given some dependency graph, it finds a linear ordering of the vertices
+that satisfies these dependencies. If the graph has a cycle,
+this can't work:
+
+{{<img "4.png">}}
+
+Thankfully, we can also amend the algorithm to *detect* these cycles,
+and throw an appropriate error. When we see something like:
+
+```haskell
+type X = Y
+type Y = X
+```
+
+We need to throw an error, because there's no reasonable way to interpret
+what types `X` and `Y` should be.
+
 ### Depth First Search
+
+The key driver of topological sort is something called
+*Depth First Search*. This is a way of traversing the nodes in a graph,
+in a recursive fashion.
+
+Let's say we have some kind of graph:
+
+{{<img "5.png">}}
+
+We want to visit all of the vertices in a graph, going along the structure
+of the graph itself. The idea behind depth first search is that we have
+a recursive function, where to search from a vertex, we mark that vertex
+as seen, and then recursively search from the vertices directly
+connected.
+
+More concretely, here's an illustration of this high level procedure:
+
+{{<img "6.png">}}
+
+We first mark our vertex as seen, that way we won't visit it again.
+Then, for each outgoing edge, we follow it, and then repeat the entire
+search procedure starting from there.
+
+In this case, we end up searching the entire graph, but if we haven't,
+we can repeat this procedure, picking a random vertex that
+we haven't seen yet.
+
+A complete example of this search procedure would look like this.
+Every time we see a new vertex, it gets marked in blue, and everytime
+we traverse an edge, it also gets marked down.
+
+{{<img "7.png">}}
+
+Note that in some cases, we've already seen a vertex, so we don't bother
+going down some edge again. This is crucial to avoid wasting work, and
+allowing us to stop the search from going on forever.
+
+### Ordering Vertices
+
+### Detecting Cycles
 
 # Gathering Synonyms in practice
 
