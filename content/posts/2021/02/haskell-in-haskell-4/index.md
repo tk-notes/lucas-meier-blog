@@ -1491,7 +1491,56 @@ all the necessary detail.
 
 # Gathering Synonyms in practice
 
-## Depth First Search in practice
+In this next section, we'll be implementing the algorithm we've just
+described. Our end goal is to take the top level definitions produced
+by our parser, and end up with a `ResolutionMap`, mapping each
+type name to either a fully resolved synonym or a known custom type,
+defined by the user.
+
+The process looks something like this:
+
+1. First, gather all of the type synonyms
+2. Sort them, according to the dependency graph
+3. Construct the resolutions synonym by synonym, using the partially
+constructed map
+
+Let's go ahead and get the sorting out of the way, as that's
+somewhat fresh in our mind, and abstracted from the other two steps.
+
+## Sorting Context
+
+Our depth first search algorithm will need to keep track of different
+pieces of state, as we traverse the graph. We need to keep a set of
+vertices that we've seen so far, crucial to our algorithm. We'll also
+be emitting vertices as we do our traversal, so we can keep a list as
+our "output buffer".
+
+This gives us the following state for our sorter:
+
+```haskell
+data SorterState = SorterState
+  { unseen :: Set.Set TypeName,
+    output :: [TypeName]
+  }
+```
+
+`unseen` keeps track of a set of vertices that we *have not seen yet*.
+This is more convenient, since it serves both the purpose of the
+seen set, as well as letting us pick the next vertex to visit,
+if we run out of neighbors.
+
+The `output` list lets us emit vertices as we do our traversal,
+by putting them to the front of the list. We'll need to reverse the list
+after we're finished, of course. Doing it this way is much more efficient
+than constantly appending to the end of the list.
+
+## Depth First Search
+
+### Type Dependencies
+
+### Core Algorithm
+
+## Making the resolution map
 
 # Gathering Constructors
 
