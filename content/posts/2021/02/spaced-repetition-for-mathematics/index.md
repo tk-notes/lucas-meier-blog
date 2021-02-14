@@ -16,3 +16,35 @@ $x + 2$
 {{<divider>}}
 $x + 2$
 {{</box>}}
+
+# What is Spaced Repetition
+
+# Why Spaced Repetition?
+
+## Easy Applications
+
+## For Mathematics?
+
+# Different Types of Cards
+
+## Definitions
+
+## Characterizations
+
+## Comparisons
+
+## Motivations
+
+## Proofs
+
+### Proof Strategies
+
+### Actual Proofs
+
+## Conditions for Theorems
+
+## Recalling Properties
+
+# Overlapping Information
+
+# Conclusion
