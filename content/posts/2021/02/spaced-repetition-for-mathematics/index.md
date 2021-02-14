@@ -1,7 +1,7 @@
 ---
 title: "Spaced Repetition for Mathematics"
-date: 2021-02-14T11:04:06+01:00
-draft: true
+date: 2021-02-14T16:56:45+01:00
+draft: false
 katex: true
 tags:
   - Math
@@ -12,47 +12,55 @@ tags:
 Recently, I've been experimenting with using *spaced repetition*
 for self-studying "advanced" mathematics. This post goes through
 my motivations for adopting this system, as well as a few techniques
-to adapt it to mathematics.
+I've used in adapting it to mathematics.
 
 <!--more-->
 
 # What is Spaced Repetition
 
-After being reminded of some fact, or re-working some problem, you're immediately
+After reviewing a fact, or re-working some problem, you're
 more familiar with it. If you're quizzed about that problem
-soon after, you'll be able to recall the solution without much effort.
+soon after, you'll be able to effortlessly recall the solution.
 But, if you don't visit this problem for long enough, you'll eventually forget
-this solution. The better you've understood something, the longer it takes
+this solution. The better you understand something, the longer it takes
 to forget it.
 
 The idea behind *spaced repetition* is to reintroduce ideas and problems
-right *before* you forget them, forcing you to engage with the idea once more,
-refreshing your memory. This is *spaced*, in the sense that the periods without
-recall get longer and longer, as your knowledge becomes further and further solidified.
+right *before* you forget them, forcing you to engage with the idea,
+and refreshing your memory.
+This is *spaced*, because the periods without
+recall get longer and longer, as your knowledge becomes
+more and more solid
 
 A Spaced Repetition System, or SRS, for short, is some piece of software, or
-even analog system, that allows you to create "flashcards" which include some form
-of prompt, and some form of answer. The system then quizzes you on these cards, so that
-you're able to recall the information when prompted. It repeats these quizzes in a spaced
-way, to try and keep the information fresh, or recallable, while spacing reviews
+even analog system, that allows you to create
+"flashcards" which include some form
+of prompt, and some form of answer.
+The system then quizzes you on these cards, so that
+you're able to recall the information when prompted.
+It repeats these quizzes in a spaced
+way, to try and keep the information fresh, while spacing reviews
 out as you get better at recalling that information.
 
-In practice, the system prompts you for some information, and then you reveal the
-answer, and mark that information as recalled or forgotten. If you recalled
-the information correctly, then the waiting period until you see that information
-again gets longer. If you fail, on the other hand, then the waiting period shortens,
+In practice, the system prompts you for some information,
+and then you reveal the answer, and mark that information as
+recalled or forgotten. If you recalled the information correctly,
+then the waiting period until you see that information
+again gets longer. If you fail, on the other hand,
+then the waiting period shortens,
 or even gets reset, in some systems.
 
 # Why Spaced Repetition?
 
 The promise of an SRS is being able to actually keep the information
-you learn through studying fresh, as opposed to having it slowly attrition away.
+you learn through studying, instead of having it slowly attrition away.
 A lot of information is "use it or lose it", and if you don't actively use
-some technique or knowledge, you risk just forgetting it. SRS systems try
+some technique or knowledge, you risk just forgetting it. An SRS tries
 to game your memory, by having you "use it" right before you would forget it.
 
 Personally, I've found it a more compelling alternative to note-taking. In practice,
-I basically never reviewed the notes for courses I took, even if I did so studiously,
+I basically never reviewed the notes for courses I took, even if I
+dutifully gathered notes,
 like at the beginning of my degree.
 
 I think of a spaced repetition system as a way to actively review your notes
@@ -80,6 +88,11 @@ with the word you want to learn, and the translation on the back. You might
 even add the reverse card as well, in order to be able to translate a word
 from your native language back to the foreign one.
 
+As you continue to use your SRS, you build up a larger and larger
+war chest of vocabulary at your disposal. The SRS makes sure you
+to keep all the vocabulary fresh, even the words that you don't use
+everyday.
+
 ## For Mathematics?
 
 While it's clear how an SRS would be very useful for learning a foreign language,
@@ -96,10 +109,10 @@ When working through some subject, you inevitably have a collection of
 techniques and properties at hand, since they keep coming up as you
 move forward.
 
-Having an SRS in place lets you keep this understanding in place even as you don't actively
+Having an SRS lets you keep this understanding in place even as you don't actively
 work in a subject anymore. Personally, I'd find it a bit of a shame to lose this
 framework of knowledge as soon as I'm not actively studying some subject anymore.
-This is especially more important for me, since I study mathematics more of a hobby, instead of
+This is especially important for me, since I study mathematics more so as a hobby, instead of
 it being my full-time occupation. I can imagine this being less necessary if you
 spend your days entrenched in some field of mathematics.
 
@@ -114,7 +127,7 @@ Here are a few types of cards that I use, and have found to be useful.
 
 ## Definitions
 
-The first type of cards are for *definitions*. As an example,
+The first type of card is for *definitions*. As an example,
 here's one card I've written:
 
 {{<box>}}
@@ -131,8 +144,8 @@ A card like this helps you remember the definition of a mathematical object.
 This is actually the kind of thing you want to memorize verbatim, since knowing
 the definition of some object is pretty important to be able to use it.
 Of course, as you're actively working in some subject, the common definitions
-will be second-hand, but having them committed to long-term memory is nice as
-you aren't actively engaging with the material anymore.
+will be second-hand, but having them committed to long-term memory is nice
+when you aren't actively engaging with the material anymore.
 
 ## Characterizations
 
@@ -161,7 +174,7 @@ This card is asking the question more indirectly, and also requires connecting
 the concept of *adjunction space* with the broader concept of a *pushout*.
 
 By forcing you to recall the connections between different definitions, this
-strengths the understanding of both subjects.
+strengthens the understanding of both subjects.
 
 ## Comparisons
 
@@ -258,10 +271,10 @@ assembling the small parts together.
 ## Conditions for Theorems
 
 Whereas the previous kind of cards gives us the theorem, and asks us for the proof,
-this kind of card gives us part of a theorem, and asks us what conditions need to hold
-for this theorem to hold.
-For example, here's a completement to the last card, providing an example
-of this kind of reversal.
+this kind of card gives us part of a theorem, and asks us what conditions
+we need for this theorem to hold.
+For example, here's a complement to the last card, providing an example
+of this kind of reversal:
 
 {{<box>}}
 Suppose $q: X \to Y$ is a quotient map. If $\mathcal{R} := \{(x_1, x_2) \ |\ q(x_1) = q(x_2)\}$ is closed in $X \times X$, what condition on this map needs to hold for $Y$ to be Hausdorff?
@@ -290,7 +303,8 @@ What are 3 equivalent conditions to being a saturated set?
 
 I'd usually also have a proof for each of the implications involved in proving this,
 along with a definition card for "saturated set". By having this extra
-card, we solidfy our understanding of how these properties relate to eachother,
+card, we solidify our understanding of how these properties
+relate to eachother,
 and can split up the larger proof of this equivalence into smaller cards, since
 this overview card serves to glue them together.
 
@@ -322,7 +336,7 @@ the proofs and objects of the subject.
 # Some SRS Applications
 
 [Anki](https://apps.ankiweb.net/) is probably the most popular SRS, and has
-LaTeX support, as well as images, which is key for mathematics. On the other hand,
+LaTeX support, as well as images, which are key for mathematics. On the other hand,
 I personally prefer [Mochi Cards](https://apps.ankiweb.net/), since I find the interface
 much cleaner, and the latex entry much more seamless:
 
@@ -337,6 +351,7 @@ benefits to be much clearer as opposed to detailed note taking. Now I feel
 like I actually get *compounding* benefits from my notes, thanks to the SRS.
 
 Hopefully this might provide a few ideas for people looking to apply SRS to mathematics.
-If you're still skeptical about the benefit of SRS, I'd recommend
+If you're still skeptical about the benefit of this
+kind of system, I'd recommend
 checking out [this article](https://numinous.productions/ttft/), which really
-inspired me to try out SRS for mathematics.
+inspired me to try applying it to mathematics.
