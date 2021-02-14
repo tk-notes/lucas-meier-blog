@@ -1,11 +1,11 @@
 ---
-title: "Integrating Notes and SRS"
+title: "Integrating Notes and Spaced Repetition"
 description: "Some rough ideas on how to join integrated notes and spaced repetition"
 date: 2020-01-10
 type: post
 tags:
   - Learning
-  - SRS
+  - Spaced Repetition
 ---
 
 So I've been tinkering around with better systems for taking notes recently. I'm not a big
