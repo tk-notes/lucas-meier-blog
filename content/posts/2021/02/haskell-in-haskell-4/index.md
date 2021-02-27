@@ -1507,6 +1507,21 @@ constructed map
 Let's go ahead and get the sorting out of the way, as that's
 somewhat fresh in our mind, and abstracted from the other two steps.
 
+## New Errors
+
+First things first, let's add an extra error variant to `SimplifierError`:
+
+```haskell
+data SimplifierError
+  = CyclicalTypeSynonym TypeName [TypeName]
+  | ...
+  deriving (Eq, Show)
+```
+
+This error will get thrown if we find a cycle while traversing
+the graph of type synonyms. We have the type we detected the error at,
+and a list of ancestors preceding that synonym, making up the cycle.
+
 ## Sorting Context
 
 Our depth first search algorithm will need to keep track of different
@@ -1534,11 +1549,221 @@ by putting them to the front of the list. We'll need to reverse the list
 after we're finished, of course. Doing it this way is much more efficient
 than constantly appending to the end of the list.
 
-## Depth First Search
+Inside of our DFS algorithm, we'll need to be able to modify this state,
+so we want a monadic context for the sorting algorithm:
 
-### Type Dependencies
+```haskell
+type SorterM a =
+  ReaderT (Set.Set TypeName)
+  (StateT SorterState
+  (Except SimplifierError) a)
+```
 
-### Core Algorithm
+We have a stateful component for the `SorterState` type we've just defined,
+allowing us to modify the state as we traverse the graph. 
+We'll be needing to raise errors, namely if we detect a cycle,
+so we have a layer for errors with `Except` as well. We also
+keep a set of ancestors around, in order to detect cycles.
+
+We could put this information inside of the `SorterState`, adding
+and removing ancestors as we start traversing different subgraphs.
+Using a Reader here lets us temporarily replace the environment
+before traversing a subgraph, with this change automatically being
+undone after that recursive call ends. This is more convenient,
+and a trick we'll be employing in other stages of the compiler as well.
+
+As usual with monadic contexts, we have a function to run this computation:
+
+```haskell
+runSorter :: SorterM a -> SorterState -> Either SimplifierError a
+runSorter m st =
+  runReaderT m Set.empty |> (`runStateT` st) |> runExcept |> fmap fst
+```
+
+To run this computation, we just need an initial state to pass in,
+and we get a value or an error out. This works by passing in an
+empty set of ancestors, which is the right starting state for our search.
+
+## Type Dependencies
+
+We've been talking a lot about the "graph" of dependencies. But we don't
+actually have a concrete graph lying around. Instead, we look up
+the dependencies of a type on demand, giving us an implicit graph.
+
+Calculating the dependencies of a type is pretty straightforward:
+
+```haskell
+typeDependencies :: Type -> Set.Set TypeName
+typeDependencies = \case
+  t1 :-> t2 ->
+    typeDependencies t1 <> typeDependencies t2
+  CustomType name exprs ->
+    Set.singleton name <> foldMap typeDependencies exprs
+  _ -> mempty
+```
+
+We have a dependency if we refer to some name anywhere in the type,
+so we recurse and join together all of the different names referenced
+in this type.
+
+For example, if we have:
+
+```haskell
+X -> Y
+``` 
+
+Then `X` and `Y` are dependencies of this type.
+
+This also works in nested situations:
+
+```haskell
+List X -> String
+```
+
+Here, `List` and `X` are dependencies of this function type.
+
+## Core Algorithm
+
+With all of these little pieces on place, we can finally start working
+on the actual sorting algorithm:
+
+```haskell
+sortTypeSynonyms ::
+  Map.Map TypeName Type -> Either SimplifierError [TypeName]
+sortTypeSynonyms mp =
+  runSorter sort (SorterState (Map.keysSet mp) []) |> fmap reverse
+  where
+    sort :: SorterM [TypeName]
+    ...
+```
+
+Given a mapping of different type names to actual types, we return
+a sorted list of type names, that can then be resolved one after the other.
+Note that we reverse the final list, because our algorithm "appends"
+to its buffer by putting things at the front of the list.
+
+At the start, we haven't outputted anything, and all of the type names,
+the keys in this map, are unseen.
+
+### Primitive Operations
+
+A first helper we can make is a function to give us all of the dependencies
+of a given type name:
+
+```haskell
+  where
+    ...
+    deps :: TypeName -> Set.Set TypeName
+    deps k = Map.findWithDefault Set.empty k (Map.map typeDependencies mp)
+```
+
+Basically, we know how to get the dependencies of a given type,
+so to get the dependencies of a *name*, we need to lookup that name in
+our map of types, returning no dependencies if that name isn't present.
+
+Another simple operation lets us output a name that we want to add
+to our output list:
+
+```haskell
+  where
+    ...
+    out :: TypeName -> SorterM ()
+    out name = modify' (\s -> s {output = name : output s})
+```
+
+As mentioned previously, we add a name to the output by prepending
+it to the list, which is very efficient. This is why we have to reverse
+the list at the end of the algorithm.
+
+{{<note>}}
+We use `modify'` here to avoid creating a lazy thunk when updating
+the state.
+{{</note>}}
+
+Another operation is modifying a computation to run with an
+extra ancestor:
+
+```haskell
+  where
+    ...
+    withAncestor :: TypeName -> SorterM a -> SorterM a
+    withAncestor = local <<< Set.insert
+```
+
+This will modify the computation passed in to run with an additional
+type name as an ancestor. This is more convenient then having to manully
+insert the name, run the computation, and remove the name.
+
+Finally, the key operation in DFS is adding a vertex to the seen set,
+making sure that we don't visit it again:
+
+```haskell
+  where
+    ...
+    see :: TypeName -> SorterM Bool
+    see name = do
+      unseen' <- gets unseen
+      modify' (\s -> s {unseen = Set.delete name unseen'})
+      return (Set.member name unseen')
+```
+
+This also returns whether or not this vertex has been seen before,
+which will be useful for our algorithm.
+
+### DFS
+
+With all of these little helpers in place, we can get to the actual DFS
+algorithm:
+
+```haskell
+  where
+    ...
+    dfs :: TypeName -> SorterM ()
+    dfs name = do
+      ancestors <- ask
+      when
+        (Set.member name ancestors)
+        (throwError (CyclicalTypeSynonym name (Set.toList ancestors)))
+      new <- see name
+      when new <| do
+        withAncestor name (forM_ (deps name) dfs)
+        out name
+```
+
+This function continues searching from a given name, representing
+a vertex in the graph.
+
+First we check that this vertex doesn't appear as one of its ancestors,
+otherwise we have a cycle.
+
+Then, we report this vertex as seen. If we hadn't seen this vertex before,
+then we recursively search all of its dependencies, with
+this vertex marked as an ancestor. Finally, we add this vertex to
+our sorted list.
+
+Now, to actually implement `sort`, we need to run this DFS process
+multiple times, each time picking a vertex we haven't seen before:
+
+```haskell
+  where
+    ...
+    sort :: SorterM [TypeName]
+    sort = do
+      unseen' <- gets unseen
+      case Set.lookupMin unseen' of
+        Nothing -> gets output
+        Just n -> do
+          dfs n
+          sort
+```
+
+When we've seen all the vertices, we return the output list we've
+been building up.
+
+And with that, we now have our algorithm to sort the type synonyms
+in our program, given the implicit dependency graph.
+Our next order of business is tying up a few loose ends in our resolving
+of type information.
 
 ## Making the resolution map
 
