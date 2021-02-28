@@ -16,9 +16,17 @@ tags:
 
 # Haskell's Hierarchy
 
+{{<img "1.png">}}
+
+## Eq
+
+## Ord
+
 ## Semigroup
 
 ## Monoid
+
+## Enum
 
 ## Num
 
@@ -26,7 +34,15 @@ tags:
 
 ## Integral
 
+# Interlude: Two Worlds
+
+## The Mathematical Classes
+
+## The Pragmatic Classes
+
 # A Proposed Hierarchy
+
+{{<img "2.png">}}
 
 ## Semigroup
 
@@ -35,6 +51,10 @@ tags:
 ## Additive
 
 ## Ring
+
+## Num
+
+## Enum
 
 ## Integral
 
