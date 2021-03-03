@@ -1,6 +1,6 @@
 ---
 title: "(Haskell in Haskell) 4. Simplification"
-date: 2021-02-03T17:08:09+01:00
+date: 2021-03-03T11:21:22+01:00
 draft: true
 tags:
   - Haskell
