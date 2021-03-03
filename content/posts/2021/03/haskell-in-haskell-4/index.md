@@ -1767,6 +1767,125 @@ of type information.
 
 ## Making the resolution map
 
+Now we need to actually make the resolution map. The idea, as
+we mentioned before, is to gather all the information about
+the different types, then sort them into an order
+letting us build up the map step by step.
+
+First, we need to gather all of the custom types:
+
+```haskell
+gatherCustomTypes :: [P.Definition] -> Map.Map TypeName Int
+gatherCustomTypes =
+  foldMap <| \case
+    P.DataDefinition name vars _ -> Map.singleton name (length vars)
+    _ -> Map.empty
+```
+
+This is a straightforward accumulation, where we end up with a
+map from name to arity for each custom type.
+
+We can do a similar thing with type synonyms:
+
+```haskell
+gatherTypeSynonyms :: [P.Definition] -> Map.Map TypeName Type
+gatherTypeSynonyms =
+  foldMap <| \case
+    P.TypeSynonym name expr -> Map.singleton name expr
+    _ -> Map.empty
+```
+
+The final result will map each type synonym's name to the type
+it was declared to be a synonym of. Note that this isn't resolved
+yet, since type synonyms can reference other synonyms.
+
+When making our resolution map, we have two bits of information
+we're working on. After getting a sorted list of type names,
+giving us an order to fill in our resolution map with, we still
+need to keep our original mapping of synonym names to synonym
+types. We also need to keep our `ResolutionMap`, in a stateful
+way, since we want to build it up progressively. This context
+will also need to report errors, as usual.
+
+This gives us the following definition for the context:
+
+```haskell
+type MakeResolutionM a =
+  ReaderT (Map.Map TypeName Type)
+  (StateT ResolutionMap
+  (Except SimplifierError)) a
+```
+
+Running this context is pretty simple:
+
+```haskell
+runResolutionM ::
+  MakeResolutionM a ->
+  Map.Map TypeName Type ->
+  ResolutionMap ->
+  Either SimplifierError ResolutionMap
+runResolutionM m typeSynMap st =
+  runReaderT m typeSynMap |> (`execStateT` st) |> runExcept
+```
+
+To run the context, we need to prove a map from type names,
+to unresolved types (the synonyms we want to resolve) as well as
+an initial resolution map. We don't always pass in an empty map
+here, since initially, we actually know about all of the custom types.
+
+With this context in place, if we have a correct ordering
+of type synonym names, we can build up this resolution map of ours:
+
+```haskell
+resolveAll :: [TypeName] -> MakeResolutionM ()
+resolveAll =
+  mapM_ <| \n ->
+    asks (Map.lookup n) >>= \case
+      Nothing -> throwError (UnknownType n)
+      Just unresolved -> do
+        resolutions' <- get
+        resolved <- liftEither (resolve resolutions' unresolved)
+        modify' (Map.insert n (Synonym resolved))
+```
+
+For each type synonym name, we look up the unresolved type
+this synonym was declared as. An error should be reported if
+no such type can be found. Otherwise, we use the handy
+`resolve` function we defined earlier, which resolves the type
+given the resolution map we've built up so far. Because we've
+sorted the names based on dependencies, this will always be able
+to resolve the type. We then insert this synonym as an entry
+into our resolution map.
+
+We can integrate all of this into a little function that gathers
+up the resolution map from the top level definitions in the program:
+
+```haskell
+gatherResolutions ::
+  [P.Definition] -> Either SimplifierError ResolutionMap
+gatherResolutions defs = do
+  let customInfo = gatherCustomTypes defs
+      typeSynMap = gatherTypeSynonyms defs
+  names <- sortTypeSynonyms typeSynMap
+  runResolutionM
+    (resolveAll names)
+    typeSynMap
+    (Map.map Custom customInfo)
+```
+
+We gather the type synonyms, and custom types, using the top level
+definitions. Our initial resolution map already includes
+all of these custom types. We need to sort all of the type
+synonym names first, to make sure that our resolution works out,
+as we've gone over a few times now.
+
+{{<note>}}
+We're not resolving the inside of the custom types just yet,
+our resolution map only cares that a custom type exists,
+and has a certain arity. We don't need to know about the constructors
+here.
+{{</note>}}
+
 # Gathering Constructors
 
 # Finishing Type Information
