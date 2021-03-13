@@ -384,8 +384,21 @@ a few things to the standard Prelude.
 
 ## What we're including
 
-`first` and `second` come from `Data.Bifunctor`. What they do is map
-a function over part of a tuple:
+`first` and `second` come from `Data.Bifunctor`.
+
+What they do is map over the first and second parts of what's called
+a "Bifunctor":
+
+```haskell
+first :: Bifunctor f => (a -> a') -> f a b -> f a' b
+second :: Bifunctor f => (b -> b') -> f a b -> f a b'
+```
+
+You can think of a Bifunctor as being like a Functor, but with
+two slots you can map over, instead of just a single one.
+Examples include `Either a b`, and tuples `(a, b)`. Concretely,
+we'll be using `first` and `second` for their effect on tuples.
+In this case, the functions work like this:
 
 ```haskell
 first f (a, b) = (f a, b)
@@ -398,17 +411,7 @@ including.
 We'll be implementing the rest of the functions ourselves, so make sure to add
 them to `Ourlude.hs` if you're following along.
 
-First we have `mapLeft`:
-
-```haskell
-mapLeft :: (e -> e') -> Either e a -> Either e' a
-mapLeft f = either (f >>> Left) Right
-```
-
-This does what it says on the tin. It modifies the error part of an `Either` while
-leaving the other side intact. This is in the "why isn't this in the Prelude already" bin.
-
-Next we have: `foldMapM`:
+First we have: `foldMapM`:
 
 ```haskell
 foldMapM :: (Monad m, Monoid b) => (a -> m b) -> [a] -> m b
