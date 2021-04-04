@@ -12,7 +12,11 @@ tags:
 For the past few months, I've been working on
 [a library for constant-time Big Numbers](https://github.com/cronokirby/safenum), in Go.
 In this post, I'll try to explain what exactly this work is about, and why you might
-care about it. I'm also trying my best to make this introductory post not require
+care about it.
+
+<!--more-->
+
+I'm also trying my best to make this introductory post not require
 any background in cryptography, but some familiarity with programming would be helpful.
 
 {{<note>}}
@@ -218,74 +222,418 @@ For example, if an adversary can infer the value of some secret
 based on observations of the execution time of some program using
 that secret, then that would constitute a *timing attack*.
 
+When the timing patterns of some program reveal information,
+we call this a *timing side-channel*.
+
 ## A toy example
 
-Timing attack in password comparison.
+To illustrate how this works in practice, let's take a simple example.
+
+Let's say that you're an adversary, and you want to learn the value
+of Alice's password. Alice allows you to submit guesses to her server,
+which will check your guess, and then tell you whether or not it matches
+the password.
+
+TODO ILLUSTRATION
+
+If the password is $b$ bits long, then you'll need $O(2^b)$ guesses
+the recover the password, if you just rely on the information provided
+by the server.
+
+The naive way of comparing strings is actually vulnerable to a timing attack.
+The typical way comparison is implemented, you compare the two strings
+character by character, returning false as soon as a mismatch is detected:
+
+```go
+var password string
+
+func Eq(guess string) bool {
+  if len(guess) != len(password) {
+    return false
+  }
+  for i := 0; i < len(guess); i++ {
+    if password[i] != guess[i] {
+      return false
+    }
+  }
+  return true
+}
+```
+
+This short-circuiting behavior provides us with an additional signal! Not only can
+we observe whether or not our guess was correct, but we can also observe *how long*
+it takes the server to respond with an answer. The longer we wait, the more characters
+are correct at the start of the string. In fact, we can basically figure
+out how many characters at the start of the string were correct:
+
+TODO ILLUSTRATION
+
+Using this information, instead of trying random strings, we can focus on guessing
+character by character. At first, none of our characters our correct. Then,
+we keep changing the first character of our string, until we get see that it's correct:
+
+TODO ILLUSTRATION
+
+We can keep guessing character by character, since we can observe whether or not
+each new character was correct, looking at the timing patterns we observe:
+
+TODO ILLUSTRATION
+
+With this in place, we improve our $O(2^b)$ bounds all the way to $O(b)$!
+Instead of trying all the different combinations, we can instead guess bit
+by bit, or character by character.
+This is an exponential improvement, and completely destroys the security of this setup.
 
 ## More subtle sources
 
-Timing leaks through caches, branch prediction.
+This is a toy example though. In practice, such a direct guessing game
+wouldn't be in place, and you wouldn't use such an obviously broken comparison routine.
+
+This is an example where there's a direct variation in the pseudo-code itself, based
+on how we've structured our operations. Timing leaks can be more subtle, however.
+Code that is ostensibly not variable time can actually hide timing variations, that
+arise from the behavior of the hardware. For example, accessing
+memory can leak addresses through cache timing {{<ref-link "2">}}, and conditional
+statements can leak which branch was chosen, even if both branches take
+the same amount of time {{<ref-link "1">}}.
 
 # Incomplete mitigations
 
-There are a few obvious mitigations, but they aren't perfect.
+If the code we want to run has a timing leak, we might first try and hide
+this leak, instead of attempting to re-write the code completely. Unfortunately,
+some of the obvious mitigations don't work, and others only work incompletely.
 
 ## Sleeping
 
-People think of trying to sleep a random amount, but a signal is still present.
+The first mitigation that people think of towards timing attacks is adding
+a random amount of waiting on the server-side. Back towards the password
+comparison example we used previously, we could make the server sleep
+for a random amount of time before returning the answer.
+
+At a first glance, if the timing variation in the comparison is of a few
+microseconds, then sleeping around a second or so would seem to completely
+mask this signal.
+
+Unfortunately, this doesn't work.
+
+The problem is that we can filter out the noise through statistical analysis.
+Let's say that we have our timing variation $t$, which is constant (given a fixed guess),
+and then our random sleep time $X$. The total wait time becomes a random variable:
+
+$$
+t + X
+$$
+
+If we take the average, we get:
+
+$$
+t + E[X]
+$$
+
+since $t$ is a constant. Now, if we simply subtract away $E[X]$, we get:
+
+$$
+t
+$$
+
+which is our signal!
+
+Of course, we can't actually observe the average. What we *can* do,
+on the other hand, is take many samples, and use those to *estimate*
+what the expected value is. Using that information, we can filter
+out the noise that's been artificially created, and recover
+the timing signal.
+
+Because of this, adding in timing noise can only act as a mitigation,
+and not a particularly effective one at that.
 
 ## Blinding operations
 
-Without going into the mathematics, a certain amount of
-randomness can be mixed into some number before a sensitive operation,
-then mixed back out after the number.
+Roughly speaking, *blinding* is a technique where instead of computing
+a function $f$ directly on some input $x$, you first encode the input
+differently, in a way that can still be decoded after applying the function.
+The idea is that while the function $f$ may not be constant-time, it will
+leak information about the encoded version of $x$, but not $x$ itself.
+
+One example of this is in RSA. Instead of encrypting a message as
+$m^e$, you can instead generate a random nonce, and encrypt
+with $(mr)^e$. Exponentiation, unless implemented correctly,
+leaks a lot of information about its input. By using blinding,
+we hide the input, mitigating this source of information.
+
+These aren't perfect mitigations, for several reasons, namely that the encoding
+process itself might leak information through timing side-channels.
 
 # Timing leaks in Go
 
-Go's big number library, and how it might not be suitable for crypto.
+Go has a [big number library](https://golang.org/pkg/math/big/) as part of its
+standard library. While this library has all the operations you might want,
+and is quite performant, as far as I can tell, its operations are
+filled with timing leaks: {{<ref-link "3">}}.
+
+This is fine, since this API is intended to be a general-purpose Big Number library.
+Unfortunately, this library is used for Cryptography not only
+outside of Go, but even inside its own standard library. For example, Go's RSA
+implementation uses `math/big`. It does use blinding, so the most obvious
+timing attacks are mitigated, but there's likely plenty of vulnerability remaining.
+
+{{<note>}}
+In some sense, that Go issue describing how its standard library has big
+numbers used in cryptography, despite having timing vulnerabilities, was the
+inception of this project ~ 4 years ago.
+{{</note>}}
+
+The timing leaks in `math/big` come from a few different sources:
+variable-time algorithms, and the representation of numbers.
 
 ## Leaky algorithms
 
-Some algorithms are fundamentally leaky.
+The arithmetic operations in `math/big` are intended for general-purpose
+use, and concentrate on being performant, without regard for
+timing leaks. Because of this, many operations take variable execution
+paths depending on their input. For example, exponentiation
+might conditionally perform a multiplication, based on the bits of
+another number. This kind of conditional choice is omni-present
+throughout the library, and is a source of timing leaks.
 
 ## Unpadded numbers
 
-Algorithms inevitably leak the length of a number, and Go doesn't allow
-hiding this length.
+Because Big Numbers are dynamically sized, operations can't help
+but leak information about the size of the numbers. Unfortunately,
+Go makes sure that the size of a number is tightly bound to its actual
+value, by removing any unnecessary zeroes. For example, if you were working
+with numbers modulo $1000$, you might want to always use 3 digits, representing
+$9$ as:
+
+$$
+009
+$$
+
+Go would instead remove this extra padding:
+
+$$
+9
+$$
+
+This means that subsequent operations would leak how small this value is, and we
+might be able to distinguish it from larger values.
+While seemingly innocuous, this kind of padding information can actually
+lead to attacks {{<ref-link "4">}}.
 
 # What does constant-time mean?
 
-What exactly does constant-time mean, when working with arbitrarily large numbers.
+So, we've seen what the problem is, but how far can we go in actually solving it?
+If Big Numbers are dynamically sized, how can we possibly make our operations constant-time?
+What would constant-time even mean in this context?
+
+The key here is to understand that by *constant-time*, we don't mean that operations
+can't take a varying amount of time. Instead, we mean that the timing signal
+generated by our operations doesn't leak any *secret information*.
 
 ## True vs announced length
 
-The difference between the limbs needed to represent a number, and the limbs
-we display a number as having.
+Big Numbers are indeed dynamically sized. Operations using these numbers will
+leak how much space are numbers are taking up.
+
+This seems like a problem at first, until you realize that we can lie about
+how big our numbers actually are. Your CPU registers are 64 bits long. A number
+like $3$ only takes 2 bits, but the circuitry doesn't take less time to process
+$3$ compared to $18446744073709551615$ just because more of the bits are set
+in the latter.
+
+Similarly, we can work with numbers that are padded to be a certain length,
+without revealing the fact that they're padded at all!
+
+It becomes important to distinguish the *announced length*, and the *true length*.
+The announced length is the space used by a number, including padding, and will be leaked in operations
+using that number. The true length is the minimal number of limbs needed to represent
+a number, and should not be leaked.
+
+For example, if we're working modulo a public $N$, which is ~ 2048 bits long, we only
+need 2048 bits worth of limbs. We can make sure that all of our values use up that space completely.
+Our operations will leak that our numbers are 2048 bits long, but everybody already knows this!
+If we have a small number, like $3$, which doesn't need all that space, we make sure to not
+leak the fact that its upper limbs are all $0$.
+
+Our numbers will be dynamically sized, but should only be sized according to
+publicly known information, such as a public modulus, or a protocol driven bitsize.
 
 ## Better algorithms
 
-Making sure we don't leak the values through our algorithms
+We also need to make sure that our operations don't leak any information
+about the values composing our numbers. This means that we can't look at the bits
+of a number to conditionally execute some piece of code, since this would leak
+information about the number's actual value. 
+
+Essentially, every operation involving our Big Numbers needs to be either amended,
+or rethought completely, to make sure that our logic ohnly leaks timing information
+based on public information, such as the announced length of our inputs.
 
 ## Leaking modulus sizes
 
-Leaking the modulus's size is desirable for performance, and is
-also a reasonable security assumption.
+For Cryptography, modular arithmetic is a very common mode of operation. When
+working modulo $N$, you only need values up to $N - 1$, so this dictates
+the size of the numbers you'll be working with. Because of this, it's desirable
+to make sure that $N$ itself has no superfluous padding, since this speeds up
+your operations.
+
+Furthermore, many algorithms like to make the asssumption that $N$ has no padding.
+For example, when doing reduction modulo $N$, it's convenient to be able to
+get the most significant bits of $N$, which ends up leaking the exact bit length of $N$.
+
+Thankfully, this assumption seems to be mostly fine in the common usages of modular
+arithmetic in Cryptography.
+
+Usually, your modulus is going to be either a fixed parameter of the protocol,
+or part of the public key (like in RSA). In that case, it's obviously fine
+to leak its length.
+
+On the other hand, there are some points where the modulus should be kept secret.
+For example, to generate an RSA key, you have your modulus $N = pq$, the product
+of two primes, and you need to invert $e$ modulo $(p - 1)(q - 1)$. Now, leaking
+this value would be bad, because you cannot leak the factorization of $N$ without
+breaking your system. On the other hand, it's clear that this value is roughly
+the same length as $N$, so leaking its bitsize isn't actually detrimental.
+
+Because of this assumption, it's convenient to truncate the modulus, removing
+unnecessary padding.
 
 # Some basic techniques
 
-A few of the tricks used to make this happen.
+So, that's an overview of what we're trying to achieve. This
+is just an introductory post, so I won't be going into the details
+of how exactly to accomplish all of this. I can, however,
+give a little taster for the kinds of contortions you have to do.
 
 ## Some rules of thumb
 
-A basic model of what constraints the code has to operate under.
+Timing attacks can be quite subtle, but I have a working model
+of how to avoid them, which is quite pessimistic, but also simple:
+
+
+- Loops leak the number of executions
+
+```go
+for i := 0; i < N; i++ {
+
+}
+```
+
+This will leak the value of `N`.
+
+- Ifs leak which branch was taken, no matter what
+
+Code like:
+
+```go
+if condition {
+  foo()
+} else {
+  bar()
+}
+```
+
+will leak the whether or not `condition` was true or false, regardless
+of what code is in either branch.
+
+- Accessing memory leaks the index / address accessed
+
+If I do:
+
+```go
+array[secret]
+```
+
+this leaks the value of secret.
+
+These are just a few "rules of thumb", but already severely constrain
+the kind of code you have to write. You also need to be careful
+that the code you write doesn't accidentally get optimized to suddenly
+violate these rules either.
 
 ## Handling choices
 
-How do you replace ifs with bitwise manipulation.
+So, if you can't have a conditional statement based on some secret
+value, how do you handle choice? Many algorithms will need to do something
+different based on the numbers they're working with.
+
+Fundamentally, the idea is to do *both options*, and then to select
+between them in a constant time way. Instead of having your condition
+as a boolean, you could have it as a bitmask, either:
+
+```go
+0b1111..
+```
+
+or
+
+```go
+0b0000..
+```
+
+depending on the result of the condition.
+
+You can then select between two numbers, through bitwise operations:
+
+```go
+func Mux(mask, a, b Word) Word {
+  return (mask & a) | (^mask & b)
+}
+```
+
+If the mask is all 1s, you select the first input, otherwise, you end
+up selecting the second input. So, instead of doing something like:
+
+```go
+var x Word
+if condition {
+  x = foo()
+} else {
+  x = bar()
+}
+```
+
+you'd instead perform both operations, and then select the right one afterwards:
+
+```go
+xFoo := foo()
+xBar := bar()
+x := Mux(condition, xFoo, xBar)
+```
+
+This doesn't have a timing leak anymore, since you can't observe whether or not
+`foo()` or `bar()` was executed.
+
+This is just a rough idea of how the basic building block works. You also need
+to build more complicated operations on type of this, allowing you to conditionally
+manipulate entire arrays of numbers, instead of just individual limbs.
 
 ## Looping on announced lengths
 
-Making sure to loop only on the announced lengths
+Most operations involving big numbers will loop on the length of the numbers
+involved. For example, adding two numbers will pair up the limbs composing
+each input. Care needs to be taken to make sure that this announced length
+is indeed public information, since it gets leaked.
+
+Furthermore, you also can't really loop on other conditions. For example,
+you can't do something like:
+
+```go
+for a != b {
+  doStuff(a, b)
+}
+```
+
+Not only does the condition itself leak, which might not be good, but now the
+number of operations you need to do depends on the values of `a` and `b`.
+There are actually a few operations that work like this. In each case, you need
+to amend things to run for specific number of times based only on the announced
+lengths of the inputs, perhaps doing "nothing" for a while.
+
+{{<note>}}
+Of course, to choose to do "nothing" in a constant-time way, you need to do
+something, and then end up not choosing that branch afterwards.
+{{</note>}}
 
 # Safenum
 
@@ -315,3 +663,25 @@ What are some inconvenient aspects of using Go
 # Conclusion
 
 # References
+
+{{<ref
+  "1"
+  "https://doi.org/10.1007/11967668_15"
+  "[1] Acıiçmez, Onur, Çetin Kaya Koç, and Jean-Pierre Seifert. \"Predicting Secret Keys Via Branch Prediction\", 2006">}}
+
+{{<ref
+  "2"
+  "https://eprint.iacr.org/2002/169.pdf"
+  "[2] Page, D. \"Theoretical Use of Cache Memory as a Cryptanalytic Side-Channel\", 2002">}}
+
+{{<ref
+  "3"
+  "https://github.com/golang/go/issues/20654"
+  "[3] math/big: support for constant-time arithmetic">}}
+
+
+{{<ref
+  "4"
+  "https://raccoon-attack.com/RacoonAttack.pdf"
+  "[4] Merget, Robert, Marcus Brinkmann, Nimrod Aviram, Juraj Somorovsky, and Johannes Mittmann. “Raccoon Attack: Finding and Exploiting Most-Signiﬁcant-Bit-Oracles In”, 2019"
+  >}}
