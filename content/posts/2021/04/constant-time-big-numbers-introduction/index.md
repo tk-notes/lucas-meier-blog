@@ -637,30 +637,125 @@ something, and then end up not choosing that branch afterwards.
 
 # Safenum
 
+This brings up to the *actual work*. So far, we've written
+[a library](https://github.com/cronokirby/safenum), in Go, providing
+an implementation of constant-time Big Numbers (see above for what we mean by "constant-time").
+
+All of the operations necessary for cryptography should be present, and there's only a few hanging
+fruit left in terms of obvious performance improvements. Comparing against Go's standard library,
+we've gotten performance down from 260x slower, all the way to only 4x slower (comparing
+exponentiation with a ~3000 bit modulus). This is actually relatively good, because constant-time
+exponentiation is theoretically 2x slower, assuming multiplication is just as fast.
+
 ## The basic API approach
 
-## Some implementation notes
+The API provides a type representing arbitrary numbers in $\mathbb{N}$.
 
-## Performance differences
+```go
+type Nat
+```
+
+Each number also carries around an implicit "announced length", which should be public.
+The actual value of a number will not be leaked, but the announced length can be.
+
+The announced length of a number is set implicitly based on the operations creating it.
+
+For example, you have:
+
+```go
+func (z *Nat) SetBytes([]byte) *Nat
+```
+
+This will set the length of `z` depending on the length of the slice of bytes.
+
+Another example is addition, where you pass in the number of bits the output should have:
+
+```go
+func (z *Nat) Add(a *Nat, b *Nat, capacity uint) *Nat
+```
+
+When doing modular arithmetic, the size of the modulus dictates the size of the output instead:
+
+```go
+func (z *Nat) ModAdd(a *Nat, b *Nat, m *Modulus) *Nat
+```
+
+The `Modulus` type is similar to `Nat`, except that it's allowed to leak its true length.
+
+{{<note>}}
+I've previously written [some notes](/notes/2021/01/thoughts-on-big-num-apis/) on alternative
+API design, if you want some more information on the tradeoffs involved.
+{{</note>}}
 
 # Why Go?
 
-Why was Go the language of choice for this project.
+As mentioned a few times now, the main output of this project is a library
+written in Go. The reasons for choosing Go are mainly circumstantial, as opposed
+to fundamental technical reasons.
 
 ## In a vacuum
 
-What language would you choose for this project in a vacuum?
+If you were to choose a language for this project, without any concern
+over what the likely consumers of the project would be, I think Rust
+would likely be the best choice.
+
+I think the reasons for this would be:
+
+- Good performance
+- Easy control over compiler output
+- Portability
+- Interoperability with other languages (via C FFI)
+
+Go has the disadvantage of being less portable, and having a few more layers
+between you and the assembly output. Having control over this can be important,
+since the compiler might violate your assumptions about code organization
+with respect to timing leaks.
+
+Some core operations in `math/big` are actually implemented in assembly,
+amounting to a noticeable 50% boost in performance (on my machine).
+In Rust, writing these core operations in many platform-specific assembly
+files would likely not be necessary. Furthermore, it would be easier
+for us to implement new core primitives, rather than being restricted to
+the ones already implemented in `math/big`.
 
 ## Being useful
 
-What integrations are necessary for this project, why is it desirable
-to use Go?
+With all that said, language choices for projects *are not* made in a vacuum.
+Arguably, the most important consideration is who the library is going
+to be used by. Most of the potential consumers inside of the DEDIS lab
+would like a Go API, which heavily skews things in that direction.
 
-## Some downsides to Go
+Furthermore, Go's FFI isn't ideal for a library of isolated routines like this.
+The problem is that there's a lot of overhead when switching from Go code
+over to another language. Paying this overhead for each individual arithmetic
+operation in a larger crypto protocol would be too expensive.
 
-What are some inconvenient aspects of using Go
+This motivates the usage of a library written in Go itself.
+
+## Fitting in `math/big`
+
+Another goal of the library is to be potentially upstreamable to Go itself,
+eventually addressing {{<ref-link "3">}}. Because of this, we make use
+of the assembly routines already implemented in Go for `math/big`.
+By designing the library with this in mind, we make potentially migrating the work
+back into the standard library much easier later on.
 
 # Conclusion
+
+Hopefully this was at least an interesting overview of the work I'm doing this semester,
+which I once again should mention is being done at EPFL's
+[DEDIS lab](https://www.epfl.ch/labs/dedis/),
+under the supervision of [Professor Bryan Ford](https://people.epfl.ch/bryan.ford),
+without whom I would be having substantially less fun right now 8^)
+
+This post was initially intended to be rehashed version of a 7 minute intro talk I gave
+a couple weeks ago, but ended up being substantially longer. I think I'll be
+making a more in-depth post soon enough, talking about some details on how operations
+work. This is also a talk I'll need to be giving in a couple weeks. Once the code has
+solidified a bit more, I'd also like to provide a comprehensive post detailing
+every single algorithm we end up using. I don't think there's a comprehensive resource out
+there yet. BearSSL has a nice page about this: {{<ref-link "5">}}, but this
+doesn't cover all the tricks you actually need.
 
 # References
 
@@ -685,3 +780,8 @@ What are some inconvenient aspects of using Go
   "https://raccoon-attack.com/RacoonAttack.pdf"
   "[4] Merget, Robert, Marcus Brinkmann, Nimrod Aviram, Juraj Somorovsky, and Johannes Mittmann. “Raccoon Attack: Finding and Exploiting Most-Signiﬁcant-Bit-Oracles In”, 2019"
   >}}
+
+{{<ref
+  "5"
+  "https://www.bearssl.org/bigint.html"
+  "[5] BearSSL - Big Integer Design">}}
