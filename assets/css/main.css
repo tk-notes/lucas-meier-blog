@@ -42,10 +42,6 @@
   @apply font-bold;
 }
 
-.content a {
-  @apply underline;
-}
-
 .content a:visited {
   @apply text-gray-700;
 }

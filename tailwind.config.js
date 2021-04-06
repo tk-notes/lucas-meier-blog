@@ -8,8 +8,8 @@ module.exports = {
   },
   theme: {
     fontFamily: {
-      mono: ["JetBrains Mono", "monospace"],
-      serif: ["Noto Serif", "Georgia", "Cambria", "Times New Roman", "serif"],
+      mono: ["IBM Plex Mono", "JetBrains Mono", "monospace"],
+      serif: ["IBM Plex Serif", "Noto Serif", "Georgia", "Cambria", "Times New Roman", "serif"],
     },
     extend: {},
   },
