@@ -42,8 +42,8 @@
   @apply font-bold;
 }
 
-.content a:visited {
-  @apply text-gray-700;
+.content p a {
+  @apply text-blue-700;
 }
 
 .content a:hover,
