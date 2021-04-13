@@ -7,7 +7,7 @@ path: "/posts/2020/09/the-web-or-the-internet"
 type: post
 image: "/posts/2020/09/the-web-or-the-internet/cover.jpg"
 tags:
-    - Rant
+    - Ramble
     - P2P
     - Internet
 ---
