@@ -12,14 +12,16 @@
         </li>
       </ul>
       <ul class="flex flex-wrap items-center space-x-3 mb-2">
-        {{ range .Params.Tags | sort }}
-        <li>
-          <a
-            href="/tags/{{. | urlize}}/"
-            class="border-2 hover:border-blue-300 hover:text-blue-300 border-gray-700 px-1 text-xs font-mono rounded"
-            >{{.}}</a
-          >
-        </li>
+        {{if .Params.Tags }}
+          {{ range .Params.Tags | sort }}
+          <li>
+            <a
+              href="/tags/{{. | urlize}}/"
+              class="border-2 hover:border-blue-300 hover:text-blue-300 border-gray-700 px-1 text-xs font-mono rounded"
+              >{{.}}</a
+            >
+          </li>
+          {{ end }}
         {{ end }}
       </ul>
       <div class="content">
