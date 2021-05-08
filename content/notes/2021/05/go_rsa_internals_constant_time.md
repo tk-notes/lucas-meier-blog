@@ -57,3 +57,12 @@ We have `5215 ns/op` for saturated, and `2851 ns/op` for unsaturated.
 Using `uint` as our word type lets us call `bits.Add` and `bits.Mul`
 directly, which is a bit nicer. The downside is that we have less
 control over using a wrapper type, or using `uint64`.
+
+## Modular addition with and without scratch
+
+```
+BenchmarkModAdd-4                       10874287               103.3 ns/op
+BenchmarkModAddWithScratch-4            10834304               107.2 ns/op
+```
+
+I prefer without scratch anyways, so this is good news.
