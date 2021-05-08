@@ -42,3 +42,18 @@ This would help with some leakages actually, because using `big.Int`
 leaks zero padding information.
 
 The concern here is the complexity of making this change.
+
+# 2020-05-08
+
+## Unsaturated vs Saturated limbs
+
+Using 63 bit limbs instead of 64 seems to be noticeably (~1.8x) faster
+for montgomery multiplication, and thus for exponentiation.
+
+We have `5215 ns/op` for saturated, and `2851 ns/op` for unsaturated.
+
+## Using `uint`
+
+Using `uint` as our word type lets us call `bits.Add` and `bits.Mul`
+directly, which is a bit nicer. The downside is that we have less
+control over using a wrapper type, or using `uint64`.
