@@ -66,3 +66,8 @@ BenchmarkModAddWithScratch-4            10834304               107.2 ns/op
 ```
 
 I prefer without scratch anyways, so this is good news.
+
+# 2020-05-09
+
+Without the CRT stuff, things are much slower, but general modular reduction
+is required to do the CRT, so implemented that will take more work.
