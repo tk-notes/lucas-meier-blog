@@ -65,7 +65,42 @@ some of the primitives involved.
 
 # The Protocol
 
-So, what primitives are needed to make this program work?
+So, what primitives are needed to make this program work? Let's have a closer
+look at how the protocol for encrypting data is designed.
+
+A nimotsu keypair is just an
+[x25519](https://datatracker.ietf.org/doc/html/rfc7748) keypair.
+You generate a public key, that you share with others, and a secret key,
+that you keep to yourself:
+
+{{<img "1.png">}}
+
+When someone wants to send you a file, they first generate a new
+keypair, and send you the public part. We call this keypair "ephemeral",
+because it only gets used this one time. Using your public key,
+and the secret key they've just generated, they can use the
+x25519 function to derived a shared secret. On your side, you can combine
+your secret, and the public key they've just sent you, and derive
+the same secret!
+
+{{<img "2.png">}}
+
+The beauty of public key cryptography is that you've managed to derive
+a shared secret, while only communicating public data to each other!
+
+From this shared secret, we derive a symmetric key using
+[Blake3](https://github.com/BLAKE3-team/BLAKE3). We can then
+encrypt and authenticate data using
+[ChaCha20-Poly1305](https://tools.ietf.org/html/rfc7539):
+
+{{<img "3.png">}}
+
+On your end, you can derive the same key, and use that to decrypt the
+data, and ensure that it wasn't tampered with. And that's about it!
+
+This protocol is pretty simple. Essentially, it's just
+[ECIES](https://www.wikiwand.com/en/Integrated_Encryption_Scheme).
+The fun part was implementing it, of course.
 
 # Implementation
 
