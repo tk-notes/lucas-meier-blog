@@ -104,7 +104,45 @@ The fun part was implementing it, of course.
 
 # Implementation
 
+I decided to implement the application in Rust; I like Rust.
+There are plenty of crates I could use for each of these primitives,
+but my whole reason to make this application was to have an excuse
+to implement all of them from scratch!
+
+I learned quite a bit by implementing these primitives, and hopefully
+I can recap some of the interesting aspects of these process for you.
+
 # Curve25519
+
+I initially started this project after getting interested in
+Elliptic Curve Cryptography. I learn new concepts best by implementing them,
+so I wanted an excuse to implement some ECC myself. Curve25519
+is a very popular curve, design to be easy to implement in a constant-time
+fashion. Timing attacks being another interest of mine, and already
+being a Daniel J. Bernstein fanboy, I had no choice but to use
+x25519 (the diffie hellman variant of Curve25519, the actual Elliptic Curve)
+for the key exchange component!
+
+
+{{<note>}}
+Unfortunately, I won't be going into the details of how Elliptic Curve
+Cryptography works. Hopefully I'll have the time to write an introductory
+post about that sometime soon!
+{{</note>}}
+
+Curve25519 is an Elliptic Curve (Montgomery, specifically) defined
+by the following equation:
+
+$$
+y^2 = x^3 + 48862 x^2 + x
+$$
+
+over the prime field of numbers modulo
+$p = 2^{255} - 19$. Because of the Montgomery shape, there's a neat
+constant-time way of doing scalar multiplication of points on the curve,
+which is the key operation needed to implement the x25519 function,
+as we'll see later.
+
 
 ## Arithmetic Modulo $2^{255} - 19$
 
