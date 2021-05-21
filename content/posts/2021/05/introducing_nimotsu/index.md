@@ -231,6 +231,36 @@ two 64 bit numbers together, to produce a 128 bit number.
 
 ### Modular arithmetic and Constant Time Operations
 
+Addition and subtraction are the fundamental building blocks
+for arithmetic in $\mathbb{F}_p$, but we still need to do reduction
+modulo $p$ after calling these primitives.
+
+After an addition, our value is at most:
+
+$$
+2p - 2
+$$
+
+After a single subtraction of $p$, we get $p - 2$, which is in range.
+So, to do *modular* addition, we do normal addition, and then
+subtract $p$ if necessary. We need to subtract $p$ if our number is
+$\geq p$. We can check this by performing the subtraction, and
+checking if an underflow happens, by looking at the last borrow.
+We can then keep this result if there's no borrow.
+
+One problem is that you can't actually use an if statement to check
+this condition and select the right result. This is because
+of timing side-channels. Essentially, not only will writing back
+the subtraction if necessary take more time, but the branch predictor
+itself can be oberved to see which branch was taken. Because of this,
+you instead always write down a result, but use bit-masking
+to make the selection process completely opaque.
+
+Thankfully, there's a nice crate called
+[subtle](https://doc.dalek.rs/subtle/)
+which provides basic primitives for constant-time operations,
+and I've made heavy use of this crate for implementing arithmetic.
+
 ## x25519
 
 # Blake3
