@@ -143,8 +143,93 @@ constant-time way of doing scalar multiplication of points on the curve,
 which is the key operation needed to implement the x25519 function,
 as we'll see later.
 
-
 ## Arithmetic Modulo $2^{255} - 19$
+
+Because of the specific structure of this prime number, there
+are a few interesting tricks to optimize implementation of modular
+arithmetic. I'd recommend having a look at the
+[arithmetic.rs](https://github.com/cronokirby/nimotsu/blob/main/src/curve25519/arithmetic.rs)
+file if you want all of the details of how the implementation works.
+
+That basic strategy I went with was to represent numbers in
+$\mathbb{F}_p$ over 4 limbs of 64 bits:
+
+```rust
+pub struct Z25519 {
+    pub limbs: [u64; 4],
+}
+```
+
+This gives us 256 bits in total, which is actually enough to hold
+the addition of two elements, since that's at most:
+
+$$
+2 \cdot (p - 1) = 2^{256} - 40 < 2^{256}
+$$
+
+Another strategy is to use *unsaturated limbs*, of only 51 bits. 5 limbs
+of 51 bits each aligns exactly with 255, which is convenient.
+There are several reasons to use unsaturated limbs. One of which is not
+having to rely on intrinsics like `adc`. Another is making montgomery
+multiplication more efficient, by requiring fewer registers.
+Ultimately, I went with saturated limbs out of familiarity, and simplicity.
+Conversion to 64 bit limbs from bytes is a lot easier, for example.
+
+### Intrinsics
+
+When adding multiple limbs together, we need to add them limb-by-limb,
+making sure to propagate the carry produced at each step:
+
+{{<img "4.png">}}
+
+Fortunately, ISAs usually come with a convenient `adc` instruction,
+which allows adding two 64 bit numbers together, along with a carry
+from a previous step. We can chain multiple `adc`s together to
+implement our addition.
+
+To use this intrisc on the `x86_64` isa, we can use feature gating:
+
+```rust
+pub fn adc(carry: u8, a: u64, b: u64, out: &mut u64) -> u8 {
+    #[cfg(target_arch = "x86_64")]
+    {
+        unsafe { arch::_addcarry_u64(carry, a, b, out) }
+    }
+    #[cfg(not(target_arch = "x86_64"))]
+    {
+        let full_res = u128::from(a) + u128::from(b) + u128::from(carry);
+        *out = full_res as u64;
+        (full_res >> 64) as u8
+    }
+```
+
+If this intrinsic isn't available, we fall back on using `u128`.
+Using `u128` is slightly slower than using the `adc` instruction directly,
+unfortunately.
+
+For subtraction, we need a similar operation, `sbb`. This subtracts
+one 64 bit number from another, along with a borrow bit.
+We can use feature gating once more to use the intrinsic when available:
+
+```rust
+pub fn sbb(borrow: u8, a: u64, b: u64, out: &mut u64) -> u8 {
+    #[cfg(target_arch = "x86_64")]
+    {
+        unsafe { arch::_subborrow_u64(borrow, a, b, out) }
+    }
+    #[cfg(not(target_arch = "x86_64"))]
+    {
+        let full_res = i128::from(a) - i128::from(b) - i128::from(borrow);
+        *out = full_res as u64;
+        u8::from(full_res < 0)
+    }
+}
+```
+
+The availability of `u128` in Rust is also convenient for multiplying
+two 64 bit numbers together, to produce a 128 bit number.
+
+### Modular arithmetic and Constant Time Operations
 
 ## x25519
 
