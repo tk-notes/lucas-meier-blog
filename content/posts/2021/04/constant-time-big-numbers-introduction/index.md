@@ -282,7 +282,7 @@ out how many characters at the start of the string were correct:
 
 Using this information, instead of trying random strings, we can focus on guessing
 character by character. At first, none of our characters our correct. Then,
-we keep changing the first character of our string, until we get see that it's correct:
+we keep changing the first character of our string, until we get to see that it's correct:
 
 {{<img "7.png">}}
 
@@ -373,7 +373,7 @@ leak information about the encoded version of $x$, but not $x$ itself.
 
 One example of this is in RSA. Instead of encrypting a message as
 $m^e$, you can instead generate a random nonce, and encrypt
-with $(mr)^e$. Exponentiation, unless implemented correctly,
+a masked message $(mr)^e$. Exponentiation, unless implemented correctly,
 leaks a lot of information about its input. By using blinding,
 we hide the input, mitigating this source of information.
 
