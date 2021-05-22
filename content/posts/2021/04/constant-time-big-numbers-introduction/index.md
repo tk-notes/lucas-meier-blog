@@ -386,7 +386,7 @@ Regardless, this remains a popular mitigation for RSA.
 
 Go has a [big number library](https://golang.org/pkg/math/big/) as part of its
 standard library. While this library has all the operations you might want,
-and is quite performant, as far as I can tell, its operations are
+and is quite performant, as far as I can tell. Unfortunately, its operations are
 filled with timing leaks: {{<ref-link "3">}}.
 
 This is fine, since this API is intended to be a general-purpose Big Number library.
