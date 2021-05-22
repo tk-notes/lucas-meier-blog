@@ -415,7 +415,7 @@ another number. This kind of conditional choice is present
 throughout the library, and is a source of timing leaks.
 
 {{<note>}}
-The leakiness of of the exponentiation operation is what encourages Go's
+The leakiness of the exponentiation operation is what encourages Go's
 RSA implementation to use *blinding*.
 {{</note>}}
 
@@ -506,7 +506,7 @@ your operations have fewer limbs to process, improving performance.
 Furthermore,
 many algorithms like to make the asssumption that $N$ has no padding.
 Some operations (e.g. modular reduction)
-would like to use significant bits of $N$,
+would like to use the most significant bits of $N$,
 which ends up leaking the exact bit length of $N$.
 
 {{<note>}}
@@ -682,7 +682,7 @@ All of the operations necessary for cryptography should be present, and there's 
 fruit left in terms of obvious performance improvements. Comparing against Go's standard library,
 we've gotten performance down from 260x slower, all the way to only 4x slower (comparing
 exponentiation with a ~3000 bit modulus). This is actually relatively good, because constant-time
-exponentiation is theoretically 2x slower, assuming multiplication is just as fast.
+exponentiation is theoretically 2x slower (without windowing), assuming multiplication is just as fast.
 
 ## The basic API approach
 
