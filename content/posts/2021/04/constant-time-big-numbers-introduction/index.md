@@ -124,7 +124,7 @@ by each digit of the other, shifted with the right number of zeros:
 
 And then, you add all of these terms together:
 
-{{<img "3.png">}}
+{{<img "4.png">}}
 
 There are pen-and-paper algorithms
 to implement all of the operations on big numbers,
