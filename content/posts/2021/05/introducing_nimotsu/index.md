@@ -261,6 +261,90 @@ Thankfully, there's a nice crate called
 which provides basic primitives for constant-time operations,
 and I've made heavy use of this crate for implementing arithmetic.
 
+One nice primitive provided by this library is
+a `conditional_select` function for vairous types. This allows us
+to choose between two alternatives, based on a condition, without
+leaking the value of that condition.
+
+This function is already implemented for `u64`, and we can build
+off of that implementation for our `Z25519` type as well:
+
+```rust
+impl ConditionallySelectable for Z25519 {
+    fn conditional_select(a: &Self, b: &Self, choice: Choice) -> Self {
+        Z25519 {
+            limbs: [
+                u64::conditional_select(&a.limbs[0], &b.limbs[0], choice),
+                u64::conditional_select(&a.limbs[1], &b.limbs[1], choice),
+                u64::conditional_select(&a.limbs[2], &b.limbs[2], choice),
+                u64::conditional_select(&a.limbs[3], &b.limbs[3], choice),
+            ],
+        }
+    }
+}
+```
+
+We can then implement modular addition between $x$ and $y$
+by adding them, to get $z = x + y$. Then we calculate $z - m$, and select
+between $z$ and $z - m$ based on whether our first addition produced
+a carry, and whether our subtraction produced a borrow. The subtraction
+is always calculated, and the selection is performed without leaking
+the value of this condition. Our modular addition routine is thus
+constant-time.
+
+### Folding Large Results
+
+For modular addition and subtraction, our result is small enough
+that a conditional addition our subtraction of $p$ is enough to reduce
+it.
+
+For larger results, like after a scaling, or a multiplication, this
+doesn't suffice. Thankfully, we can use the special structure
+of $p$ to reduce this values faster than for a generic modulus.
+
+**Scaling**
+
+One useful operation is multiplying a multi-limb number $x$
+by a single-limb factor $\alpha$. Since $x < 2^{255}$, we can write
+the result as:
+
+$$
+\alpha \cdot x = q \cdot 2^{255} + r
+$$
+
+Now, note that since $p = 2^{255} - 19$, we see that
+$2^{255} \equiv 19 \mod p$. We can then rewrite our result as:
+
+$$
+\alpha \cdot x \equiv 19q + r \mod p
+$$
+
+The value $19q$ fits over two limbs, so we can use our standard modular
+addition routine.
+
+**Multiplication**
+
+After multiplying two field elements $x$ and $y$, we end up
+with a number that fits over 8 limbs, which we can write as:
+
+$$
+xy = a \cdot 2^{256} + b
+$$
+
+with $a, b < 2^{256}$. Using the structure of $p$, we note that
+$2^{256} \equiv 38 \mod p$. This means that our multiplication
+is nothing more than:
+
+$$
+xy \equiv 38a + b \mod p
+$$
+
+We can calculate this result by combining the scaling operation
+we defined earlier, and a modular addition.
+
+There are probably faster ways to do multiplication, but I settled
+on these simple optimizations.
+
 ## x25519
 
 # Blake3
