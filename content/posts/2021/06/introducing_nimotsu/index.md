@@ -1,6 +1,6 @@
 ---
 title: "Introducing Nimotsu"
-date: 2021-05-11T20:52:56+02:00
+date: 2021-06-06T19:11:58+02:00
 draft: true
 katex: true
 tags:
