@@ -485,6 +485,9 @@ because I only ever use Blake3 as a KDF over a tiny amount of data.
 This means that I'll have to actually implement all of Blake3 some
 other time, in order to learn how it works!
 
+I implemented all of this in
+[blake3.rs](https://github.com/cronokirby/nimotsu/blob/main/src/blake3.rs).
+
 The basic idea behind Blake3 is pretty simple. You first split your
 data into individual blocks of 64 bytes. For each block, you
 initialize a state using different values based on the context.
@@ -512,10 +515,94 @@ the key depends on the material we use.
 
 # ChaCha20-Poly1305
 
+Armed with a symmetric key, all that's left is to encrypt our data.
+Not only do we want to encrypt it, but we also want
+to make sure that our data can't be tampered with. The classical
+approach is to encrypt the data, and then use some kind of HMAC
+to ensure its integrity. The more modern approach is
+to use a dedicated AEAD mode for a cipher, which provides encryption
+and authentication in one nice package.
+
+The AEAD mode of choice for me is
+[ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc7539).
+I like this AEAD over AES, because I think stream ciphers are more elegant
+than block ciphers, and I like the constant-time friendliness of
+ChaCha20.
+
+I implemented this AEAD mode in
+[chacha20.rs](https://github.com/cronokirby/nimotsu/blob/main/src/chacha20.rs).
+
 ## ChaCha20
+
+As mentioned previously ChaCha20 is a stream cipher. The idea is to generate
+a random stream of data $s$ the same length as our message
+$m$, then calculate our ciphertext as:
+
+$$
+c = s \oplus m
+$$
+
+If $s$ were truly random, then this would be unbreakable. Of course,
+$s$ is not perfectly random, but rather generated using the entropy
+contained inside of our symmetric key, and our nonce. But, if we
+can use these two pieces of entropy to extend them into a stream
+opaquely, then we can provide a very good cipher.
+
+Generating this stream is actually done in a way similar to how Blake3 works.
+We generate our stream by blocks of 64 bytes. We initialize a state
+using our two sources of entropy, our key and nonce, as well as a counter
+for the block. Then we mix up this state, so that the entropy spreads
+out throughout the state, and so that a small change, like with the counter,
+results in a very large change in the final state. We do this with different
+rounds, each of which is actually extremely similar to a round in Blake3,
+performing 20 such rounds. Hence, ChaCha**20**.
+
+This is simple, elegant, fast, and constant-time. What's not to like?
 
 ## Poly1305
 
+ChaCha20 allows us to encrypt our data, and Poly1305 allows us to
+make sure that our data can't be tampered with at all. The idea is
+to use a onetime key split into two 16 byte parts $(r, s)$. These
+parts can be derived from our key and nonce, but taht's part of the AEAD
+construction, not Poly1305 itself.
+
+The idea is to work in the field $\mathbb{F}_p$, with $p = 2^{130} - 5$.
+We treat our message as a polynomial $m \in \mathbb{F}_p[X]$,
+we can then calculate an authentication tag as:
+
+$$
+m(r) + s \mod p
+$$
+
+If the message is different, then our authentication tag will change
+as well. Forging this authentication tag should be extremely difficult
+without knowing both $r$ and $s$. This ensures the authenticity of our message.
+
+To construct an AEAD mode from this, we create an authentication tag
+over the encrypted data provided by ChaCha20.
+
 # Further Work
 
+While the tool works, there are still a few features that would be nice to have.
+One neat feature is implemented some kind of passphrase protection over the
+private key file. This would involve using a password hash,
+like Argon2, in order to decrypt the private key file using
+this passphrase, instead of storing the private key in the clear.
+
+Another cool feature, mainly for learning purposes,
+would be to implement different curves for the exchange, instead
+of just Curve25519. I kind of want to play around with binary field
+curves, since those work pretty differently.
+
 # Conclusion
+
+This post wasn't really trying to provide a copmlete introduction to the various
+algorithms involved, but rather to talk a bit about this little tool I've
+been working on. I should probably actually take the time to explain
+how these primitives work in greater detail.
+
+As a reminder, [Nimotsu](https://github.com/cronokirby/nimotsu) is
+a little application to encrypt a file to someone, using their public key,
+and you might have some fun using it, and even more fun reading its
+source code.
