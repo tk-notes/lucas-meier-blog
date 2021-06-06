@@ -463,6 +463,53 @@ for this post.
 
 # Blake3
 
+After deriving a shared secret, wehn can use this secret to create
+a symmetric encryption key. The usual way to do this is to
+use some kind of
+[KDF](https://www.wikiwand.com/en/Key_derivation_function).
+This takes in some random data, and then generates a secret key
+using that data. This isn't strictly necessary, but is a good practice.
+
+For this KDF, I went with
+[Blake3](https://github.com/BLAKE3-team/BLAKE3), mainly because it was
+shiny and new, but also because I liked how it had a unified structure
+for different hashing modes, including key derivation.
+
+The neat thing about Blake3 is that it splits the data it needs
+to hash into many chunks, and then organizes those chunks into
+a tree. This tree structure is great for parallelization,
+and is essentially a [Merkle Tree](https://www.wikiwand.com/en/Merkle_tree).
+
+Unfortunately, I didn't actually need to use this neat functionality,
+because I only ever use Blake3 as a KDF over a tiny amount of data.
+This means that I'll have to actually implement all of Blake3 some
+other time, in order to learn how it works!
+
+The basic idea behind Blake3 is pretty simple. You first split your
+data into individual blocks of 64 bytes. For each block, you
+initialize a state using different values based on the context.
+One of these values is used to ensure that this state depends
+on the hash of previous blocks, another assigns a different
+counter value for different blocks, another distinguishes
+between different uses of the hash, etc.
+Then, this state is mixed around, guided by the message data inside
+of the block. You do several rounds of mixing, each time permuting
+the message data as well.
+
+This makes it so that a small change in the initial state,
+or a small change in the message, leads to a large difference
+in the output state. This ouptut state can then be used as a hash
+value.
+
+Key derivation is essentially calculating:
+
+$$
+H(\text{ctx} || m)
+$$
+
+so that different contexts can derive separate keys, and so that
+the key depends on the material we use.
+
 # ChaCha20-Poly1305
 
 ## ChaCha20
