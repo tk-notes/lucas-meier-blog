@@ -1,7 +1,7 @@
 ---
 title: "Introducing Nimotsu"
-date: 2021-06-06T19:11:58+02:00
-draft: true
+date: 2021-06-06T21:07:43+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -10,20 +10,21 @@ tags:
 ---
 
 Recently, I've been working on a little encryption tool called
-[Nimotsu](https://github.com/cronokirby/nimotsu). I had a lot of fun
-implementing the cryptography involved, and thought it would make
-for an interesting blog post.
+[Nimotsu](https://github.com/cronokirby/nimotsu).
+My goal with this project was to implement all of the cryptographic
+primitives involved. I had a lot of fun doing so, and thought
+it would make for an interesting blog post.
 
 <!--more-->
 
-Please note that I'm not advocating the use of this application over
-other alternatives. I made the app to learn how to implement various
-primitives, and to have fun. Use a battle-tested application
+Note that I'm not advocating the use of this application over
+other alternatives. I made this app for my learning
+and entertainment, so use a battle-tested application
 instead.
 
 # The Application
 
-Nimotsu allows you to encrypt data to someone else, given their public key,
+Nimotsu lets you encrypt data to someone else, given their public key,
 such that only they can decrypt that data. (Of course, since you encrypted
 the data in the first place, you would also know what it decrypts to,
 but that's beside the point).
@@ -58,15 +59,15 @@ private key, you (and only you) can decrypt the file:
 → nimotsu decrypt encrypted.bin --out cat.png --key key.txt
 ```
 
-And that's about it really! This is a super simple application. The concept
+And that's about it! This is a very simple application. The concept
 is pretty old-school, and surpassed by various more practical and more
 secure programs, but I wanted a simple project to let me implement
 some of the primitives involved.
 
 # The Protocol
 
-So, what primitives are needed to make this program work? Let's have a closer
-look at how the protocol for encrypting data is designed.
+So, what primitives does this program use? Let's have a closer
+look at how the protocol for encrypting data works.
 
 A nimotsu keypair is just an
 [x25519](https://datatracker.ietf.org/doc/html/rfc7748) keypair.
@@ -100,7 +101,7 @@ data, and ensure that it wasn't tampered with. And that's about it!
 
 This protocol is pretty simple. Essentially, it's just
 [ECIES](https://www.wikiwand.com/en/Integrated_Encryption_Scheme).
-The fun part was implementing it, of course.
+The fun part was implementing it!
 
 # Implementation
 
@@ -110,19 +111,19 @@ but my whole reason to make this application was to have an excuse
 to implement all of them from scratch!
 
 I learned quite a bit by implementing these primitives, and hopefully
-I can recap some of the interesting aspects of these process for you.
+can illustrate some of the interesting aspects involved.
 
 # Curve25519
 
-I initially started this project after getting interested in
-Elliptic Curve Cryptography. I learn new concepts best by implementing them,
-so I wanted an excuse to implement some ECC myself. Curve25519
-is a very popular curve, design to be easy to implement in a constant-time
+I initially started this project out of a budding interest in
+Elliptic Curve Cryptography. Since I learn new concepts
+best by implementing them,
+I wanted an excuse to implement some ECC myself. Curve25519
+is a very popular curve, designed to be easy to implement in a constant-time
 fashion. Timing attacks being another interest of mine, and already
 being a Daniel J. Bernstein fanboy, I had no choice but to use
 x25519 (the diffie hellman variant of Curve25519, the actual Elliptic Curve)
 for the key exchange component!
-
 
 {{<note>}}
 Unfortunately, I won't be going into the details of how Elliptic Curve
@@ -169,8 +170,8 @@ $$
 
 Another strategy is to use *unsaturated limbs*, of only 51 bits. 5 limbs
 of 51 bits each aligns exactly with 255, which is convenient.
-There are several reasons to use unsaturated limbs. One of which is not
-having to rely on intrinsics like `adc`. Another is making montgomery
+There are several reasons to use unsaturated limbs. One is not
+having to rely on intrinsics like `adc`. Another is making Montgomery
 multiplication more efficient, by requiring fewer registers.
 Ultimately, I went with saturated limbs out of familiarity, and simplicity.
 Conversion to 64 bit limbs from bytes is a lot easier, for example.
@@ -183,11 +184,11 @@ making sure to propagate the carry produced at each step:
 {{<img "4.png">}}
 
 Fortunately, ISAs usually come with a convenient `adc` instruction,
-which allows adding two 64 bit numbers together, along with a carry
+which adds two 64 bit numbers together, along with a carry
 from a previous step. We can chain multiple `adc`s together to
 implement our addition.
 
-To use this intrisc on the `x86_64` isa, we can use feature gating:
+To use this intrinsic on the `x86_64` isa, we can use feature gating:
 
 ```rust
 pub fn adc(carry: u8, a: u64, b: u64, out: &mut u64) -> u8 {
@@ -225,9 +226,10 @@ pub fn sbb(borrow: u8, a: u64, b: u64, out: &mut u64) -> u8 {
     }
 }
 ```
+Once again, we fallback on using 128 bit numbers, this time with `i128`.
 
 The availability of `u128` in Rust is also convenient for multiplying
-two 64 bit numbers together, to produce a 128 bit number.
+two 64 bit numbers together, producing a 128 bit number.
 
 ### Modular arithmetic and Constant Time Operations
 
@@ -241,19 +243,19 @@ $$
 2p - 2
 $$
 
-After a single subtraction of $p$, we get $p - 2$, which is in range.
+With a single subtraction of $p$, we get $p - 2$, which is in range.
 So, to do *modular* addition, we do normal addition, and then
 subtract $p$ if necessary. We need to subtract $p$ if our number is
 $\geq p$. We can check this by performing the subtraction, and
-checking if an underflow happens, by looking at the last borrow.
+seeing if an underflow happened, by looking at the last borrow.
 We can then keep this result if there's no borrow.
 
-One problem is that you can't actually use an if statement to check
+One problem is that you shouldn't use an if statement to check
 this condition and select the right result. This is because
-of timing side-channels. Essentially, not only will writing back
-the subtraction if necessary take more time, but the branch predictor
+of timing side-channels. Essentially, not
+only will doing the subtraction take more time, but the branch predictor
 itself can be oberved to see which branch was taken. Because of this,
-you instead always write down a result, but use bit-masking
+you instead always write down a result, but use bitwise operations
 to make the selection process completely opaque.
 
 Thankfully, there's a nice crate called
@@ -262,7 +264,7 @@ which provides basic primitives for constant-time operations,
 and I've made heavy use of this crate for implementing arithmetic.
 
 One nice primitive provided by this library is
-a `conditional_select` function for vairous types. This allows us
+a `conditional_select` function for various types. This allows us
 to choose between two alternatives, based on a condition, without
 leaking the value of that condition.
 
@@ -295,7 +297,7 @@ constant-time.
 ### Folding Large Results
 
 For modular addition and subtraction, our result is small enough
-that a conditional addition our subtraction of $p$ is enough to reduce
+that a conditional addition or subtraction of $p$ is enough to reduce
 it.
 
 For larger results, like after a scaling, or a multiplication, this
@@ -312,7 +314,7 @@ $$
 \alpha \cdot x = q \cdot 2^{255} + r
 $$
 
-Now, note that since $p = 2^{255} - 19$, we see that
+Now, since $p = 2^{255} - 19$, we see that
 $2^{255} \equiv 19 \mod p$. We can then rewrite our result as:
 
 $$
@@ -347,20 +349,20 @@ on these simple optimizations.
 
 ## x25519
 
-The define the x25519 function, we use our elliptic curve:
+To define the x25519 function, we use our elliptic curve:
 $$
 C: y^2 = x^3 + 48862x^2 + x
 $$
 defined over the prime field $\mathbb{F}_p$, with $p = 2^{255} - 19$.
 We've already seen a bit of how $\mathbb{F}_p$ is implemented, so
-now we can look at how we use this curve.
+now we can look at how the curve is used.
 
 The x25519 function uses scalar multiplication. This takes
 a scalar $s \in \mathbb{Z}$, and a point $P \in C(\mathbb{F}_p)$,
 and then computes:
 
 $$
-s \cdot P = \sum_{i = 1}^n P
+s \cdot P := \sum_{i = 1}^s P
 $$
 
 using the point addition formula defined on this curve.
@@ -378,7 +380,7 @@ $q$ is the order of $G$ (this is $\approx 2^{252}$).
 The corresponding public key is the point
 $P = s \cdot G$. It is widely believed that recovering $s$ from $P$
 is exceedingly difficult. (This problem is the infamous
-ECDLP (Elliptic-Curve Discrete Logarithm Problem)).
+ECDLP (Elliptic Curve Discrete Logarithm Problem)).
 
 Two keypair holders with $(s_1, P_1 = s_1 \cdot G)$ and
 $(s_2, P_2 = s_2 \cdot G)$ can calculate a shared secret, only
@@ -424,7 +426,7 @@ of $8$. This is because the number of points on the curve
 is actually $8 \cdot q$. We say that $8$ is the *cofactor*
 for this curve. When we use scalar multiplication with a point
 outside of $\langle G \rangle$, having a scalar that's a multiple of
-$8$ ensures that the result is $0$, which prevents leaking
+$8$ ensures that the result is $\mathcal{O}$, which prevents leaking
 information about our scalar.
 
 Setting the top bits ensures that we have a high order point,
@@ -435,7 +437,7 @@ To implement scalar multiplication, the rough idea is to use
 binary exponentiation. Esentially, we do:
 
 ```txt
-R = Infinity
+R = O
 for b in s.msb..s.lsb:
     R = 2 * R
     if b == 1:
@@ -446,8 +448,8 @@ One way of seeing this is correct is by writing
 $R = v \cdot P$ at each step, and then seeing how the exponent $v$ is
 modified throughout this routine. At the end of the routine, we want
 $v = e$. We accomplish this by shifting each bit of $e$ into $v$, from
-to bottom. At each iteration, we need to shift $v$ left by one bit,
-which means doubling it, and thus doubling $R$ as well.
+top to bottom. At each iteration, we need to shift $v$ left by one bit,
+doubling it, and thus doubling $R$ as well.
 If the next bit of $e$ is set, then we need to add $1$ to $v$,
 and thus add $P$ to $R$. By the end, we have $R = e \cdot P$.
 
@@ -455,7 +457,7 @@ Of course, checking this bit is actually not constant time. It would
 also seem like we need a routine for adding any two points, but we
 can streamline this quite a bit.
 
-The technique for streamling this scalar multiplication, making
+The technique for streamlining this scalar multiplication, making
 it both fast, and constant-time, is called the Montgomery Ladder,
 and I've written some [detailed notes](/notes/2021/04/montgomery-ladder/)
 about how it works. I don't think the details are all that interesting
@@ -463,7 +465,7 @@ for this post.
 
 # Blake3
 
-After deriving a shared secret, wehn can use this secret to create
+After deriving a shared secret, we can use this secret to create
 a symmetric encryption key. The usual way to do this is to
 use some kind of
 [KDF](https://www.wikiwand.com/en/Key_derivation_function).
@@ -474,19 +476,20 @@ For this KDF, I went with
 [Blake3](https://github.com/BLAKE3-team/BLAKE3), mainly because it was
 shiny and new, but also because I liked how it had a unified structure
 for different hashing modes, including key derivation.
+I implemented all of this in
+[blake3.rs](https://github.com/cronokirby/nimotsu/blob/main/src/blake3.rs).
 
 The neat thing about Blake3 is that it splits the data it needs
 to hash into many chunks, and then organizes those chunks into
-a tree. This tree structure is great for parallelization,
-and is essentially a [Merkle Tree](https://www.wikiwand.com/en/Merkle_tree).
+a tree. This tree structure is
+is essentially a [Merkle Tree](https://www.wikiwand.com/en/Merkle_tree),
+and enables parallelizing the hash.
 
 Unfortunately, I didn't actually need to use this neat functionality,
 because I only ever use Blake3 as a KDF over a tiny amount of data.
 This means that I'll have to actually implement all of Blake3 some
 other time, in order to learn how it works!
 
-I implemented all of this in
-[blake3.rs](https://github.com/cronokirby/nimotsu/blob/main/src/blake3.rs).
 
 The basic idea behind Blake3 is pretty simple. You first split your
 data into individual blocks of 64 bytes. For each block, you
@@ -504,18 +507,21 @@ or a small change in the message, leads to a large difference
 in the output state. This ouptut state can then be used as a hash
 value.
 
-Key derivation is essentially calculating:
+To derive a key, we essentially hash both a context string,
+and the key material itself:
 
 $$
 H(\text{ctx} || m)
 $$
 
-so that different contexts can derive separate keys, and so that
-the key depends on the material we use.
+This makes it so that different contexts produce different keys
+from the same material. Blake3 also uses domain separation,
+so using the hash in KDF mode will produce a different value
+than actually hashing the context string and then the material.
 
 # ChaCha20-Poly1305
 
-Armed with a symmetric key, all that's left is to encrypt our data.
+Armed with a symmetric key, we can use it to encrypt our data.
 Not only do we want to encrypt it, but we also want
 to make sure that our data can't be tampered with. The classical
 approach is to encrypt the data, and then use some kind of HMAC
@@ -551,11 +557,11 @@ opaquely, then we can provide a very good cipher.
 Generating this stream is actually done in a way similar to how Blake3 works.
 We generate our stream by blocks of 64 bytes. We initialize a state
 using our two sources of entropy, our key and nonce, as well as a counter
-for the block. Then we mix up this state, so that the entropy spreads
-out throughout the state, and so that a small change, like with the counter,
-results in a very large change in the final state. We do this with different
-rounds, each of which is actually extremely similar to a round in Blake3,
-performing 20 such rounds. Hence, ChaCha**20**.
+for the block. We then mix up this state, so that the entropy
+diffuses through the state. There's
+an avalanche effect, where a small change, like with the counter,
+results in a very large change in the final state. We do this with 20
+rounds in a row, each of which is actually extremely similar to a round in Blake3. This is why it's called ChaCha**20**.
 
 This is simple, elegant, fast, and constant-time. What's not to like?
 
@@ -564,7 +570,7 @@ This is simple, elegant, fast, and constant-time. What's not to like?
 ChaCha20 allows us to encrypt our data, and Poly1305 allows us to
 make sure that our data can't be tampered with at all. The idea is
 to use a onetime key split into two 16 byte parts $(r, s)$. These
-parts can be derived from our key and nonce, but taht's part of the AEAD
+parts can be derived from our key and nonce, but that's part of the AEAD
 construction, not Poly1305 itself.
 
 The idea is to work in the field $\mathbb{F}_p$, with $p = 2^{130} - 5$.
@@ -585,24 +591,24 @@ over the encrypted data provided by ChaCha20.
 # Further Work
 
 While the tool works, there are still a few features that would be nice to have.
-One neat feature is implemented some kind of passphrase protection over the
+One feature would be implementing passphrase protection over the
 private key file. This would involve using a password hash,
-like Argon2, in order to decrypt the private key file using
-this passphrase, instead of storing the private key in the clear.
+like Argon2, to generate a symmetric key, used to encrypt
+the private key file, instead of storing it in the clear.
 
 Another cool feature, mainly for learning purposes,
 would be to implement different curves for the exchange, instead
 of just Curve25519. I kind of want to play around with binary field
-curves, since those work pretty differently.
+curves, since those use a fundamentally different kind of arithmetic.
 
 # Conclusion
-
-This post wasn't really trying to provide a copmlete introduction to the various
-algorithms involved, but rather to talk a bit about this little tool I've
-been working on. I should probably actually take the time to explain
-how these primitives work in greater detail.
 
 As a reminder, [Nimotsu](https://github.com/cronokirby/nimotsu) is
 a little application to encrypt a file to someone, using their public key,
 and you might have some fun using it, and even more fun reading its
 source code.
+
+This post wasn't really trying to provide a complete introduction to the various
+algorithms involved, but rather to talk a bit about this little tool I've
+been working on. I should probably actually take the time to explain
+how these primitives work in greater detail.
