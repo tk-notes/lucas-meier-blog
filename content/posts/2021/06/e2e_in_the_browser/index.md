@@ -1,5 +1,5 @@
 ---
-title: "End-to-End Encryption in The Browser"
+title: "End-to-End Encryption in Web Apps"
 date: 2021-06-13T16:27:38+02:00
 draft: true
 katex: true
@@ -9,76 +9,85 @@ tags:
   - "Web"
 ---
 
-More and more applications are enabling end-to-end-encryption
-for their users, enabling a great amount of privacy. Given the
-popularity of web applications, some even try to provide
-this functionality in the browsers. But what kind of guarantees
-around security can be provided in the browser?
+End-to-end encryption is a very appealing guarantee of privacy,
+and more applications want to provide this guarantee.
+Web applications are popular, and they want to implement
+this functionality in the browser.
+What kind of guarantees does a user still have with a
+web app, served to them dynamically?
 
 <!--more-->
 
 In this post, we'll first go over what guarantees end-to-end encryption
-can provide in the ideal case. Then we'll see how
-the browser has additional security threats that can put these
-guarantees into jeopardy. Finally, we'll see a few potential
-ways to address the threats of the browser.
+provides in the ideal case. Then we'll see how
+web applications require additional trust from users.
+Finally, we'll see a few
+ways to address these concerns.
 
 # The Promise of End-to-End Encryption
 
-You hear a lot of applications claiming to provide "end-to-end encryption"
-these days, but what does that term actually mean? In summary,
-this means that the data processed by an application should
-only be available to the user of that application, and whoever
-they want to share it with.
+Many applications claim to provide "end-to-end encryption";
+what does this term really mean? In summary,
+this means that data transiting through the application's
+servers is always encrypted, in such a way that only the endpoints
+involved can decrypt it.
 
-For example, if you provide a budgeting application, you might
-want the user to be able to sync their financial data between
-devices. This synchronization should be encrypted, in such
-a way that your server only sees encrypted data. Only the user's
-devices will have access to the actual data. Since the data
-is only available in the clear on the user's devices, the "ends",
-we say that this application is end-to-end encryption.
+A heuristic test is Matthew Green's
+[mud puddle test](https://blog.cryptographyengineering.com/2012/04/05/icloud-who-holds-key/).
+Let's say a user slips in a mud puddle,
+breaking their devices and losing their memory. They should have
+no way to recover their data. Otherwise, the application
+servers would have unencrypted backup data.
 
-This also extends to situations with multiple users. For example,
-a common use-case for end-to-end encryption is the infamous
-chat application. In this case, one user wants to send
-messages to another user. To provide end-to-end encryption,
-your server shouldn't learn the content of these messages,
+For example, your budgeting application
+might let users synchronize their financial data between devices.
+This synchronization should be encrypted.
+Your servers can't read any of the data passing through them.
+This data
+is only available on the user's devices, the "ends",
+so we say that this application is end-to-end (E2E) encrypted.
+
+This can extend to multiple users:
+E2E encrypted messaging apps are a typical example.
+In this case, users want to send
+messages to each other. To provide E2E encryption,
+your server shouldn't know the content of these messages:
 only the two users chatting together will be able to see them.
 
-Some applications don't involve interacting with a server at all.
-For example, an application that stores all data locally, and
+Some applications don't interact with a server at all.
+If an application stores all data locally, and
 doesn't support any kind of synchronization between devices,
-doesn't need a server. There's no need for encryption here,
-because the sensitive data never leaves the user's device in the first place.
+then it wouldn't need a server. There's no need for encryption here,
+because no data ever leaves the user's device in the first place.
 
 But certain applications are collaborative by nature,
-and since most users have multiple computing devices nowadays,
-supporting communication between multiple devices or users
-is a great benefit to applications.
+and most users have multiple computing devices nowadays.
+Supporting communication between multiple devices or users
+is a benefit to many applications.
 
-E2E encryption enables an application to provide this collaboration,
-without compromising the privacy of the data handled by the application.
-The user has complete control over their data, and are able
-to keep it completely private.
+E2E encryption lets an application to provide this collaboration
+without compromising on privacy.
+The user has complete control over their data. They
+alone choose how to share it.
 
 ## Technical Implementations
 
-This isn't a blog post about how to implement E2E encryption.
-All we really need to know for this post is that implementing
-E2E encryption involves public-key cryptography, for
-key-exchange and signing, as well as symmetric cryptography
-for actually encrypting data. There are many libraries
-providing these primitives, and they are certainly not very exotic.
+This post isn't about how to implement E2E encryption.
+All we really need to know is that implementing
+E2E encryption involves some basic cryptographic primitives,
+like symmetric encryption, signing, key exchange, etc.
+These are not exotic primitives, and many libraries
+implementing them exist.
 
 # The Problem with the Browser
 
-One misconception I've seen is that the hard part about
-implementing E2E encryption in the browser is being able
-to use the basic cryptographic primitives, like key exchange,
-or symmetric ciphers. This isn't the case; at least not anymore.
+A common misconception is that the difficulty
+in E2E encryption in the browser
+lies in using
+these basic cryptographic primitives.
+This isn't the case; at least not anymore.
 
-First of all, you can "simply" implement these primitives
+Firstly, you can "simply" implement these primitives
 directly in JavaScript. Or rather, use a library that somebody
 else has written, and even more people trust.
 
@@ -93,29 +102,41 @@ into a WASM bundle ready to be used in the browser.
 So, the problem with the browser is not that it makes it difficult
 to implement E2E encryption. In fact, from the application
 developer's perspective, the browser is a perfectly adequate
-platform on which to build an E2E encrypted application.
+platform for an E2E encrypted application.
 
-The problem is that users should have much more suspicion in your application.
+The problem is that users should be more suspicious of your application.
 
-The advantage of web applications is that they require no installation process.
-You can give someone a link to your application, and then they can
+The advantage of web apps is that they require no installation process.
+You give someone a link to your application, they
 navigate to that link, download the webpage on the fly, and are then
 immediately using the application. It's a very frictionless
-process, and ultimately very convenient.
+and convenient process.
 
 This is also why E2E encryption in the browser is suspicious.
 
-The problem here is that you download a new version of the application
+The problem is that you download a new version of the application
 each time you use it. This means that you need to trust that the application
-isn't maliciously implemented each time you use it. Contrast this
-with a native application, where once it's installed, you can choose
+isn't compromised each time you use it.
+Contrast this
+with a native application. Once it's installed, you can choose
 whether or not you want to update it, and wait until other people
 have vetted a new version.
 
-A maliciously implemented application would completely break
+
+A compromised application would completely break
 the security model of E2E encryption. For example, a chat application
-could simply send whatever plaintext messages you type into the application
-to some other server, and log all of your communication.
+could simply collect all the messages you type out, logging
+all of your communication.
+
+Because of TLS,
+a third-party can't pretend to serve you that application. Rather,
+you need to trust the providers of the application to not
+have done anything fishy.
+
+Needing to trust the developers each time you use the application
+is at odds with the typical claims around E2E encryption. Many
+applications claim to not require any trust from their users,
+despite serving them code dynamically.
 
 ## Targeted Attacks
 
