@@ -264,8 +264,8 @@ from implementing E2E encryption in the browsers. Rather,
 the app delivery model requires users to place
 greater and more enduring trust in the developers.
 
-If the choice is between a web app with E2E encryption, or
-a web app without it, I would choose the latter. You should
+If the choice is between a web app without E2E encryption
+a web app with it, I would prefer to have it. You should
 be aware of the additional trust you place in the developers
 of this application, but that doesn't mean you shouldn't eschew
 the benefits completely.
@@ -300,7 +300,7 @@ them provide similar guarantees to native apps.
 
 ## Use Native Apps
 
-One obvious solution is to require les trust from your
+One obvious solution is to require less trust from your
 users, and simply provide a native application. Then you get
 all of the additional benefits we've enumerated previously.
 
