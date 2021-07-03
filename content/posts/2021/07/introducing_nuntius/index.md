@@ -9,7 +9,15 @@ tags:
   - "Security"
 ---
 
+Recently, I made a toy E2E encrypted messanger, called
+[nuntius](https://github.com/cronokirby/nuntius). I had fun tinkering
+on it, and thought that some of the cryptography involved would be
+fun to explain.
+
+<!--more-->
+
 # Application Overview
+
 
 # Key Exchange
 
