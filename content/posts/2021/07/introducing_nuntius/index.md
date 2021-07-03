@@ -8,3 +8,31 @@ tags:
   - "Cryptography"
   - "Security"
 ---
+
+# Application Overview
+
+# Key Exchange
+
+## X3DH
+
+## Setting up your keys
+
+## Starting a Session
+
+# Ratcheting
+
+## Single Key Limitations
+
+## Chains
+
+## Diffie-Hellman Ping Pong
+
+# Limitations
+
+## Session Based
+
+## No Contact Discovery
+
+## Limited Interface
+
+# Conclusion
