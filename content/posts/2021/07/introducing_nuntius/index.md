@@ -221,6 +221,45 @@ it by sending a new bundle.
 All of this management is transparent to how the application works,
 but is important from an implementor's perspective.
 
+## Signing and Exchange
+
+If you look at the keys we use for exchanges, you'll notice
+that we use $\text{IK}$ both for signing a pre-key, and for
+doing a Diffie-Hellman exchange. We need a dual purpose key,
+which most protocols don't provide. Signal recommends using
+an X25519 key, which makes exchange easy, and then converting
+it to an Ed25519 key for signing.
+
+I found it easier, at least in Go's ecosystem, to do the opposite.
+I use an Ed25519 key for identity, which makes it easy to sign,
+and then do the conversion to X25519 when an exchange happens.
+
+I won't go over exactly how this work, because
+Filippo Valsorda has a
+[great blog post](https://blog.filippo.io/using-ed25519-keys-for-encryption/)
+going over this. I could also make use of his
+equally great package
+[edwards25519](https://pkg.go.dev/filippo.io/edwards25519),
+in order to implement the following functions:
+
+```go
+func (priv IdentityPriv) toExchange() ExchangePriv {
+	hash := sha512.New()
+	hash.Write(priv[:32])
+	digest := hash.Sum(nil)
+	return digest[:curve25519.ScalarSize]
+}
+
+func (pub IdentityPub) toExchange() (ExchangePub, error) {
+	p := new(edwards25519.Point)
+	_, err := p.SetBytes(pub)
+	if err != nil {
+		return nil, err
+	}
+	return p.BytesMontgomery(), nil
+}
+```
+
 ## Starting a Session
 
 Signal is intended to be used in an asynchronous setting.
@@ -250,11 +289,138 @@ starting from the symmetric key you've derived.
 
 # Ratcheting
 
-## Single Key Limitations
+So, we have a symmetric key, and we can start encrypting data. Instead
+of using this key to encrypt every message we send, we're going
+to set things up to have a new key for each message. This reduces
+load on the key we've created, and requires active participation
+in order to compromise the conversation.
+
+We do this by setting up a ratchet. The idea is that we can easily
+move the ratchet forward, but not backwards. We use the ratchet
+to derive new message keys from previous keys. We can also perform
+new key exchanges, and use that to ratchet our keys forward as well.
+
+Signal calls this ratchet system, the
+[Double Ratchet](https://signal.org/docs/specifications/doubleratchet/).
+Once again, I'm not sure of the naming. I like to think that is
+because you have a standard ratchet to derive new message keys,
+but also a second layer using new exchanges to move things forward.
 
 ## Chains
 
+The basic idea of a single ratchet is that each time you want
+to encrypt a new message, you send your encryption key into
+a one way function, producing a new encryption key, and a one
+time key to use with that message. You can then use this new
+encryption key to produce a key for the message after that, and so on:
+
+{{<img "3.png">}}
+
+You create this chain where you produce new encryption keys,
+and spit out one time encryption keys for your message keys.
+Going forward along the chain is easy, but going backwards is
+exceedingly difficult.
+
+The suggestion for this particular part of the ratchet
+is to use an HMAC with SHA-256, and you encryption key,
+called a "Chain Key" in this context to key the hash:
+
+```go
+func kdfChainKey(ck chainKey) (chainKey, MessageKey, error) {
+	hash := hmac.New(sha256.New, ck)
+	_, err := hash.Write([]byte{0})
+	if err != nil {
+		return nil, nil, err
+	}
+	ck = chainKey(hash.Sum(nil))
+
+	hash.Reset()
+	_, err = hash.Write([]byte{1})
+	if err != nil {
+		return nil, nil, err
+	}
+	mk := MessageKey(hash.Sum(nil))
+
+	return ck, mk, nil
+}
+```
+
+Of course, other kinds of KDFs could be used. For example, you
+could use [BLAKE3](https://github.com/BLAKE3-team/BLAKE3),
+and simply use its KDF twice, with different contexts for the
+new chain and message key.
+
 ## Diffie-Hellman Ping Pong
+
+We can create an encryption chain to send messages starting
+from a chain key, the next step is to use new Diffie-Hellman
+exchanges in order to create new chains in a ratcheted way.
+
+After starting an exchange, we have our partner's signed prekey
+available. We can generate a new key pair, and perform
+an exchange in order to get a new chain key. Then we send
+our new public key along with our messages encrypted with this chain.
+Our partner will be able to recreate our chain by mirroring our
+exchange. They then create a new ephemeral key pair, in
+order to start an exchange for their sending chain, and so on:
+
+{{<img "4.png">}}
+
+(image courtesy of [Signal](https://signal.org/docs/specifications/doubleratchet/))
+
+There's a simple trick to remember how this works. When you send
+messages, you always create a new chain that your partner doesn't
+have a mirror of yet. It's only when they receive your new public
+key that they can mirror your sending chain, and decrypt your messages.
+Because of this, you always do two exchanges once the protocol
+is running. The first one matches the sending chain that you didn't
+have with a receiving, and the second creates an unmatched sending
+chain.
+
+Basically, your sending chain is always unmatched.
+
+Now, you don't just generate new chains from scratch. Rather,
+you use these exchange inputs to ratchet up new chains from previous
+chains, like this:
+
+{{<img "5.png">}}
+
+You use the exchange to derive a new chain key, but also a new
+root key. This is what creates a "double ratchet", because you have
+the ratcheting inside of each chain you create, but also
+a ratcheting process to derive new chains, guided by asymmetric
+exchanges.
+
+For this ratchet, the suggested choice is doing
+HKDF with SHA-256, using your root key as a salt, a context
+for your application, and the shared secret as key material.
+You then read out two keys worth of data from this hasher:
+
+```go
+func kdfRootKey(rk rootKey, dhOut exchangedSecret) (rootKey, chainKey, error) {
+	reader := hkdf.New(sha256.New, dhOut, rk, kdfRootKeyInfo)
+	rootKey := rootKey(make([]byte, rootKeySize))
+	chainKey := chainKey(make([]byte, chainKeySize))
+	_, err := io.ReadFull(reader, rootKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	_, err = io.ReadFull(reader, chainKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	return rootKey, chainKey, nil
+}
+```
+
+An alternate choice, once again illustrating BLAKE3, would
+be to do a keyed hash of the the exchanged secret, using the root key,
+and deriving two new keys with its KDF, each time using a different context.
+
+This was more of a colorful overview than a technical one. I'd
+recommend reading Signal's
+[Double Ratchet article](https://signal.org/docs/specifications/doubleratchet/)
+which explains all of this in sufficient detail to implement.
 
 # Limitations
 
