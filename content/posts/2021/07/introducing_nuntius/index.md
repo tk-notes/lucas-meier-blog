@@ -1,7 +1,7 @@
 ---
 title: "Introducing Nuntius"
-date: 2021-06-27T23:37:41+02:00
-draft: true
+date: 2021-07-05T12:14:09+02:00
+draft: false
 katex: true
 tags:
   - "Math"
@@ -10,7 +10,7 @@ tags:
 ---
 
 Recently, I made a toy E2E encrypted messanger, called
-[nuntius](https://github.com/cronokirby/nuntius). I had fun tinkering
+[Nuntius](https://github.com/cronokirby/nuntius). I had fun tinkering
 on it, and thought that some of the cryptography involved would be
 fun to explain.
 
@@ -20,17 +20,17 @@ fun to explain.
 
 I've called Nuntius an E2E encrypted messenger. You connect to a server,
 requesting to chat with a certain person. When that person connects
-to the server in turn, you can start sending messages to eachother.
-Calling this a messanger is perhaps a bit generous. It's more of
-a session based chat application, like IRC. I'd expect a messanger
+to the server in turn, you can send messages to each other.
+Calling this a messenger is a bit generous. It's more of
+a session based chat application, like IRC. I'd expect a messenger
 to support multiple users, and asynchronous messaging, but I'll
 get to this point later.
 
 For a more concrete overview, let's see what CLI commands are actually
-necessary to start chatting. Using the
+used to start chatting. Using the
 [kong](https://github.com/alecthomas/kong)
 library for command line option parsing, I've generated useful help
-screens for free, including the following splash screen:
+screens for free, including this one:
 
 ```txt
 → ./nuntius --help
@@ -66,10 +66,10 @@ The first step is generating a key pair, using `generate`:
 nuntiusの公開鍵3176cb883a9efd0e6002ed539dc6c03a504d982a47945e30fb0ac06e7dbc3b94
 ```
 
-This prints out your public identity. Your public identity defines
+This prints out your public identity. This defines
 who you are according to this system. You share this identity with
-people you want to chat with, and it allows them to contact you.
-This will save a corresponding private key in a local file.
+people you want to chat with, allowing them to contact you.
+This command saves a corresponding private key in a local file.
 This is actually an SQLite database, whose path is configurable,
 as shown by the command I've used. If you don't specify a path,
 then this file goes into your home directory.
@@ -104,7 +104,7 @@ for the server command.
 This command runs a Nuntius server:
 
 ```txt
-→ ./nuntius server 1234
+→ ./nuntius server 4000
 ```
 
 This takes a port as an argument, but will use `1234` as a default port
@@ -122,9 +122,8 @@ I shamelessly reimplemented.
 
 # Implementation
 
-I used Go for the implementation this time, mainly for a change in pace.
-I also wasn't implementing any primitives from scratch, just protocol
-level constructions. This meant exploring Go's ecosystem of
+I used Go for the implementation this time, mainly for a change of pace.
+I also didn't implement any primitives from scratch, only protocol-level constructions. This meant exploring Go's ecosystem of
 cryptography libraries, which was pretty fun.
 
 I might want to extend this little experiment into a more useful GUI app,
@@ -133,8 +132,8 @@ be to learn how to do things myself, not to rival with any other
 system.
 
 The rough idea of how the application works is simple. Two users
-know eachother by their identity key, so they can perform an
-exchange, deriving a shared secret. They can then use
+know each other by their identity key, so they can perform an
+exchange, deriving a shared secret. They then use
 that secret to encrypt their communication. Signal throws a twist
 in both the exchange, and the encryption. They use a more complicated
 exchange system, to reduce the security load on the long-lived
@@ -174,12 +173,12 @@ Using these keys, you perform an exchange like this:
 
 {{<img "1.png">}}
 
-This gives you 4 shared secrets, which you can then shove into
+This gives you 4 shared secrets, which you can then strain through
 a KDF to get a symmetric key. You can use this key to start encrypting
 data, or to start a more complicated ratcheting process, as we'll
 see later.
 
-In all honesty, I don't fully understanding the reasoning behind
+In all honesty, I don't fully understand the reasoning behind
 all of the keys involved here. I suspect that other variations
 of the scheme can provide the same guarantees. There
 are a few important ideas that
@@ -192,7 +191,7 @@ load on the main identity key, and signing it prevents
 an adversary from substituting their own one.
 
 I think there might be something going on with deniability,
-which might be way $\text{OPK}_B$ isn't signed. I'm not
+which might be why $\text{OPK}_B$ isn't signed. I'm not
 entirely certain if this is the reasoning though.
 
 ## Setting up your keys
@@ -212,8 +211,9 @@ with new bundles of $\text{OPK}$. The idea is that you generate,
 say, 100 of these ephemeral keys, and sign the whole package
 before sending it off to the server. The server can verify
 that you generated these keys, by checking the signature.
-This signature is of no use to attribute any of these ephemeral
-keys to you. Each time an exchange is done with you, you burn
+This signature is only valid for the entire bundle, and doesn't
+work for individual keys.
+Each time an exchange is done with you, you burn
 one of these one time keys, never using it again. If the supply
 of one time keys on the server dwindles, you can refresh
 it by sending a new bundle.
@@ -270,7 +270,7 @@ For the synchronous sessions, I had to adapt things a little bit.
 In Signal's model, you start messaging someone by performing an exchange,
 and then sending a message to Signal's server. The server dutifully
 stores it until the receiver is ready. I wanted to avoid a store-and-forward
-architecture here. Instead, I wait for to establish a synchronous
+architecture here. Instead, I wait to establish a synchronous
 connection before forwarding messages.
 
 This leads to a three way exchange:
@@ -291,7 +291,7 @@ starting from the symmetric key you've derived.
 
 So, we have a symmetric key, and we can start encrypting data. Instead
 of using this key to encrypt every message we send, we're going
-to set things up to have a new key for each message. This reduces
+to make a new key for each message. This reduces
 load on the key we've created, and requires active participation
 in order to compromise the conversation.
 
@@ -322,8 +322,8 @@ Going forward along the chain is easy, but going backwards is
 exceedingly difficult.
 
 The suggestion for this particular part of the ratchet
-is to use an HMAC with SHA-256, and you encryption key,
-called a "Chain Key" in this context to key the hash:
+is to use an HMAC with SHA-256, and your encryption key,
+called a "Chain Key" in this context, to key the hash:
 
 ```go
 func kdfChainKey(ck chainKey) (chainKey, MessageKey, error) {
@@ -346,14 +346,14 @@ func kdfChainKey(ck chainKey) (chainKey, MessageKey, error) {
 ```
 
 Of course, other kinds of KDFs could be used. For example, you
-could use [BLAKE3](https://github.com/BLAKE3-team/BLAKE3),
-and simply use its KDF twice, with different contexts for the
+could use [BLAKE3](https://github.com/BLAKE3-team/BLAKE3).
+You would simply use its KDF twice, with different contexts for the
 new chain and message key.
 
 ## Diffie-Hellman Ping Pong
 
-We can create an encryption chain to send messages starting
-from a chain key, the next step is to use new Diffie-Hellman
+We know how to create an encryption chain to send messages starting
+from a chain key. The next step is to use new Diffie-Hellman
 exchanges in order to create new chains in a ratcheted way.
 
 After starting an exchange, we have our partner's signed prekey
@@ -385,7 +385,9 @@ chains, like this:
 
 {{<img "5.png">}}
 
-You use the exchange to derive a new chain key, but also a new
+(image courtesy of [Signal](https://signal.org/docs/specifications/doubleratchet/))
+
+You use the exchange to derive not just a new chain key, but also a new
 root key. This is what creates a "double ratchet", because you have
 the ratcheting inside of each chain you create, but also
 a ratcheting process to derive new chains, guided by asymmetric
@@ -438,7 +440,7 @@ work on things I didn't feel like focusing on for this project.
 
 The main limitation of this CLI tool is that it's fundamentally
 session based. You and your friend need to be connected to the
-same server at the same time, and chatting with eachother. You can't
+same server at the same time, and chatting with each other. You can't
 maintain multiple conversations at the same time, besides just opening
 multiple versions of Nuntius in different terminals, each of which
 creates a new connection to the server.
