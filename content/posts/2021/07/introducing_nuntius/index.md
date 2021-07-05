@@ -424,10 +424,83 @@ which explains all of this in sufficient detail to implement.
 
 # Limitations
 
+I've promised to tell you about the limitations of this application exactly
+twice so far. In fact, I've already told you about them twice,
+teasing you about their full extent. I'm teasing you a third time right now.
+
+The limitations are there because I wanted to focus on the E2E encryption
+aspects, mainly implementing X3DH and the Double Ratchet. Signal's
+protocols are fundamentally designed around asynchronous communication,
+and implementing that to its fullest extent would have been a lot more
+work on things I didn't feel like focusing on for this project.
+
 ## Session Based
+
+The main limitation of this CLI tool is that it's fundamentally
+session based. You and your friend need to be connected to the
+same server at the same time, and chatting with eachother. You can't
+maintain multiple conversations at the same time, besides just opening
+multiple versions of Nuntius in different terminals, each of which
+creates a new connection to the server.
+
+A full-blown messanging app would require talking to multiple people
+in a convenient interface, as well as being able to send messages
+when a person is offline, having them delivered later. 
+
+It would also be nice to have support for messaging people
+in a group. Id est, group messages. I think Signal does this
+by actually setting up $N - 1$ 2-way communication channels
+between each pair of members in the group. There's also other potential
+solutions, like [MLS](https://messaginglayersecurity.rocks/),
+although the Euro competition has gotten much more attention recently.
+
+## Lost Messages
+
+The chain structure allows you to keep around old message keys,
+in case you receive messages out of order. If each message also includes
+its number, you can match it up with the right key.
+
+I haven't implemented anything like this.
+
+Why? I didn't feel like it.
+
+If this were a real app, this would something you'd want. With asynchronous
+messages, out-of-order delivery becomes lot more likely. With
+the very synchronous model I'd explicitly downgraded to, this reordering
+shouldn't really happen, and would crash the session quickly,
+allowing both users to just restart it, since they're already online.
 
 ## No Contact Discovery
 
+The system I've made also identifies users directly with their identity
+keys, which is a cheap cop-out to avoid dealing with the complicated
+problem of associating cryptographic identities with real people.
+
+Nuntius basically tells you to go solve the problem yourself,
+and figure out what identities your friends have, by asking them.
+Once you know what identity John has for Nuntius, you can save
+it with the CLI.
+
+A tangentially related limitation is that there's no support
+at all for multiple devices, although in theory if you were to copy
+your local database from one machine to another, things should just work.
+
 ## Limited Interface
 
+There's also the fundamental limitation of using a CLI tool
+instead of a full blown GUI app. I actually do like the idea
+of making a pretty GUI along with all of the expected features,
+but this would be a small exercise in cryptography,
+a medium exercise in desiging application protocols,
+and a large exercise in making GUIs.
+
 # Conclusion
+
+In summary, I made a CLI tool for session based E2E encrypted
+messaging. I had a lot of fun implementing the cryptographic
+protocols. I dare say that I actually understand how the Double Ratchet
+works. I dare not say that I understand why X3DH is the way it is.
+Perhaps it's better that my little toy isn't very intuitive,
+or easy to use. That way, people won't use it.
+
+Use Signal :).
