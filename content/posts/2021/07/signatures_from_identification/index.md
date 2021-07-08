@@ -14,10 +14,10 @@ is a way to prove your identity.
 
 <!--more-->
 
-In fact, you can even develop such a scheme from first principles,
+In fact, you can develop such a scheme from first principles,
 arriving at a deterministic signature scheme, commonly
 known as "Schnorr Signatures". I'll be trying
-to demonstrate that in this post. I hope this shows that
+to demonstrate that in this post. I hope to show that
 this signature system was too obvious to be patented.
 
 That being said, I am not a lawyer.
@@ -26,7 +26,7 @@ That being said, I am not a lawyer.
 
 You arrive at "the club". The bouncer asks you, "what's the secret password?".
 You tell him the "secret password".
-Now he knows that you are indeed a member of "the club".
+He now knows you are indeed a member of "the club".
 The bouncer knows this, because you know the "secret password".
 
 What you *know* is a great way to prove *who* you are.
@@ -34,10 +34,10 @@ What you *know* is a great way to prove *who* you are.
 Like many serious topics in security,
 we start with a game. The game involves a challenger,
 and yourself. You want to prove who you are to this challenger. You
-do this by exchanging messages with eachother. We call this game
+do this by exchanging messages with eacho ther. We call this game
 an "identification protocol". At least, I do.
 
-The simplest protocol we can attempt follows the club analogy.
+The simplest protocol follows the club analogy.
 We know some secret $\textcolor{red}{a}$. If a challenger wants
 to check who we are, we can prove our identity by showing
 that we know our this secret. The simplest way to do this is to
@@ -56,13 +56,13 @@ $$
 
 There are numerous problems with this scheme.
 
-The first is there's no clear way to verify our identity. One setup
-we might have is to share a secret amoung members of some group.
-Then members can present this secret amongst themselves to verify
-membership.
+First, there's no simple way to verify our identity.
+We could share a secret among members of some group.
+Members could then present this secret amongst themselves to verify
+membership. But we can't prove our identity to a non-member.
 
-The other problem is that we leak a secret every time we perform
-the protocol. We don't want to leak secret information.
+The other problem is that we leak our secret every time we perform
+the protocol. We don't want to leak our secret.
 
 One way to avoid this is to mask our secret with another random value:
 
@@ -79,45 +79,54 @@ $$
 \end{aligned}
 $$
 
-Now our proof of identity $\textcolor{blue}{s}$ can be shared publicly,
+Our proof of identity $\textcolor{blue}{s}$ can be shared publicly,
 without revealing our secret. This is because masking our secret
 using the xor ($\oplus$) operation makes it look completely random.
-Addition or multiplication modulo some number $L$ would also work:
+
+Addition modulo some number $L$ would also work:
 
 $$
 \textcolor{blue}{s} := \textcolor{red}{k} + \textcolor{red}{a} \mod L
 $$
 
-The key problem with this scheme is that while we don't reveal our
-secret, there's no way to verify this proof. Since the challenger has no
-information about $\textcolor{red}{k}$, the value $\textcolor{blue}{s}$
+{{<note>}}
+In fact, modular *multiplication* would also work, provided
+we pick a number coprime to the modulus $L$.
+{{</note>}}
+
+The problem with this scheme is that our proof can't be verified.
+The challenger has no
+information about $\textcolor{red}{k}$. The value $\textcolor{blue}{s}$
 looks completely random to them. They can't verify that we know
 $\textcolor{red}{a}$.
 
-You also can't reveal $\textcolor{red}{k}$,
-without also allowing the challenger to compute:
+We can't reveal $\textcolor{red}{k}$
+without allowing the challenger to compute:
 $$
 \textcolor{red}{a} = \textcolor{blue}{s} - \textcolor{red}{k}
 $$
+
+We're at a bit of an impass.
 
 # A Technical Leap of Faith
 
 This section presents a jump in our technical tools. We introduce
 a cyclic group $\mathbb{G}$, of order $L$, and with generator $G$.
 Our hypothesis is that if we have a scalar $x \in \mathbb{Z}/(L)$,
-then calculating the element $H = x \cdot G$ is easy, but given $H'$,
+then calculating the element $H = x \cdot G$ is easy. But, given $H'$,
 finding
 what $x'$ is needed to produce $H' = x' \cdot G$ is very difficult.
 This problem is called the "Discrete Logarithm Problem".
-There are groups for which the problem is obviously easy,
-like $\mathbb{Z}/(N)$. There are also groups where we believe this
+There are groups where we know the problem is very easy,
+like $\mathbb{Z}/(N)$. There are also groups where we *believe* this
 problem is very hard. The main kind of group we use now is
 a group of points on an Elliptic Curve.
 
 If medium sized Quantum Computers come to exist, they will be able
 to efficiently solve Discrete Logarithms.
 
-I don't believe this a problem we'll have to deal with for at least 20 years.
+I don't believe this is
+a problem we'll have to deal with for at least 20 years.
 
 Using a group is a breakthrough. This is because we can safely
 share $\textcolor{blue}{K} = \textcolor{red}{k} \cdot G$, even
@@ -149,8 +158,8 @@ $$
 $$
 
 We now have both a private key, $\textcolor{red}{a}$, and a public
-key, $\textcolor{blue}{A}$. Our public key acts as our identity,
-and the identification scheme lets us prove that know the corresponding
+key, $\textcolor{blue}{A}$. Our public key acts as our identity.
+The identification scheme lets us prove that know the corresponding
 private key.
 
 We also have an equation to verify the validity of our proof.
@@ -169,23 +178,24 @@ when added to it. But, we can allow the challenger to verify our
 operation, by providing a public commitment $\textcolor{blue}{K}$
 to this random mask. This shifts a verification of a property
 of our secrets $\textcolor{red}{k}$ and $\textcolor{red}{a}$
-into a verfication about our public values
+into a verification about our public values
 $\textcolor{blue}{K}$ and $\textcolor{blue}{A}$.
 
 There is one big flaw in this scheme though. Our challenger can reuse
 our proof to impersonate us.
 
 After seeing $\textcolor{blue}{K}$ and $\textcolor{blue}{s}$,
-they can play this game with another challenger, and simply
-reuse these values. This allows them to convince a challenger
+they can play this game with another challenger. If they just reuse
+these values, they will win the game.
+his allows them to convince a challenger
 that they know the secret associated with $\textcolor{blue}{A}$.
 
-The problem stems from the fact that challengers don't act
+The problem is that challengers don't act
 any differently, so the answer to one challenger's question
 can be used for any other challenger.
 
-To fix this, we can have the challenger randomize their challenge,
-and force us to incorporate this randomness into a proof of identity
+To fix this, we can have the challenger randomize their challenge.
+Now we have to use this randomness to make a proof of identity
 tailored to this request:
 
 $$
@@ -215,7 +225,7 @@ $$
 \end{aligned}
 $$
 
-Now our challenger supplies us with a unique bit of randomness
+Our challenger gives us a unique bit of randomness  that
 we need to use when producing our proof. This means that the result
 of one game can't be reused again, since the challenger will be
 supplying a different value for $\textcolor{green}{u}$.
@@ -240,7 +250,7 @@ a devilish commitment.
 
 If we choose $\textcolor{blue}{s} \stackrel{R}{:=} \mathbb{Z}/(L)$,
 and then commit to
-$\textcolor{blue}{K} := \textcolor{blue}{s} \cdot G - \textcolor{green}{u} \cdot \textcolor{blue}{A}$, then our proof will clearly be accepted,
+$\textcolor{blue}{K} := \textcolor{blue}{s} \cdot G - \textcolor{green}{u} \cdot \textcolor{blue}{A}$, then our proof will be accepted,
 despite us not using any secrets at all. Because of this, it's very important
 that $\textcolor{green}{u}$ is chosen after $\textcolor{blue}{K}$.
 In fact, we shouldn't be able to figure out what $\textcolor{green}{u}$
@@ -251,12 +261,14 @@ Thanks to [Adrian Hamelink](https://twitter.com/adr1anh/status/14124205969741619
 
 # A Conceptual Leap of Faith
 
-At this point we have secure identification scheme. A challenger
+At this point we have a secure identification scheme. A challenger
 can verify that you are who you claim to be. At least, they can
 verify that you own the corresponding secret for a public key.
 This protocol is dynamic. The transcript for one challenge can't
-be reused for another challenge. This is similar to what we want for
-a signature. The transcript of a signature should show that the owner
+be reused for another challenge.
+
+This is similar to what we want for
+a signature. The data of a signature should show that the owner
 of a public key signed off on this specific message. This signature
 should be unusable for any other message.
 
@@ -277,8 +289,8 @@ you successfully proved your identity to the message.
 This acts as a way of signing a message.
 
 Operationally, this means replacing choices made by a challenger,
-with deterministic, but unpredictable, functions of the message,
-and whatever knowledge the challenger has at that point. To do this,
+with deterministic, but unpredictable, functions of the message
+and whatever knowledge it has at that point. To do this,
 we use hash functions.
 
 A Cryptographic hash function has many useful
@@ -371,7 +383,8 @@ It would be fine if running our protocol on the same message
 again produced the same signature. That might even be desirable.
 
 What we actually need is for $\textcolor{red}{k}$ to be unpredictable,
-based on the message $M$, and also based on our control $\textcolor{blue}{A}$,
+based on the message $M$, and also based on our control of
+$\textcolor{blue}{A}$,
 i.e. based on $\textcolor{red}{a}$.
 
 One straightforward solution is to choose:
@@ -381,7 +394,7 @@ $$
 $$
 
 Even better would be to use a specialized *keyed hash*, designed
-for this specific kind of thing:
+for this specific use case:
 
 $$
 \textcolor{red}{k} := H_{\textcolor{red}{a}}(M)
@@ -399,7 +412,7 @@ One problem is that we now use our key $\textcolor{red}{a}$
 in two ways. As a key for a hash, and as a scalar for generating
 the signature. It's generally a bad idea to use a key for multiple
 purposes. Instead, you should use a single master key,
-and then use a "key derivation function (KDF) to derive new single-purpose
+and then use a "key derivation function" (KDF) to derive new single-purpose
 keys for your different use cases.
 
 This means having two KDFs, $\text{KDF}_1$, and $\text{KDF}_2$, and then
@@ -415,8 +428,8 @@ $$
 
 (Note that in practice, you can use a single KDF function, and
 pass a different "context string" to derive different key values
-for different purposes. Note also that KDFs are usually just wrapper
-functions built simply from hash functions).
+for different purposes. Note also that KDFs 
+are often simple wrappers around hash functions).
 
 At this point, we can use $\textcolor{red}{a}$ as we did before,
 and then use $\textcolor{red}{hk}$ exclusively for generating
