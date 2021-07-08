@@ -485,3 +485,25 @@ they are.
 Hopefully I've conveyed some of that fun in this post.
 
 # Addendum: Patents
+
+Unfortunately, while this signature scheme is exceedingly natural,
+it was covered by
+[a patent](https://patents.google.com/patent/US4995082A/en),
+filed by Claus Schnorr, from 1991 until 2008. Did this have the effect
+of rewarding Schnorr for his invention, through licensing? No.
+
+Instead, it lead to the creation of a different scheme for
+signatures: [DSA](https://www.wikiwand.com/en/Digital_Signature_Algorithm).
+This scheme has arbitrary modifications designed to skirt existing
+patents. At least, some people have intuited that.
+
+Personally, I think DSA is an ugly scheme compared to the more natural
+Schnorr signatures. It is not only aesthetics, but the shape of DSA
+makes building more complicated extensions difficult. Thresholdizing
+Schnorr Signatures is easy, but thresholdizing DSA is substantially
+trickier.
+
+Patents are intended to spur innovation. In this case, innovation
+was necessary avoid the arbitrary roadblocks imposed by patents.
+
+I don't think patents are the right tool for incentivizing innovation in Cryptography.
