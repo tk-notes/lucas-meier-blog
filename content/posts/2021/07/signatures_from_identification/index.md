@@ -1,7 +1,7 @@
 ---
 title: "Signatures From Identification Schemes"
-date: 2021-07-07T14:34:16+02:00
-draft: true
+date: 2021-07-10T09:33:56+02:00
+draft: false
 katex: true
 tags:
   - "Math"
