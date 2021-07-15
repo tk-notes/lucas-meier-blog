@@ -118,6 +118,31 @@ more efficiently.
 
 # Phase Finding
 
+Let's move from an abstract point of view to a more concrete one.
+Here, I'll try to illustrate the *phase finding* algorithm, in a conceptual
+way. Going over the complete technical details would be beyond
+the scope of this post, but we can taste some of the algorithm's
+flavor nonetheless.
+
+We start with some unitary operator $U$, and an eigenvector $\ket{u}$
+of this operation, such that:
+
+$$
+U \ket{u} =\ \circlearrowleft(\varphi) \ket{u}
+$$
+
+{{<note>}}
+Here I use the notation:
+
+$$
+\circlearrowleft(\varphi) := e^{2 \pi i \varphi}
+$$
+{{</note>}}
+
+The phase finding algorithm takes in this eigenvector $\ket{u}$,
+and returns a ket $\ket{\hat{\varphi}}$, an $N$ bit approximation
+to the phase $\varphi$. 
+
 # Grover's Search
 
 # Conclusion
