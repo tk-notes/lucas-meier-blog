@@ -1,7 +1,7 @@
 ---
 title: "Quantum Computing: Some Analogies"
-date: 2021-07-10T09:34:05+02:00
-draft: true
+date: 2021-07-18T11:57:50+02:00
+draft: false
 katex: true
 tags:
   - "Math"
