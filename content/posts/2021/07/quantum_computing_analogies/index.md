@@ -8,15 +8,16 @@ tags:
   - "Quantum Computing"
 ---
 
-I've come up with a few intuitive ways of thinking about algorithms 
-on quantum computers. This post is about explaining a few of those.
+I've developed a few intuitions about algorithms on quantum computers.
+This post is an attempt to share them.
 
 <!--more-->
 
 # Treasure in a Pond
 
-Here's an analogy that came to me when I was taking a walk in the forest.
-This is now my go-to analogy to explain the difference between classical
+Here's an analogy that came to me while taking a walk.
+This has become my preferred example
+to explain the difference between classical
 computing and quantum computing.
 
 Let's say there's a shallow pond. There's a treasure chest hidden somewhere
@@ -27,13 +28,15 @@ through the water.
 
 The classical computing approach to finding the chest is to
 use a stick to prod the pond at different locations,
-until you end up hitting the chest.
+until you end up hitting the chest. You'll have to do a lot of prodding.
+Essentially, you'll need to prod every region of the pound.
 
 {{<img "2.png">}}
 
 The quantum computing approach is to throw a stone in the pond, and then
 observe how the ripples behave. The chest will cause a perturbation in
-the ripples, revealing its location.
+the ripples, revealing its location. Unlike with the prodding approach,
+you only need to perform a single action to find the answer to your problem.
 
 {{<img "3.png">}}
 
@@ -44,12 +47,13 @@ for some problems.
 The key difference is that classical computing has to work
 with local information. You can only prod the pond at selected points.
 Quantum computing, on the other hand, can make use of global information
-about the problem. At least, in some situations, the problem yields
-itself to global investigation. In this situation, the chest is kind
+about the problem. At least, for some problems.
+Certain problems have easily exploitable global properties.
+In this situation, the chest is kind
 enough to perturb the ripples in the pond.
 
 On the other hand, if we were searching for a chest at the bottom of a lake,
-then our ripples wouldn't be affected at all, and we'd be back to prodding,
+our ripples wouldn't be affected at all, and we'd be back to prodding,
 albeit with a longer stick.
 
 I wrote this post for the sole purpose of getting this analogy of my chest.
@@ -59,7 +63,7 @@ illustration of some problems in quantum computing.
 # No, you can't just try all possibilities at once
 
 A classical bit is either $0$ or $1$. A qubit can be $\ket{0}$, or $\ket{1}$,
-but more generally, an arbitrary superposition of the two:
+or, more generally, an arbitrary superposition of the two:
 
 $$
 \alpha \ket{0} + \beta \ket{1}
@@ -90,7 +94,7 @@ The problem is that if you measure this state, you don't get information
 about all of these possibilities. You just sample one of these possibilities
 uniformly.
 
-If a create a super position of my inputs, apply a function, and then measure,
+If I create a super position of my inputs, apply a function, and then measure,
 all I get is information about one application of the function. This is
 no better than the classical case.
 
@@ -98,7 +102,7 @@ What allows quantum computing to gain any advantage is *interference*.
 The difference between quantum superpositions and simple stochastic
 variables lies in negative probabilities. A superposition can have
 negative probabilities for certain states. This allows the transformation
-on your superposition to have certain states cancel each other out.
+on your superposition to cause certain states to cancel each other out.
 This cancellation, crucially, will depend on the *global* properties
 of the function you're applying to this superposition.
 
@@ -114,7 +118,8 @@ the shaking in just the right way, so as to reveal its location.
 
 The takeaway is that quantum computing can explore certain global properties
 of functions
-more efficiently.
+more efficiently, but requires the function involved to have a lot
+of structure.
 
 # Phase Finding
 
@@ -140,11 +145,12 @@ $$
 {{</note>}}
 
 The phase finding algorithm takes in this eigenvector $\ket{u}$,
-and returns a ket $\ket{\hat{\varphi}}$, an $N$ bit approximation
-to the phase $\varphi$. 
+and returns a ket $\ket{N \varphi}$, an $N$ bit approximation
+to the phase $\varphi$. By convention, we often write $\varphi$
+as $0, 1, \ldots$ instead of $0, 1 / N, \ldots$.
 
 The key to implementing this algorithm is an operation called
-the *Quantum Fourier Transform*. This transformation takes a numbered
+the *Quantum Fourier Transform* (QFT). This transformation takes a numbered
 state $\ket{x}$, taken out of $N$ possible states
 $\\{\ket{0}, \ldots, \ket{N- 1}\\}$. The result is a superposition
 of states, with a tweaked phase based on $\ket{x}$:
@@ -185,10 +191,14 @@ In general, we wrap around the phases $x$ times:
 
 {{<img "5.png">}}
 
+I like to think of each of these states as a *coiling*. Each state
+involves a series of phases wrapping around the unit circle.
+
 The QFT turns a number $\ket{x}$, into this coiling. We can also
 undo this coiling, going from an entangled state to a single number.
 
-The idea of the phase finding algorithm is to setup this coiling,
+The idea of the phase finding algorithm is to setup this coiling
+to wrap around $\varphi$ times,
 giving us the state:
 
 $$
@@ -295,15 +305,31 @@ $$
 (\ket{0} + \circlearrowleft(\varphi / 4) \ket{1})
 $$
 
-Each of the qubits is setup in a similar way, we just have apply
-the controlled gate $U$ with a different power of two. This generalizes
-easily to an arbitrary number of qubits, we just need to use higher
+Each of the qubits is setup in a similar way, we just have
+to apply a controlled $U^2$ gate, instead
+of a $U$ gate. We can do this with two controlled $U$ gates.
+This generalizes
+easily to an arbitrary number of qubits, we just need to use successive
 squarings of the gate $U$.
 
+The magic is that while we don't know $\varphi$ itself, we know
+that it's hidden in $U$. We can even tease it out, by using $\ket{u}$:
+
+$$
+U \ket{u} = \circlearrowleft (\varphi) \ket{u}
+$$
+
+The problem is that we can't directly observe the phase in front
+of a state. Measuring will destroy this information. But, if we instead
+manipulate our state into a coiling of $\varphi$, we can turn
+this phase information into state information, through an inverse
+QFT.
+
 To summarize, phase finding works by using the properties
-inherent to our operation $U$ in order to perturb a superposition
-in such a way to give us a neatly coiled state, which we can
-then uncoil, in order to discover a characteristic property of $U$.
+inherent to our operation $U$ in order to perturb
+our superposition. We end up with a state coiled
+up in just the right way. We can then uncoil this state, and
+discover this characteristic property of $U$.
 
 # Conclusion
 
@@ -312,4 +338,5 @@ ponds. I think I'll be keeping that one tucked in my pocket for when
 a hypothetical person asks me what makes Quantum Computing more
 efficient for certain problems.
 
-Hopefully, I've been able to impart some intuition through these analogies.
+I hope that I've been able to impart some intuition through these analogies,
+and that the details I did include were helpful.
