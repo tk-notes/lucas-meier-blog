@@ -305,6 +305,11 @@ inherent to our operation $U$ in order to perturb a superposition
 in such a way to give us a neatly coiled state, which we can
 then uncoil, in order to discover a characteristic property of $U$.
 
-# Grover's Search
-
 # Conclusion
+
+If there's one thing to take away from this post, it's the analogy about
+ponds. I think I'll be keeping that one tucked in my pocket for when
+a hypothetical person asks me what makes Quantum Computing more
+efficient for certain problems.
+
+Hopefully, I've been able to impart some intuition through these analogies.
