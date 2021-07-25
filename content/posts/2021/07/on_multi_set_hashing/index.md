@@ -1,7 +1,7 @@
 ---
 title: "On Multi-Set Hashing"
-date: 2021-07-24T09:49:36+02:00
-draft: true
+date: 2021-07-25T20:48:14+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -15,16 +15,16 @@ is surprisingly easy.
 
 # The Problem
 
-Recently, I curiously asked a question on Twitter:
+The other day, I got curious enough to ask a question on Twitter:
 
 {{<img "1.png">}}
 
-A typical hash function takes some data, usually in the form of
-a sequence of bytes, and outputs a succint digest. Any slight
-change to the data causes a large change in the digest.
+A typical hash function takes some data, usually just bytes,
+and outputs a succint digest of bits. A slight
+change to the data creates a large change in the digest.
 
 Here, I'm asking if you can design a hash function for a *set*
-of objects. Such that the order you hash in doesn't matter. For example,
+of objects. The order you hash the objects in shouldn't matter. For example,
 
 $$
 H(\\{a, b, c\\})
@@ -36,33 +36,34 @@ $$
 H(\\{c, a, b\\})
 $$
 
-One simple way to accomplish this is to sort your objects before
+A simple solution is to sort your objects before
 passing them to the hash function. For example,
 you'd sort $\\{c, a, b\\}$ to get the ordering $\\{a, b, c\\}$,
-and then pass that to the hash function. This would make the ordering
-of objects not matter, since you normalize everything before
+and then pass that to the hash function. The initial ordering
+no longer matters, because you convert to a standard ordering before
 using the hash function.
 
-Normal hash functions accept incremental input. If you want to hash
-a 2GB file, you don't need to have the whole file in memory.
+Hash functions can work incrementally. If you want to hash
+a 2GB file, you don't need to keep the whole file in memory.
 Instead, you can feed the hash function small chunks of the file,
 and end up with the same result as feeding in the entire 2GB of
 data at once.
 
-The problem with sorting the objects before feeding them into the
-hash function is that we lose this incremental property. We
-need to keep a large sorted collection until we've seen all
-of the objects.
+Having to sort our objects before feeding them into the hash function
+loses this incremental property. We have to keep a large sorted
+collection around until we see all the objects.
 
 What I was looking for in this tweet was a hash function that
-could accept objects directly as they arrived, but where
-the final result wouldn't depend on the order of arrival,
-only which objects had arrived.
+could accept objects directly as they arrived. The final
+would only depend on which objects they arrived, and not
+on their ordering.
 
 We could also extend this function to *multi-sets*, where each
 object can appear multiple times. We'd want the same incremental
-property, where the result would now depend only on the objects
-we've seen, and how many times we've seen them.
+property, of course. Our hash function would care only
+about which objects it sees, and how many times it sees them.
+
+I was genuinely stumped on this problem for a while.
 
 Thankfully, [Samir](https://twitter.com/SamirTalwar) raised my
 awareness to a paper {{<ref-link "1">}} addressing this exact problem!
@@ -74,7 +75,7 @@ awareness to a paper {{<ref-link "1">}} addressing this exact problem!
 The paper presents a few different hash functions. They're surprisingly
 simple, and can be easily built up from first principles.
 
-The general approach to hashing a collection of objects is to use
+The general approach to hashing a collection of objects starts with
 a hash function $H$ for individual objects.
 Then, we can construct a collection hashing function $\mathcal{H}$
 by hashing each object with $H$, and combining the results in some way.
@@ -99,21 +100,20 @@ we want. As we encounter each new object, we can simply hash it,
 and then xor the hash into our current state.
 
 Unfortunately, this hash function doesn't work with multi-sets. For example,
-if we have $\\{a, a\\}$, then our hash is $H(a) \oplus H(a) = 0$.
+if we have the set $\\{a, a\\}$, then our hash is $H(a) \oplus H(a) = 0$.
 This is the same as hashing an empty set, or hashing $\\{b, b\\}$,
-and many other examples. This makes it easy to find collisions if
-we allow multi-sets.
+and many other examples. Allowing multi-sets makes for easy collisions.
 
-This is a minor issue, because we can simply restrict our hash function
+This is a minor issue. We can simply restrict our hash function
 to work on sets, like my original tweet asked for.
 
 A larger problem is that it's easy to create a collision with any hash.
 
-You can see the set of bit strings $\\{0, 1\\}^n$ is a vector
+You can see the set of bit strings $\\{0, 1\\}^n$ as a vector
 space $\mathbb{F}_2^n$. Vector addition $+$ corresponds to $\oplus$.
-An intuitive fact, which I won't bother to prove, is that if you
-have $\approx 2n$ random vectors in this space, you have an overwhelming
-probability of beiung able to form a basis using some of these vectors.
+An intuitive fact, which I won't bother to prove, is that
+with $\approx 2n$ random vectors in this space, you have an overwhelming
+probability of being able to form a basis using some of these vectors.
 Given a basis $h_1, \ldots, h_n$, any other vector $v$ can be written
 
 $$
@@ -125,9 +125,9 @@ for some subset $I$ of $\\{1, \ldots, N\\}$.
 In other words, with approximately $2n$ hashes, we can write any other
 hash as the $\oplus$ of a subset of these hashes.
 
-The attack is to first calculate $H(x)$ for $\approx 2n$ objects,
+More concretely, you first calculate $H(x)$ for $\approx 2n$ objects,
 which then lets you create collisions for any hash value, by
-choosing the appropriate subset of the initial objects.
+choosing the appropriate subset of these objects.
 
 The solution is to augment this hash with a nonce, so that you
 can't build up this basis in advance.
@@ -143,14 +143,14 @@ where $\rho$ is a nonce incremented, or generated randomly, each
 time we use the hash function.
 
 $H(0, \cdot)$ and $H(1, \cdot)$ can be built from $H$ in different ways, such as
-built-in key derivation functions that accept a context, like with
+built-in key derivation functions that accept a context, like
 BLAKE3, or HMAC modes, etc. The important thing is that $\rho$ will
 never collide with the objects we're hashing, because of the domain
 separation.
 
 This tweak means that comparing two hashes isn't just a matter of equality,
 since the nonces will be different. To check if $\rho_1 \ ||\ h_1
-= \rho_2 \ ||\ h_2$, we pick a new nonce $\rho$, and then check that:
+= \rho_2 \ ||\ h_2$, we verify:
 
 $$
 h_1 \oplus H(0, \rho_1) = h_2 \oplus H(0, \rho_2)
@@ -158,7 +158,7 @@ $$
 
 Unfortunately, there's still a little issue. Since the function
 $H$ is known, we can create collisions once again, simply by producing
-hashes with a nonce of $0$. Or really, just tweak our collision production
+hashes with a nonce of $0$. We could also tweak our collision production
 for a specific nonce of our choosing.
 
 The somewhat dislikeable approach chosen by the paper is to
@@ -166,7 +166,7 @@ use a keyed hash function $H_k$ instead. Without the key,
 we're unable to calculate the hash in advance, and thus unable
 to produce our collision basis.
 
-What makes this quite incovenient is that you now need a key
+What makes this incovenient is that you now need a key
 to verify the hash function as well, which is quite a departure
 from the original goal we set out.
 
@@ -213,7 +213,7 @@ $K$ perfectly masks any other element $M$. Given $C = K + M$,
 for any chosen element $M$, the element $K = C - M$ satisfies
 this equation. There's always a random mask that could turn
 $M$ into $C$, regardless of what $M$ is. This means that knowing
-$C$ gives us no informationa bout $M$, if we don't know $K$.
+$C$ gives us no information about $M$, if we don't know $K$.
 
 The other reason is that the discrete logarithm is hard. This
 means that if we observe $m(x) \cdot H(x)$, we can't figure
@@ -234,8 +234,7 @@ bits or so, which is an overwhelmingly large multiplicity.
 
 This was such a simple idea that I wanted to try my hand at
 implementing it. To do this, I had to choose a concrete
-group $\mathbb{G}$. I ended up going with [Ristretto](https://ristretto.group/)
-, a prime order Elliptic Curve group based on Curve25519, mainly
+group $\mathbb{G}$. I ended up going with [Ristretto](https://ristretto.group/), a prime order Elliptic Curve group based on Curve25519, mainly
 because the Rust implementation had a convenient function
 to convert from a 512 bit hash to a point on the curve.
 
