@@ -10,6 +10,6 @@ description: ""
 link: "https://github.com/cronokirby/multiset-hash"
 ---
 
-A simple hash function that can hash sets incrementally.
+A simple incremental hash function for multi-sets.
 The result of the function depends only on what objects
 are passed into the function, and not the order they appear.
