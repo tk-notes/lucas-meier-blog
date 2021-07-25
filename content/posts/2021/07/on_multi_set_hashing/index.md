@@ -232,7 +232,63 @@ bits or so, which is an overwhelmingly large multiplicity.
 
 # A Concrete Implementation
 
+This was such a simple idea that I wanted to try my hand at
+implementing it. To do this, I had to choose a concrete
+group $\mathbb{G}$. I ended up going with [Ristretto](https://ristretto.group/)
+, a prime order Elliptic Curve group based on Curve25519, mainly
+because the Rust implementation had a convenient function
+to convert from a 512 bit hash to a point on the curve.
+
+I also think that having a group that isn't of prime order might
+lead to potential issues with collisions, but I haven't thought
+all that much about it. Regardless, better safe than sorry.
+
+It only took me two evenings to code up, and I ended up
+releasing the hash function as a [tiny crate](https://crates.io/crates/multiset-hash). The [source code](https://github.com/cronokirby/multiset-hash)
+is also available, as usual.
+
+One neat thing about the implementation is that the hash function
+works using any 512 bit hash as a primitive. In the examples,
+I've used SHA-512, but you could use BLAKE3 too, for example.
+
+The API is pretty straightforward. For example, to hash
+the set $\\{\text{cat}, \text{cat}, \text{dog}, \text{dog}\\}$,
+you'd do:
+
+```rust
+let mut hash = RistrettoHash::<Sha512>::default();
+hash.add(b"cat", 2);
+hash.add(b"dog", 2);
+```
+
+Of course, you could hash things in a different order, and with
+a different grouping, but still get the same result:
+
+
+```rust
+let mut hash = RistrettoHash::<Sha512>::default();
+hash.add(b"dog", 1);
+hash.add(b"cat", 1);
+hash.add(b"cat", 1);
+hash.add(b"dog", 1);
+```
+
+There's not much else I have to say. If this looks interesting,
+you might want to check out
+[the crate](https://crates.io/crates/multiset-hash),
+or read [the code](https://github.com/cronokirby/multiset-hash/blob/main/src/lib.rs), which have
+ample documentation.
+
+
 # Conclusion
+
+I like this solution, because it's so obvious that you forget
+how the question was ever unsolved to begin with. But really,
+when I first asked the question, I was genuinely stumped. Reading
+that paper and stumbling upon the group solution was a kind of eureka
+moment.
+
+Hopefully I've shared some of that with you today.
 
 # References
 
