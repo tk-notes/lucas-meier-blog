@@ -1,12 +1,12 @@
 ---
 title: "Eddo"
-date: 2021-01-24
+date: 2021-07-09
 type: project
 tech:
   - "Cryptography"
   - "Rust"
 withpost: false
-description: "Simple file encryption"
+description: "Ed25519 Signatures"
 link: "https://github.com/cronokirby/eddo"
 ---
 
