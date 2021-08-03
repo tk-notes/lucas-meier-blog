@@ -1,7 +1,7 @@
 ---
 title: "Taproot Signatures and BIP-32"
 date: 2021-08-03T06:50:15+00:00
-draft: true
+draft: false
 katex: true
 tags:
   - "Cryptocurrency"
