@@ -93,7 +93,7 @@ so that the corresponding public key has an even $y$ coordinate. Otherwise we'd
 lose this information, and our secret key wouldn't match our public key.
 
 {{<note>}}
-In practice, Taproot does this adjustment *when signing*, and not when generating
+In practice, Taproot does this adjustment [when signing](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki#default-signing), and not when generating
 keys, but what needs to happen is the same.
 
 Also, the reason this adjustment works is that given a point $P = (x, y)$,
