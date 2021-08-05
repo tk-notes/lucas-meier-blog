@@ -12,8 +12,6 @@ Parties $P_1, P_2$, holding shares $x_1, x_2$ of a private key $x_1 + x_2$.
 Both parties know $X_1 = x_1 \cdot G$ and $X_2 = x_2 \cdot G$, as well
 as the public key $X = X_1 + X_2$.
 
-Let $m = \frac{1}{2} 
-
 ---
 
 ## $P_1$
