@@ -44,6 +44,7 @@ $K_2 \longrightarrow$
 
 $\textcolor{blue}{\Pi^{\text{SHR}}(K_2;k_2)} \longrightarrow$
 
+$\alpha_{\bullet22} = \longrightarrow$
 ---
 
 ## $P_1$
