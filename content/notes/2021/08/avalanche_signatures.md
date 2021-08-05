@@ -54,7 +54,7 @@ $\displaystyle R = \frac{1}{k_1} \cdot K_2$
 
 $r = x(R)$
 
-$\textcolor{blue}{\alpha_{\bullet22} \cdot G \stackrel{?}{=} m \cdot G + r \cdot X_2}$
+$\textcolor{blue}{\alpha_{\bullet22} \cdot K_2 \stackrel{?}{=} m \cdot G + r \cdot X_2}$
 
 $\alpha_{1 \bullet 1} = k_1 (m + r x_1)$
 
