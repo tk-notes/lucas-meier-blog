@@ -6,13 +6,17 @@ katex: true
 I'm Lúcás: currently a first-year MSc student
 at [EPFL](https://www.epfl.ch/en/).
 
-This is my personal website, where I write blog posts somewhat regularly, and keep a tab on
-all the projects I'm working on.
+This is my personal website, where I write blog posts regularly, and keep a tab on
+all the projects I've worked on.
 
-I've been programming since 2017 or so, and I try to have a somewhat public profile on the things I do.
-My main interests are Functional Programming, Web Programming, Distributed Programming, and Programming Languages.
-I've programmed in a plethora of languages, from **C**, to **Go**, to **Scala**, to **Java**, **Haskell**, **Python**,
-etc. having written small to large-ish projects in each of them. I'd say I could pick up anything quickly enough though.
+My main interest is in Cryptography, particularly in engineering robust implementations.
+I've done work on protecting implementations against timing attacks, as well as
+implementing MPC protocols.
+
+I've also been programming since 2017 or so, and I try to have a somewhat public profile on the things I do.
+Topics I've enjoyed here include Functional Programming, Web Programming, Distributed Programming, and Programming Languages.
+I've programmed in a plethora of languages, from **C**, to **Haskell, **Rust, **Go**, **Scala**, **Java**, **Python**,
+etc. having written small to large-ish projects in each of them.
 
 I also like Math quite a bit, so that's a recurring topic in my posts as well. Interests there
 include **Algebra** and **Category Theory**.
@@ -27,9 +31,9 @@ If you want to stay up to date, I'd recommend checking out the [RSS feed](/posts
 
 # [Projects](/projects)
 
-The vast majority of my programming work involves working on side-projects. These range from small
-weekend-projects, to games, to libraries, to programming languages! I also recommend
-checking out my [Github](https://github.com/cronokirby) for an even more complete overview.
+I try to orient my work around concrete projects. These range from small
+weekend-projects, to games, to libraries, to programming languages.
+My [Github](https://github.com/cronokirby) provides an even more complete overview.
 
 
 ## [Notes](/notes)
