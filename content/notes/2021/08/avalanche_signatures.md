@@ -16,13 +16,13 @@ as the public key $X = X_1 + X_2$.
 
 ## $P_1$
 
-$k_1 \xleftarrow{R} \mathbb{Z}/(q)$
+$k_1 \xleftarrow{R} (\mathbb{Z}/(q))^{*}$
 
 $\displaystyle K_1 = \frac{1}{k_1} \cdot G$
 
 $K_1 \longrightarrow$
 
-$\textcolor{blue}{\Pi^{\text{SHR}}(K_1;k_1)} \longrightarrow$
+$\textcolor{blue}{\Pi^{\text{SHR}}(K_1;1 / k_1)} \longrightarrow$
 
 ---
 
@@ -30,7 +30,7 @@ $\textcolor{blue}{\Pi^{\text{SHR}}(K_1;k_1)} \longrightarrow$
 
 Check $\textcolor{blue}{\Pi^{\text{SHR}}(K_1)}$.
 
-$k_2 \xleftarrow{R} \mathbb{Z}/(q)$
+$k_2 \xleftarrow{R} (\mathbb{Z}/(q))^{*}$
 
 $\displaystyle K_2 = \frac{1}{k_2} \cdot G$
 
@@ -42,7 +42,7 @@ $\alpha_{\bullet22} = k_2(m + rx_2)$
 
 $K_2 \longrightarrow$
 
-$\textcolor{blue}{\Pi^{\text{SHR}}(K_2;k_2)} \longrightarrow$
+$\textcolor{blue}{\Pi^{\text{SHR}}(K_2;1 / k_2)} \longrightarrow$
 
 $\alpha_{\bullet22} \longrightarrow$
 
