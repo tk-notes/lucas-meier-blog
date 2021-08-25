@@ -19,7 +19,7 @@ multiplication, and $*$ denoting convolution, you can do:
 $$
 \begin{aligned}
 &M^i = T^i + \Delta_i \cdot X^i \cr
-&M^i_j = T^i_j + \Delta_i X^i_j \cr
+&M^i_j = T^i_j + \Delta_i \cdot X^i_j \cr
 &M_j = T_j + \Delta_i * X_j
 \end{aligned}
 $$
