@@ -1,6 +1,6 @@
 ---
 title: "Porting Ludus to the Web"
-date: 2021-09-30T17:53:29+02:00
+date: 2021-10-02T16:07:54+02:00
 draft: true
 katex: false
 tags:
