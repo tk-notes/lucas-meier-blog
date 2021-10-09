@@ -1,7 +1,7 @@
 ---
 title: "Porting Ludus to the Web"
 date: 2021-10-02T16:07:54+02:00
-draft: true
+draft: false
 katex: false
 tags:
   - "Emulation"
