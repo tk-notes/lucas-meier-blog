@@ -111,7 +111,8 @@ $$
 
 ### Verification
 
-To verify a signature $\sigma = (R, s)$, we check the following formula:
+To verify a signature $\sigma = (R, s)$, we first make sure
+that $h(R) \neq 0$ and $s \neq 0$, and then we check the following formula:
 
 $$
 s \cdot R \stackrel{?}{=} H(m) \cdot G + h(R) \cdot X
@@ -150,12 +151,63 @@ just a bit of obfuscation, for our purposes.
 {{</note>}}
 
 # Same Signature, Different Message
+
+Now, let's tackle the first kind of malleability. Keeping the same signature,
+we'd like to find a new message $m'$ and public key $X'$ that will still
+verify with that signature.
+
+Looking at our previous equation, we need to have:
+
+$$
+s \cdot R = H(m) \cdot G + h(R) \cdot X
+$$
+
+We can rearrange things so that $X$ is on one side of the equation:
+
+$$
+X = \frac{1}{h(R)}(s \cdot R - H(m) \cdot G)
+$$
+
+Now, everything on that right side is public information. What we've now
+done, essentially, is written the public key $X$ as a function $X(\sigma, m)$,
+of the signature and the message. I want to insist on the importance of this.
+With this function in place, we can choose any signature $\sigma'$ and message
+$m'$, and find a public key $X'$ which will validate this message and signature.
+At first glance, you might think that this would allow us to recover the public
+key that produced a given signature over some message. The problem is that
+we don't know *which* message the signature was made over.
+
+In particular, if we plug in a different message $m'$
+into this formula, we get a different public key $X'$:
+
+$$
+X' = \frac{1}{h(R)}(s \cdot R - H(m') \cdot G)
+$$
+
+Note that since we don't know what the discrete logarithm of $R$ is,
+we don't know what the discrete logarithm of $X'$ is either. Yet,
+we've managed to produce a signature under that public key,
+which is the issue here.
+
 # Same Message, Different Signature
+
+We can also reuse this same formulation, but swap out the signature $\sigma$
+instead, while
+keeping the message fixed:
+
+$$
+X' = \frac{1}{h(R')}(s \cdot R' - H(m) \cdot G)
+$$
+
+Now, another way to do this is to create your own key-pair, and then sign
+the message yourself, producing a new triple $(X', m, \sigma')$. Now,
+the difference with our method here is that we don't know the discrete
+logarithm of $X'$. If you generated a new key-pair, you would naturally
+know the discrete logarithm.
 
 # Some Potential Issues
 
 # How Schnorr Signatures Fix This
 
 # Summary
-
 
