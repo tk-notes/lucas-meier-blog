@@ -207,7 +207,119 @@ know the discrete logarithm.
 
 # Some Potential Issues
 
+In all honesty, I don't know of any practical examples where this malleability
+has caused issues. In fact, I can only think of a few theoretical situations
+where this would matter.
+
+Transactions in cryptocurrencies are usually accompanied with a *signature*,
+which attests that the author of the transaction. Naturally, to verify a transaction,
+you also need to know the author. One potential issue is if the author weren't
+included with the transaction, but rather derived using the transaction and the signature.
+This would have the problem of not being unique, as we've seen earlier.
+
+In general, you can't uniquely identify transactions by their signatures,
+because of all the forms of malleability we've seen so far. That being said,
+I doubt thast any system would actually end up trying to do this, but you
+never know what kind of shortcuts people will end up trying to take.
+
+The second kind of malleability creates a different source of issues:
+we can produce a signature for a public key $X'$ without knowing the private
+key associated with $X'$. Now, in more intricate protocols, like threshold
+signatures, this can create a bit of an issue, but I'm not directly aware
+of how the kind of malleability we saw would lead to issues of this kind.
+But, once again, you never know what kind of ad-hoc protocols people will
+try and create on top of signatures.
+
 # How Schnorr Signatures Fix This
+
+A popular alternative to ECDSA signatures are Schnorr Signatures,
+most commonly in the form of [Ed25519 signatures](https://datatracker.ietf.org/doc/html/rfc8032).
+You can actually set up this signature scheme so that the signatures are
+tied to a specific public key, avoiding this kind of malleability.
+
+I wrote [a post](/posts/2021/07/signatures_from_identification) on Schnorr Signatures
+previously, and I'd recommend taking a look at it for more
+information, but I'll recap the essence of the scheme here.
+
+To sign a message $m$, you first generate a nonce:
+
+$$
+k \xleftarrow{R} \mathbb{F}_q
+$$
+
+And then a commitment to that nonce:
+
+$$
+K = k \cdot G
+$$
+
+Then, you generate a challenge:
+
+$$
+e = H(K, m)
+$$
+
+and then your response:
+
+$$
+s = k + ex
+$$
+
+The final signature is $\sigma = (K, s)$.
+
+This signature is verified by checking:
+
+$$
+s \cdot G \stackrel{?}{=} K + H(K, m) \cdot X
+$$
+
+(Omitting some $\neq 0$ checks which are also needed)
+
+Now, what's interesting with Schnorr signatures is that we can actually
+add more elements to the challenge generation. Right now, we just
+hash the commitment to the nonce, and we also include the message.
+Including the message means that this signature is tied to this
+particular message, which is something we definitely want.
+If we include our public key:
+
+$$
+e = H(K, X, m)
+$$
+
+then this ties our signature to our public key as well, preventing the kinds
+of malleability we saw earlier.
+
+We can go even further, and add in an additional piece of context:
+
+$$
+e = H(K, X, \text{ctx},  m)
+$$
+
+For example, we could add in a string identifying our kind of cryptocurrency,
+to prevent transactions being used in a different one. This might
+actually end up being relevant if different systems end up using
+the same transaction format, since you could end up sniffing a transaction
+on one system and submitting it to the other. By binding our signatures
+to a specific context, we disallow reusing signatures from one context
+in a different one.
 
 # Summary
 
+To summarize, given a message $m$, and an ECDSA signature $\sigma$, it's possible
+to possible to find a public key $X(m, \sigma)$ which allows the signature
+for that message to be verified. This means that two kinds of malleability exist.
+Given a triple $(X, m, \sigma)$, you can change the public key and message,
+keeping the signature fixed:
+$$
+(X', m', \sigma)
+$$
+Or, you can change the public key and the signature, keeping the message fixed:
+$$
+(X', m, \sigma')
+$$
+In both cases, you do not need to know the discrete logarithm of $X'$,
+which can pose some issues, in theory.
+
+This interesting aspect of ECDSA was brought to my attention
+by [@dystopiabreaker](https://twitter.com/dystopiabreaker/status/1471418186499117062).
+This kind of malleability is also discussed further in [a paper by Pornet and Stern](http://www.bolet.org/~pornin/2005-acns-pornin+stern.pdf).
