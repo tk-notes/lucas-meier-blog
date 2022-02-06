@@ -1,7 +1,7 @@
 ---
 title: "On the Malleability of ECDSA Signatures"
-date: 2022-01-19T17:49:33+01:00
-draft: true
+date: 2022-02-06T12:28:42+01:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -9,10 +9,16 @@ tags:
   - "Signature"
 ---
 
+The ECDSA signature scheme is quite ubiquitous, used everywhere from TLS
+to various cryptocurrencies like Bitcoin. Funnily enough, it turns out that
+it suffers from a few *malleability* issues, although I doubt these pose
+a serious issue in practice.
+
 <!--more-->
 
 
-If I have a public-private keypair $(x, X)$, then I can sign a message
+The way signature schemes work is relatively straightforward.
+Using my private-public key-pair $(x, X)$, then I can sign a message
 $m$ with private key, producing a signature $\sigma = S(x, m)$. Anyone can verify
 this signature using my public key. They do this
 by running an algorithm $V(X, m, \sigma)$, which checks if the signature
@@ -47,16 +53,17 @@ $$
 (X', m, \sigma')
 $$
 
-In both cases, you don't need to know the private key associated with $X'$
+In both cases, you don't need to know the private key, i.e. the discrete logarithm, associated with $X'$
 to produce these signatures. This can violate many assumptions around
 how digital signatures are supposed to work, especially in the context
 of cryptocurrencies.
 
 # Recalling the ECDSA Scheme
 
-Before we investigate how to create these faulty signatures,
+Before we investigate how to forge these new signatures,
 we need to look at how the ECDSA signature scheme actually works. We'll
-be exploiting the inner mechanisms of the scheme, so understanding it is key.
+be exploiting the inner mechanisms of the scheme, so understanding it is
+important.
 
 We start with an Elliptic Curve group $\mathbb{G}$, having an associated generator
 $G$, and a scalar field $\mathbb{F}_q$.
@@ -93,15 +100,15 @@ R = \frac{1}{k} \cdot G
 $$
 
 At this point, if $h(R) = 0$, we restart the signature process with
-a different nonce. This point $R$ makes up the first half of our signature.
+a different nonce. The point $R$ makes up the first half of our signature.
 
-The second half of our signature is a scalar, and is computed as follows:
+The second half of our signature is a scalar, computed as:
 
 $$
 s = k(H(m) + h(R)x)
 $$
 
-With $x$ being our private key.
+with $x$ being our private key.
 
 Finally, our complete signature is the pair:
 
@@ -112,7 +119,7 @@ $$
 ### Verification
 
 To verify a signature $\sigma = (R, s)$, we first make sure
-that $h(R) \neq 0$ and $s \neq 0$, and then we check the following formula:
+that $h(R) \neq 0$ and $s \neq 0$, and then we check that:
 
 $$
 s \cdot R \stackrel{?}{=} H(m) \cdot G + h(R) \cdot X
@@ -126,7 +133,7 @@ $x \cdot G$.
 Often ECDSA is presented in a slightly different, but equivalent way.
 
 Sometimes you'll see $\frac{1}{k}$ used as the nonce instead, with
-the commitment being $k \cdot G$. This makes no difference whatsoever,
+the commitment being $k \cdot G$. This makes no difference whatsoever:
 it's just a matter of notation.
 
 Secondly, schemes will often only transfer the $x$ coordinate of $R$,
@@ -168,7 +175,8 @@ $$
 X = \frac{1}{h(R)}(s \cdot R - H(m) \cdot G)
 $$
 
-Now, everything on that right side is public information. What we've now
+Now, since everything on that right side is public information, we can actually
+calculate $X$. What we've now
 done, essentially, is written the public key $X$ as a function $X(\sigma, m)$,
 of the signature and the message. I want to insist on the importance of this.
 With this function in place, we can choose any signature $\sigma'$ and message
@@ -200,8 +208,8 @@ X' = \frac{1}{h(R')}(s \cdot R' - H(m) \cdot G)
 $$
 
 Now, another way to do this is to create your own key-pair, and then sign
-the message yourself, producing a new triple $(X', m, \sigma')$. Now,
-the difference with our method here is that we don't know the discrete
+the message yourself, producing a new triple $(X', m, \sigma')$.
+The difference with our method here is that we don't know the discrete
 logarithm of $X'$. If you generated a new key-pair, you would naturally
 know the discrete logarithm.
 
@@ -219,7 +227,7 @@ This would have the problem of not being unique, as we've seen earlier.
 
 In general, you can't uniquely identify transactions by their signatures,
 because of all the forms of malleability we've seen so far. That being said,
-I doubt thast any system would actually end up trying to do this, but you
+I doubt that any system would actually end up trying to do this, but you
 never know what kind of shortcuts people will end up trying to take.
 
 The second kind of malleability creates a different source of issues:
