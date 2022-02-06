@@ -238,7 +238,7 @@ of how the kind of malleability we saw would lead to issues of this kind.
 But, once again, you never know what kind of ad-hoc protocols people will
 try and create on top of signatures.
 
-# How Schnorr Signatures Fix This
+# How Schnorr Signatures Fix This (In Theory)
 
 A popular alternative to ECDSA signatures are Schnorr Signatures,
 most commonly in the form of [Ed25519 signatures](https://datatracker.ietf.org/doc/html/rfc8032).
@@ -311,6 +311,13 @@ on one system and submitting it to the other. By binding our signatures
 to a specific context, we disallow reusing signatures from one context
 in a different one.
 
+{{<note>}}
+In practice, Schnorr Signatures are by no
+means perfect. The popular Ed25519, in particular, requires good attention
+to the details of encoding and verification, as elaborated in
+{{<ref-link "1">}}.
+{{</note>}}
+
 # Summary
 
 To summarize, given a message $m$, and an ECDSA signature $\sigma$, it's possible
@@ -330,4 +337,15 @@ which can pose some issues, in theory.
 
 This interesting aspect of ECDSA was brought to my attention
 by [@dystopiabreaker](https://twitter.com/dystopiabreaker/status/1471418186499117062).
-This kind of malleability is also discussed further in [a paper by Pornet and Stern](http://www.bolet.org/~pornin/2005-acns-pornin+stern.pdf).
+This kind of malleability is also discussed further in
+{{<ref-link "2">}}.
+
+{{<ref
+  "1"
+  "http://www.bolet.org/~pornin/2005-acns-pornin+stern.pdf"
+  "[1] Jacqueline Brendel, Cas Cremers, Dennis Jackson, and Mang Zhao. “The Provable Security of Ed25519: Theory and Practice”">}}
+
+{{<ref
+  "2"
+  "http://www.bolet.org/~pornin/2005-acns-pornin+stern.pdf"
+  "[2] Thomas Pornin and Julien P. Starn. “Digital Signatures do Not Guarantee Exclusive Ownership”">}}
