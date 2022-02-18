@@ -342,7 +342,7 @@ at a given phase. When we compose the oracle in parallel with another game,
 we'd like to be able to not have to make an oracle query at every phase.
 
 The essence of achieving this is to be able to query a trivial point
-$\bullet$$, and for the adversary to respond with a trivial response $\bullet$,
+$\bullet$, and for the adversary to respond with a trivial response $\bullet$,
 naturally, we would like the adversary to not be able to win by responding $\bullet$ otherwise.
 
 $$
