@@ -181,11 +181,9 @@ an advantage in $[0, 1]$.
 Given a game $G$ and an adversary for that game $\mathscr{A}$, of a common class $\mathfrak{c}$, it's clear
 that we have a function $A_0 \times C_0 \xrightarrow{\mathfrak{c}} C_{N + 1}$,
 given by composing the transition functions of the challenger and the adversary together.
-This then composes with $\text{Win}$ to give us a function
-$A_0 \times C_0 \xrightarrow{\mathfrak{c}} \\{0, 1\\}$, since this class of
-functions is potentially randomized, we
+Since the class functions is potentially randomized, we
 can run it over $(a_0, c_0)$, and arrive at a probability distribution
-over the result of this function. In order to define the advantage
+over the result $C_{n + 1}$. In order to define the advantage
 of this adversary, we use this function $\text{Adv}$ over the resulting
 distribution. As a short-hand for this process, we write:
 
