@@ -17,7 +17,7 @@ A game $G$ of class $\mathfrak{c}$ with $N$ phases consists of
 - Query types $Q_1, \ldots, Q_n : \mathcal{U}$
 - Response types $R_0, \ldots, R_n : \mathcal{U}$
 - State types $C_0, \dots, C_{N + 1} : \mathcal{U}$
-- A starting state $c_0 : C_{0 + 1}$
+- A starting state $c_0 : C_{0}$
 - Transition functions (of class $\mathfrak{c}$): $$
 \begin{aligned}
 &\mathscr{C_0} : C_0 \xrightarrow{\mathfrak{c}} C_1 \times R_0\cr
