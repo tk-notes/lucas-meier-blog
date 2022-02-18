@@ -210,19 +210,22 @@ is negligeable, which means, essentially, that it's arbitrarily close to $0$.
 
 Morphisms are morphisms of games $G \to G'$, with the additional condition that for
 every adversary $\mathscr{A}$ of $G$, the induced adversary $\mathscr{A'}$ of
-$G'$ has an advantage at least as large, up to a negligeable function of $\lambda$:
+$G'$ has an advantage at least as large, up to a polynomial factor:
 
 $$
-\text{Adv}[G', \mathscr{A'}] \geq \text{Adv}[G, \mathscr{A}](1 - \epsilon(\lambda))
+p(\lambda)\text{Adv}[G', \mathscr{A'}] \geq \text{Adv}[G, \mathscr{A}]
 $$
 
-Here, $\epsilon$ is a negligeable function of the ambient security parameter
+Here, $\p$ is a polynomial function of the ambient security parameter
 $\lambda$. Since we're talking about games of class $\mathfrak{c}$, we already
 have an ambient security parameter, since we can talk about the efficency
 of the challenger.
 
 This condition works well with composition, and naturally includes
-the identity morphism we've seen previously.
+the identity morphism we've seen previously. The polynomial factor
+loosens the restrictions, while still making it
+so that if $\text{Adv}[G', \mathscr{A'}]$ is negligeable, then
+so is $\text{Adv}[G, \mathscr{A}]$ is as well.
 
 We call such a morphism a "reduction".
 
