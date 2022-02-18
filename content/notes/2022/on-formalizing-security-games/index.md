@@ -173,9 +173,10 @@ Let's call this $\text{Game}$.
 
 # Category of Security Games
 
-We need to augment games with a notion of "winning". To do this, we need
-a function $$\text{Win} : C_{N + 1} \to \\{0, 1\\}$$, and a
-function $\mu : [0, 1] \to [0, 1]$
+We need to augment games with a notion of "winning". To do this,
+we have a function $\text{Adv} : P(C_{N + 1}) \to [0, 1]$, which
+takes a probability distribution over the final state, and returns
+an advantage in $[0, 1]$.
 
 Given a game $G$ and an adversary for that game $\mathscr{A}$, of a common class $\mathfrak{c}$, it's clear
 that we have a function $A_0 \times C_0 \xrightarrow{\mathfrak{c}} C_{N + 1}$,
@@ -184,21 +185,16 @@ This then composes with $\text{Win}$ to give us a function
 $A_0 \times C_0 \xrightarrow{\mathfrak{c}} \\{0, 1\\}$, since this class of
 functions is potentially randomized, we
 can run it over $(a_0, c_0)$, and arrive at a probability distribution
-over the result of this function. This is $P[\text{Win} = 1]$, the probability
-of winning the game. We then use $\mu$ to determine the advantage:
+over the result of this function. In order to define the advantage
+of this adversary, we use this function $\text{Adv}$ over the resulting
+distribution. As a short-hand for this process, we write:
 
 $$
-\text{Adv}[G, \mathscr{A}] := \mu(P[\text{Win} = 1])
+\text{Adv}[G, \mathscr{A}]
 $$
 
-We include $\mu$ to account for the fact that certain games have a trivial
-probability of winning. For example, in games where you need to guess
-the correct bit, guessing randomly gives you a probability of $\frac{1}{2}$
-to win. Thus, the advantage would be $|P[\text{Win}] - \frac{1}{2}|$.
-We could define a "trivial" value, and explicitly include the subtraction,
-but this doesn't compose. In practice $\mu$ will usually be
-of the form $|x - t|$ though.
-
+In practice, $\text{Adv}$ is going to be very simple. Usually,
+it will of the form $|P[\text{Win}] - t|$, but we can consider more complicated things.
 
 Such augmented games might be called "Security Games".
 
@@ -212,16 +208,20 @@ security", which considers adversaries that are unbounded in their runtime.
 {{<note>}}
 At the end of the day, we only really care about whether or not the advantage
 is negligeable, which means, essentially, that it's arbitrarily close to $0$.
-Because of that, we only really care about $\mu$ to the extent that it's $0$.
 {{</note>}}
 
 Morphisms are morphisms of games $G \to G'$, with the additional condition that for
 every adversary $\mathscr{A}$ of $G$, the induced adversary $\mathscr{A'}$ of
-$G'$ has an advantage at least as large:
+$G'$ has an advantage at least as large, up to a negligeable function of $\lambda$:
 
 $$
-\text{Adv}[G', \mathscr{A'}] \geq \text{Adv}[G, \mathscr{A}]
+\text{Adv}[G', \mathscr{A'}] \geq \text{Adv}[G, \mathscr{A}](1 - \epsilon(\lambda))
 $$
+
+Here, $\epsilon$ is a negligeable function of the ambient security parameter
+$\lambda$. Since we're talking about games of class $\mathfrak{c}$, we already
+have an ambient security parameter, since we can talk about the efficency
+of the challenger.
 
 This condition works well with composition, and naturally includes
 the identity morphism we've seen previously.
@@ -247,6 +247,9 @@ what the advantage of the adversary for the original game is, the advantage
 for this trivial game remains $0$. Because of this, in general we need
 to impose the restriction of advantage growth to define reductions.
 
+The reason we allow for the negligeable factor is to allow for games with
+negligeable differences to be considered isomorphic.
+
 Let's call the category of security games and their reductions $\text{SecGame}$
 
 ## Free-Forgetful Adjunction
@@ -269,8 +272,7 @@ use the morphism $A \to B$ for a morphism $F(A) \to B$. We just
 need to make sure that the advantage grows. A simple way to guarantee
 this is to make the advantage of $F(A)$ to be $0$, no matter what.
 
-Thus, like in the trivial game, for $F(A)$. $\text{Win}$ always returns $0$, with
-$\mu(x) = x$ as well.
+Thus, like in the trivial game, for $F(A)$. $\text{Adv}$ always returns $0$, with
 
 # Applications
 
@@ -285,13 +287,12 @@ both games simultaneously.
 
 The
 natural advantage definition here is to define
-$\text{Win}(c, c') := \text{Win}(c) \land \text{Win}(c')$
-as well as $\mu_\otimes := \min(\mu, \mu')$.
+$\text{Adv}\_\times = \min(\text{Adv}, \text{Adv}')$. This is well defined, because we
+have a distribution over $C\_{n + 1} \times C'\_{n + 1}$, resulting
+in individual distributions for each part, where we can use the individual advantages.
 
-This makes it so that to be able to win, the adversary has to win at both games.
-And, if they have negligeable advantage in either game, they should also have
-a negligeable advantage in this game, so the zero set must be larger,
-and thus taking the minimum is appropriate.
+This makes it so that if the adversary has a negligeable advantage
+in one of the games, then they have a negligeable advantage in this game as well.
 
 I suspect, but have yet to prove, that there's a symmetric monoidal structure
 on this category, using the tensor product of games, and the trivial game as unit.
@@ -311,11 +312,10 @@ $$
 \end{aligned}
 $$
 
-With $\text{Win} := f(q) \stackrel{?}{=} r$, and, here's a technical point,
-$\mu(p) := p \stackrel{?}{=} 1$. This means that adversaries have *zero* advantage
+Now, here's a bit of a technical point, we define $\text{Adv} := P[f(q) = r] \stackrel{?}{=} 1$,
+This means that adversaries have *zero* advantage
 unless they can answer *all* queries. This lets us fit perfect oracles
-into our model of games, and shows the advantage of using an arbitrary $\mu$
-in our formulation.
+into our model of games.
 
 {{<note>}}
 One implicit assumption is that $Q$ is efficiently sampleable. For most
@@ -361,8 +361,8 @@ $$
 \end{aligned}
 $$
 
-With $\text{Win} := f(q) = r \lor b = 0$. Note that we consider
-$f(q) = \bullet$ to always be false. Because, once again, $\mu$ only
+With $\text{Adv} := P[f(q) = r \lor b = 0] \stackrel{?}{=} 1$. Note that we consider
+$f(q) = \bullet$ to always be false. Because, once again, this only
 gives a non-zero advantage to adversaries which are always correct, this
 correctly captures the notion that an adversary with a non-trivial advantage
 at this game is an oracle for the function $f$.
@@ -426,9 +426,9 @@ games to play at random. From that point on, the state of the challenger
 follows the state of that game, and they send messages from that game. If they
 receive responses from the wrong game, the adversary automatically loses.
 Formally speaking though, our challenger states are also $C_i = C^A_i + C^B_i$.
-We have a natural definition of winning, by applying either $\text{Win}^A$
-or $\text{Win}^B$, based on the final state. We choose $\mu_\times := \min(\mu_A, \mu_B)$,
-to guarantee growth of advantage in reductions.
+We have a natural definition of advantage, by using:
+$\text{Adv}_\times := \min(\text{Adv}_A, \text{Adv}_B)$.
+This guarantees growth of advantage in reductions.
 
 {{<note>}}
 TODO: Make this absolutely precise, at least in these notes.
@@ -448,10 +448,9 @@ both of them.
 Surprisingly enough, the structure of $A + B$ is the same as $A \times B$,
 with one small change: instead of the challenger choosing which game is played,
 at random, the adversary chooses, by sending their choice at the start of the game.
-We also need to choose $\mu_+ := \max(\mu_A, \mu_B)$. You might think
+We also need to choose $\text{Adv} := \max(\text{Adv}_A, \text{Adv}_B)$. You might think
 that you could still get away with choosing the minimum, but this doesn't work,
-because the coproduct of a game $G$ with some unwinnable game $U$ (e.g. because
-$\mu_U$ always returns $0$) should be a winnable game $G + U$, so that we
+because the coproduct of a game $G$ with some unwinnable game $U$ should be a winnable game $G + U$, so that we
 have a reduction $G \to G + U$.
 
 {{<note>}}
