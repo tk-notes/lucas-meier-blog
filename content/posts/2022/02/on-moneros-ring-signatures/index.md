@@ -19,7 +19,7 @@ either.
 <!--more-->
 
 The idea behind ring signatures is that you can construct a group of
-public keys, called a *ring*, and have any member of the ring able to sign
+public keys, called a _ring_, and have any member of the ring able to sign
 on its behalf, without revealing which member they are.
 
 This lets us obscure our identity to a certain extent: instead of signing
@@ -28,7 +28,7 @@ order to obscure our own.
 
 {{<img "1.png">}}
 
-This is different from a *group* signature, wherein a group of parties
+This is different from a _group_ signature, wherein a group of parties
 split a private key amongst themselves, and cooperate together
 to sign on behalf of that group. With ring signatures, we have no
 affiliation with the other members of the ring. In practice, they're simply
@@ -47,7 +47,7 @@ be its field of scalars.
 # Schnorr Signatures
 
 The starting point for this variant of ring signature is the ubiquitous
-*Schnorr* signature. Since this scheme has been explained many times,
+_Schnorr_ signature. Since this scheme has been explained many times,
 including [in this blog](/posts/2021/07/signatures_from_identification/),
 I'll limit myself to a brief summary.
 
@@ -90,6 +90,56 @@ It's clear that our verification check is correct as well, given
 the definition of $s$.
 
 # Schnorr Signatures with Hash
+
+With Schnorr signatures, we used the nonce commitment $K$, along with the
+response $s$ as our signature $(K, s)$. An alternative version of the
+scheme uses the response $e = H(K, X, m)$ instead of the commitment
+$K$, making the signature $(e, s)$ instead:
+
+**Signing**
+
+$$
+\begin{aligned}
+\text{sign}(x, m):\cr
+k &\xleftarrow{R} \mathbb{F}_q\cr
+K &\longleftarrow k \cdot G\cr
+e &\longleftarrow H(K, X, m)\cr
+s &\longleftarrow k - e \cdot x\cr
+(e, s)&
+\end{aligned}
+$$
+
+{{<note>}}
+We use $s = k - e x$ instead of $s = k + ex$ as before. This doesn't make any difference,
+but allows us to only use subtraction in the signing process.
+{{</note>}}
+
+**Verifying:**
+
+$$
+\begin{aligned}
+\text{verify}(X, m, (e, s)):\cr
+e &\stackrel{?}{=} H(s\cdot G + e \cdot X, X, m)
+\end{aligned}
+$$
+
+This scheme is correct, because:
+
+$$
+s \cdot G + e \cdot X = (s + ex) \cdot G = k \cdot G = K
+$$
+
+As for security, notice that we have these mappings:
+
+$$
+\begin{aligned}
+(K, s) &\longrightarrow (H(K, X, m), s)\cr
+(s \cdot G + e \cdot X, s) &\longleftarrow (e, s)\cr
+\end{aligned}
+$$
+
+This naturally implies security reductions between these two signature schemes.
+A full proof is left as an exercise to the reader 😉. 
 
 # SAG
 
