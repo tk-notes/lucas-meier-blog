@@ -147,7 +147,8 @@ A full proof is left as an exercise to the reader 😉.
 
 # SAG
 
-The next scheme is a simplification of the one proposed in {{<ref-link "1">}}.
+The next scheme is a simplification of the one proposed in {{<ref-link "1">}},
+called Spontaneous Anonymous Group signatures (SAG).
 This is the first signature scheme that qualifies as a *ring* signature.
 Instead of having a single public key used to verify, we instead have
 an entire ring of public keys. The signer's key is hidden somewhere in that
@@ -259,6 +260,67 @@ of the ring this is either.
 
 # bLSAG
 
+This brings us to Back's Linkable Spontaneous Anonymous Group signatures (bLSAG),
+as described in {{<ref-link "3">}}. The core idea is to augment
+signatures with a *key image*, which should be the same whenever a private
+key is used to make a ring signature.
+
+We also need a hash function $\mathcal{H} : \\{0, 1\\}^* \to \mathbb{G}$,
+hashing messages directly to points, without knowing the discrete logarithm.
+
+**Signing:**
+
+First, calculate a key image:
+
+$$
+\tilde{X} = x_\pi \cdot \mathcal{H}(X_\pi)
+$$
+
+Then generate:
+
+$$
+\begin{aligned}
+&k \xleftarrow{R} \mathbb{F}_q\cr
+&r_i \xleftarrow{R} \mathbb{F}_q \quad (i \neq \pi)
+\end{aligned}
+$$
+
+Then compute challenges:
+
+$$
+e_{\pi + 1} \longleftarrow H(\mathcal{R}, m, k \cdot G, k \cdot \mathcal{H}(K_\pi))
+$$
+
+and
+
+$$
+e_{i + 1} \longleftarrow H(\mathcal{R}, m, r_i \cdot G + e_i \cdot X_i, r_i \cdot \mathcal{H}(X_i) + c_i \tilde{X})
+$$
+
+Finally, close the ring by defining:
+
+$$
+r_\pi \longleftarrow k - e_\pi x_\pi
+$$
+
+Our signature is then $(c_1, r_1, \ldots, r_n)$, along with the key image $\tilde{X}$.
+
+**Verifying:**
+
+Verification proceeds similarly to the SAG case.
+
+We recompute the challenges:
+
+$$
+e'_{i + 1} \longleftarrow H(\mathcal{R}, m, r_i \cdot G + e_i \cdot X_i, r_i \cdot \mathcal{H}(X_i) + c_i \tilde{X})
+$$
+
+And check that:
+
+$$
+e'_1 \stackrel{?}{=} e_1
+$$
+
 # MLSAG
 
 # CLSAG
@@ -278,3 +340,8 @@ of the ring this is either.
   "2"
   "https://www.getmonero.org/library/Zero-to-Monero-2-0-0.pdf"
   "[2] Zero to Monero koe, Kurt M. Alonso, Sarang Noether">}}
+
+{{<ref
+  "3"
+  "https://web.getmonero.org/resources/research-lab/pubs/MRL-0005.pdf"
+  "[3] Shen Noether, Adam Mackenzie, and Monero Core Team, Ring Confidential Transactions">}}
