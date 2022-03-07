@@ -337,7 +337,7 @@ logarithm. If we have $\mathcal{H}(m) = h(m) \cdot G$, we
 would have:
 
 $$
-\tilde{X} = x_\pi \cdot \mathcal{H}(X_\pi) = x_\pi \cdot h(X_\pi) \cdot G = h(X_\pi) \cdot X_\pi
+\tilde{X} \longleftarrow x_\pi \cdot \mathcal{H}(X_\pi) = x_\pi \cdot h(X_\pi) \cdot G = h(X_\pi) \cdot X_\pi
 $$
 
 This means that we could iterate over all of the $X_i$ in the ring
@@ -350,6 +350,9 @@ $$
 in order to find which member of the ring produced this signature.
 Having the hash function return a point in the group directly
 avoids this issue.
+
+Aside from the addition of the key image, this signature protocol
+is the same as the SAG scheme we saw before.
 
 {{<note>}}
 In the context of Monero, a prime order group isn't used,
@@ -367,6 +370,98 @@ This would allow an "octuple-spend" attack.
 
 # MLSAG
 
+I briefly touched upon the model of transactions in the context
+of Monero. Essentially, coins have different values, and have
+public keys. Owning a coin means knowing the private key
+associated with it, and spending that coin involves signing
+a transaction using that key. In practice, you often
+want to spend multiple coins in the same transaction,
+in the same way that you might pay for something using
+multiple bills from your own wallet. While you could do this
+by producing one ring signature for each coin you want to spend,
+it's more efficient to combine this signatures into
+a single, more compressed signature, as shown in {{<ref-link "3">}}.
+
+Instead of a single key-pair $x_\pi, X_\pi$, we now have an entire column of these key-pairs $x_\pi^j, X_\pi^j$ (for $j$ in some
+indexing set). Instead of a simple ring $\mathcal{R} = \\{X_i\\}$,
+a row of public keys, our ring is now an entire matrix
+$\mathcal{R} = X_i^j$. Our public key is hidden as a column
+$X_\pi^j$ of this matrix.
+
+For linkability, we want to be able to detect if any
+of the $x_\pi^j$ are reused between signatures. This naturally
+corresponds with wanting to detect if a coin was spent
+multiple times across different transactions.
+
+**Signing:**
+
+First, we calculate key images:
+
+$$
+\tilde{X}^j \longleftarrow k_\pi^j \mathcal{H}(X_\pi^j)
+$$
+
+Then we generate random numbers:
+
+$$
+\begin{aligned}
+&k_j \xleftarrow{R} \mathbb{F}_q\cr
+&r_i^j \xleftarrow{R} \mathbb{F}_q
+&
+\end{aligned}
+$$
+
+Then we generate the first challenge:
+
+$$
+e_{\pi + 1} = H(\mathcal{R}, m, \\{k_j \cdot G\\},
+\\{k_j \cdot \mathcal{H}(X_\pi^j)\\})
+$$
+
+And then generate the next challenges, wrapping around, as usual:
+
+$$
+e_{i + 1} = H(\mathcal{R}, m, \\{r_i^j \cdot G + e_i \cdot K_i^j\\},
+\\{r_i^j \cdot \mathcal{H}(X_\pi^j) + e_i \tilde{X}^j \\})
+$$
+
+And finally, we close the loop by setting:
+
+$$
+r_\pi^j \longleftarrow k_j - e_\pi x_\pi^j
+$$
+
+Our signature is then:
+
+$$
+(e_1, \\{r_i^j\\})
+$$
+
+along with the key images $\tilde{K}^j$.
+
+**Verification:**
+
+We recalculate the key challenges:
+
+$$
+e'\_{i + 1} = H(\mathcal{R}, m, \\{r_i^j \cdot G + e_i \cdot K_i^j\\},
+\\{r_i^j \cdot \mathcal{H}(X_\pi^j) + e_i \tilde{X}^j \\})
+$$
+
+And then check that:
+
+$$
+e'_1 \stackrel{?}{=} e_1
+$$
+
+## Intuition
+
+This scheme is a straightforward extension of bLSAG, using
+multiple keys at the same time. One advantage over a naive
+duplication is that only need to send one challenge $e_1$,
+instead of $M$ challenges, if we were to simply produce $M$
+ring signatures.
+
 # CLSAG
 
 # Notes on Thresholdization
@@ -383,7 +478,7 @@ This would allow an "octuple-spend" attack.
 {{<ref
   "2"
   "https://www.getmonero.org/library/Zero-to-Monero-2-0-0.pdf"
-  "[2] Zero to Monero koe, Kurt M. Alonso, Sarang Noether">}}
+  "[2] koe, Kurt M. Alonso, Sarang Noether, Zero to Monero">}}
 
 {{<ref
   "3"
