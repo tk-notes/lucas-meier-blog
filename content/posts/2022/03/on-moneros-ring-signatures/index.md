@@ -1,7 +1,7 @@
 ---
 title: "On Monero's Ring Signatures"
-date: 2022-02-27T17:45:42+01:00
-draft: true
+date: 2022-03-07T17:15:02+01:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -9,16 +9,19 @@ tags:
   - "Signature"
 ---
 
-One of Monero's main tools to increase the privacy of its transactions
-is the ring signature. Ring signatures allow you to sign on behalf of
+[Monero](https://www.getmonero.org/) is a cryptocurrency
+which claims to be "private, and decentralized".
+One of Monero's main tools towards this privacy is
+the ring signature. Ring signatures allow you to sign on behalf of
 a group, without revealing which member of the group you are. They
 can be constructed as
-an elegant extension of Schnorr signatures, and are not that hard to understand
+an elegant extension of Schnorr signatures, and aren't all that hard
+to understand
 either.
 
 <!--more-->
 
-The idea behind ring signatures is that you can construct a group of
+The idea behind ring signatures is that you can construct a list of
 public keys, called a _ring_, and have any member of the ring able to sign
 on its behalf, without revealing which member they are.
 
@@ -115,7 +118,7 @@ $$
 
 {{<note>}}
 We use $s = k - e x$ instead of $s = k + ex$ as before. This doesn't make any difference,
-but allows us to only use subtraction in the signing process.
+but allows us to confine subtraction to the signing process.
 {{</note>}}
 
 **Verifying:**
@@ -371,7 +374,7 @@ This would allow an "octuple-spend" attack.
 # MLSAG
 
 I briefly touched upon the model of transactions in the context
-of Monero. Essentially, coins have different values, and have
+of Monero. Essentially, coins have different values, and come with
 public keys. Owning a coin means knowing the private key
 associated with it, and spending that coin involves signing
 a transaction using that key. In practice, you often
@@ -462,7 +465,13 @@ This scheme is a straightforward extension of bLSAG, using
 multiple keys at the same time. One advantage over a naive
 duplication is that only need to send one challenge $e_1$,
 instead of $M$ challenges, if we were to simply produce $M$
-ring signatures.
+ring signatures. This is very important on the context
+of Monero, and cryptocurrencies, since reserving
+space on the digital ledger is very expensive, so having
+the smallest transactions possible is ideal. I should also
+note that Monero has a perverse tradeoff between privacy and
+cost here. A larger ring size makes for a larger signature,
+and thus a larger transaction fee, but also more privacy.
 
 # Notes on Thresholdization
 
