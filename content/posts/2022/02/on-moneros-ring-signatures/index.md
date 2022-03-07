@@ -381,6 +381,8 @@ multiple bills from your own wallet. While you could do this
 by producing one ring signature for each coin you want to spend,
 it's more efficient to combine this signatures into
 a single, more compressed signature, as shown in {{<ref-link "3">}}.
+This scheme is called Multilayer Linkable Spontaneous Anonymous
+Group signatures (MLSAG).
 
 Instead of a single key-pair $x_\pi, X_\pi$, we now have an entire column of these key-pairs $x_\pi^j, X_\pi^j$ (for $j$ in some
 indexing set). Instead of a simple ring $\mathcal{R} = \\{X_i\\}$,
@@ -398,7 +400,7 @@ multiple times across different transactions.
 First, we calculate key images:
 
 $$
-\tilde{X}^j \longleftarrow k_\pi^j \mathcal{H}(X_\pi^j)
+\tilde{X}^j \longleftarrow x_\pi^j \mathcal{H}(X_\pi^j)
 $$
 
 Then we generate random numbers:
@@ -462,11 +464,42 @@ duplication is that only need to send one challenge $e_1$,
 instead of $M$ challenges, if we were to simply produce $M$
 ring signatures.
 
-# CLSAG
-
 # Notes on Thresholdization
 
+We use our private keys $x_\pi^j$ only in a linear fashion.
+We never multiply them together, but instead act on them with
+other integers, or use them to act on a scalar. Because of this,
+if our keys were split between multiple parties in a linear
+fashion as:
+
+$$
+x_\pi^j = \sum_k  \ _k x_\pi^j
+$$
+
+it would still be easy for the different parties to collaborate,
+and produce a signature for these keys, without revealing
+their share to any other party.
+
+This naturally extends to the cast of an arbitrary threshold of
+parties, by using polynomial secret sharing.
+
+
 # Conclusion
+
+Most of this information can be found in {{<ref-link "2">}},
+but hopefully this post could provide a bit more intuition
+about the clever tricks going into these signature schemes.
+
+I believe Monero has recently moved on to use CLSAG
+{{<ref-link "4">}}, which is a variant of the MLSAG scheme,
+but with weaker linkability properties. Frankly, I don't
+understand how those weaker linkability properties are worked
+around in practice with transactions, so I refrained from
+including them in this presentation.
+
+The way these signatures are assembled into an actual private
+transaction scheme is quite interesting actually, and
+can be found in {{<ref-link "2">}}, once again.
 
 # References
 
@@ -484,3 +517,8 @@ ring signatures.
   "3"
   "https://web.getmonero.org/resources/research-lab/pubs/MRL-0005.pdf"
   "[3] Shen Noether, Adam Mackenzie, and Monero Core Team, Ring Confidential Transactions">}}
+
+{{<ref
+  "4"
+  "https://eprint.iacr.org/2019/654"
+  "[4] Brandon Goodell, Sarang Noether, and Arthur Blue. Concise linkable ring signatures and application">}}
