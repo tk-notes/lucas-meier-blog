@@ -288,7 +288,7 @@ $$
 Then compute challenges:
 
 $$
-e_{\pi + 1} \longleftarrow H(\mathcal{R}, m, k \cdot G, k \cdot \mathcal{H}(K_\pi))
+e_{\pi + 1} \longleftarrow H(\mathcal{R}, m, k \cdot G, k \cdot \mathcal{H}(X_\pi))
 $$
 
 and
@@ -315,11 +315,55 @@ $$
 e'_{i + 1} \longleftarrow H(\mathcal{R}, m, r_i \cdot G + e_i \cdot X_i, r_i \cdot \mathcal{H}(X_i) + c_i \tilde{X})
 $$
 
-And check that:
+and check that:
 
 $$
 e'_1 \stackrel{?}{=} e_1
 $$
+
+## Linkability
+
+The key image lets us tie to different ring signatures
+produced with the same private key together. If we
+use the same $x_\pi$ twice, we'll have the same key image
+$\tilde{X}$. The key image is also integrated into
+the loop of challenges, which keeps signers honest in
+terms of linkability: they can't try and avoid linking their
+signatures, even if they use different rings.
+
+Note that it's very important that the hash function $\mathcal{H}$
+returns points in $\mathbb{G}$ without revealing their discrete
+logarithm. If we have $\mathcal{H}(m) = h(m) \cdot G$, we
+would have:
+
+$$
+\tilde{X} = x_\pi \cdot \mathcal{H}(X_\pi) = x_\pi \cdot h(X_\pi) \cdot G = h(X_\pi) \cdot X_\pi
+$$
+
+This means that we could iterate over all of the $X_i$ in the ring
+$\mathcal{R}$, and check:
+
+$$
+h(X_i) \cdot X_i \stackrel{?}{=} \tilde{X}
+$$
+
+in order to find which member of the ring produced this signature.
+Having the hash function return a point in the group directly
+avoids this issue.
+
+{{<note>}}
+In the context of Monero, a prime order group isn't used,
+Rather, we use a subgroup $\mathbb{G}$, of order $q$, of a
+larger group $\mathbb{H}$, of order $8q$. Because of this,
+we also need to add an additional check that $\tilde{X} \in \mathbb{G}$, which we do by checking:
+$$
+q \cdot X \stackrel{?}{=} 0
+$$
+Otherwise, you could add in points outside of the subgroup
+$\mathbb{G}$, and obtain 8 alternate versions of the key-image
+$\tilde{X}$, satisfying the same equations in the challenges.
+This would allow an "octuple-spend" attack.
+{{</note>}}
 
 # MLSAG
 
