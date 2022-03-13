@@ -188,6 +188,23 @@ i.e. the adversary has to send empty messages, receives empty responses,
 and the state of the challenger doesn't change. This avoids the issue
 of havint his arbitrary size "N" in your formalization of what a game is.
 
+Another little problem with my formalization is that when doing reductions,
+I only allowed sending one "message" to the adversary you're using,
+before having to send another message back to the challenger. This is awkward
+for many reductions, but not an essential problem. One way around this
+is to allow all challengers to accept a "I'm not ready to respond yet"
+message in place of whatever they would have liked to receive, in which
+case they reply with something trivial in response. This allows querying
+your own adversary multiple times before responding back to the challenger
+with something interesting. You can also modify the reduction framework
+to explicitly allow a polynomial number of interactions with your own
+adversary before moving back to the challenger. This is why having
+an "unlimited" number of states indexed by $\mathbb{N}$ is more convenient
+too.
+
+But all of these is just hand-wavy speculation, I should really get around
+to making this more concrete, and see what problems end up arising.
+
 Another interesting result I found relates to the product of ciphers.
 I had defined what the product $A \times B$ and coproduct
 $A + B$ of two security games meant, categorically, but I hadn't thought
