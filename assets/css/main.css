@@ -53,10 +53,10 @@ a:visited:hover {
 }
 
 .highlight pre {
-  @apply border-2;
-  @apply border-gray-700;
-  @apply rounded;
+  @apply shadow-inner;
+  @apply rounded-md;
   @apply my-2;
+  background-color: #faf9f4;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   padding-top: 0.4rem;
