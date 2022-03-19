@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Iosevka';
-  src:  url('fonts/iosevka-regular.woff2') format('woff2');
+  src:  url('iosevka-regular.woff2') format('woff2');
 }
 
 html, body {
