@@ -1,19 +1,19 @@
 {{ define "main" }}
-  <article class="lg:container mx-4 sm:mx-auto md:w-10/12 font-serif sm:w-3/4 lg:w-6/12 xl:w-5/12">
+  <article class="">
     <aside>
-      <ul class="flex justify-between text-lg">
+      <ul class="">
         <li>
           {{ .Date.Format "January 02, 2006" }}
         </li>
         <li class="font-bold">
-          {{ .ReadingTime }} <span class="text-md font-normal">{{ if eq .ReadingTime 1 }}minute{{ else }}minutes{{ end }}</span>
+          {{ .ReadingTime }} <span class="">{{ if eq .ReadingTime 1 }}minute{{ else }}minutes{{ end }}</span>
         </li>
       </ul>
       <ul>
       </span>
     </aside>
     {{ with .Title }}
-      <h1 class="text-4xl font-bold">
+      <h1 class="">
         {{ . }}
       </h1>
     {{ end }}
