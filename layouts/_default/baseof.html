@@ -26,22 +26,22 @@
   </head>
 
   <nav>
-    <ul class="">
+    <ul class="h-16 mx-auto flex items-center justify-between px-2 sm:px-4 py-4 text-xl sm:text-2xl">
       <li>
         <a href="/" class="">
-          <img src="/images/profile.png" class="rounded-full w-8 h-8">
+          <img src="/images/profile.png" class="rounded-full w-10 h-10 shadow-md shadow-pink-300">
         </a>
       </li>
-      <li class="">
-        <a href="/posts" class="">
+      <li class="space-x-2 sm:space-x-4 md:space-x-8 capitalize font-bold font-serif">
+        <a href="/posts" class="hover:text-blue-300">
           posts
         </a>
-        <a href="/projects" class="">
+        <a href="/projects" class="hover:text-blue-300">
           projects
         </a>
       </li>
-      <li class="">
-        <a class="" href="/posts/index.xml">
+      <li class="flex items-center space-x-2 sm:space-x-4 text-gray-900">
+        <a class="hover:text-blue-300" href="/posts/index.xml">
           <svg
             version="1.1"
             id="Capa_1"
@@ -67,7 +67,7 @@
             </g>
           </svg>
         </a>
-        <a href="https://github.com/cronokirby" class="">
+        <a href="https://github.com/cronokirby" class="hover:text-blue-300">
           <svg
             viewBox="0 0 256 250"
             version="1.1"
@@ -83,7 +83,7 @@
             </g>
           </svg>
         </a>
-        <a href="https://twitter.com/cronokirby" class="">
+        <a href="https://twitter.com/cronokirby" class="hover:text-blue-300">
           <svg
             viewBox="0 0 256 209"
             version="1.1"
@@ -103,7 +103,7 @@
       </li>
     </ul>
   </nav>
-  <body class="">
+  <body class="bg-gray-100 base">
     {{ block "main" . }}{{ end }}
   </body>
 </html>

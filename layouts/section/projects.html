@@ -1,39 +1,39 @@
 {{ define "main" }}
 <main
-  class=""
+  class="lg:container mx-4 sm:mx-auto md:w-10/12 font-serif sm:w-3/4 lg:w-5/12"
 >
   {{ $pages := where site.RegularPages "Type" "in" "[projects]"}}
-  <ul class="">
+  <ul class="space-y-4 divide-gray-700 divide-solid divide-y-2">
   {{ range $pages }}
-    <li class="">
-      <div class="">
-        <div class="">
-          <a class="" href="{{.Params.Link}}">
+    <li class="pt-2">
+      <div class="flex items-center justify-between">
+        <div class="content">
+          <a class="text-2xl font-bold" href="{{.Params.Link}}">
             {{ .Title }}
           </a>
         </div>
-        <h1 class="">
+        <h1 class="text-xl">
           {{ .Date.Format "January 2006"}}
         </h1>
       </div>
 
-      <ul class="">
+      <ul class="flex flex-wrap items-center space-x-3 mb-2">
         {{ range .Params.Tech }}
         <li>
           <span
-            class=""
+            class="border-2 hover:border-blue-300 hover:text-blue-300 border-gray-700 px-1 text-xs font-mono rounded"
             >{{.}}</span
           >
         </li>
         {{ end }}
       </ul>
-      <div class="">
+      <div class="sm:flex items-center space-x-8">
         {{ with (index (.Resources.Match "cover*") 0)}}
-          <div class="">
-            <img src="{{.RelPermalink}}" class="" loading="lazy"></a>
+          <div class="mx-auto w-3/4 sm:w-2/5">
+            <img src="{{.RelPermalink}}" class="rounded shadow-md" loading="lazy"></a>
           </div>
         {{ end }}
-        <div class="">
+        <div class="sm:w-3/5 content no-justify">
           {{ .Content }}
         </div>
       </div>
