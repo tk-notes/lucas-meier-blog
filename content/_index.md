@@ -15,7 +15,7 @@ implementing MPC protocols.
 
 I've also been programming since 2017 or so, and I try to have a somewhat public profile on the things I do.
 Topics I've enjoyed here include Functional Programming, Web Programming, Distributed Programming, and Programming Languages.
-I've programmed in a plethora of languages, from **C**, to **Haskell, **Rust, **Go**, **Scala**, **Java**, **Python**,
+I've programmed in a plethora of languages, from **C**, to **Haskell**, **Rust**, **Go**, **Scala**, **Java**, **Python**,
 etc. having written small to large-ish projects in each of them.
 
 I also like Math quite a bit, so that's a recurring topic in my posts as well. Interests there
