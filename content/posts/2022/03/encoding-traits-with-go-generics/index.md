@@ -99,3 +99,73 @@ class Group a where
     inv :: a -> a
     mul :: a -> a -> a
 ```
+
+Whereas interfaces can only define methods, that is,
+functions that look like:
+
+```text
+a -> X -> Y
+```
+
+traits can place the `a` anywhere in the function type.
+With Go's interfaces, there's no good way to reference
+the type implementing the interface, or to require that that
+the return type of the method is the same as the receiver.
+
+## A Workaround
+
+One little workaround is that you can make the contract
+about returning an element of the same type *implicit*.
+For example, we could define a group interface as:
+
+```go
+type Group interface {
+    Inv() Group
+    Mul(Group) Group
+}
+```
+
+This interface says that we return and accept any type implementing
+this interface. But, we can implicitly allow implementors
+to only work with their own type, casting whenever necessary:
+
+```go
+type F13 int
+
+func (x F13) Inv() Group {
+    // x ** 12 mod 13
+    var out F13
+    return out
+}
+
+func (x F13) Mul(generic Group) Group {
+    y := generic.(F13)
+    return x * y % 13
+}
+```
+
+It's understood that implementors won't actually accept any
+object satisfying the interface, but only objects with the
+same type as them. Similarly, they will only ever return
+objects of the same type.
+
+We used an approach like this to abstract over curves
+in the [Threshold Signature library](https://github.com/taurusgroup/multi-party-sig/blob/main/pkg/math/curve/curve.go) I worked on at Taurus.
+
+Naturally, this casting comes at a runtime cost, and is also
+very brittle. If you don't conform to this implicit
+contract, you'll get panics at runtime, which isn't
+exactly pleasant.
+
+# Enter Generics
+
+I find Go's generics to be pretty complicated. In my opinion,
+most of this is non-essential complexity, comparing
+to a green-field implementation of generics. But, since Go
+had to find a way to implement generics in a backwards
+compatible way and with minimal changes to the language,
+I can't really comment on whether or not the solution was more
+complicated than necessary in that context.
+
+All of this to say that I won't be explaining how they work
+completely here, so I refer you to [the Go reference](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md).
