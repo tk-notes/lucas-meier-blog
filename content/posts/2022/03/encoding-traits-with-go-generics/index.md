@@ -1,7 +1,7 @@
 ---
 title: "Encoding Traits with Go Generics"
-date: 2022-03-19T21:27:53+01:00
-draft: true
+date: 2022-03-20T16:42:38+01:00
+draft: false
 katex: false
 tags:
   - "Generics"
@@ -149,13 +149,47 @@ object satisfying the interface, but only objects with the
 same type as them. Similarly, they will only ever return
 objects of the same type.
 
-We used an approach like this to abstract over curves
-in the [Threshold Signature library](https://github.com/taurusgroup/multi-party-sig/blob/main/pkg/math/curve/curve.go) I worked on at Taurus.
-
 Naturally, this casting comes at a runtime cost, and is also
 very brittle. If you don't conform to this implicit
 contract, you'll get panics at runtime, which isn't
 exactly pleasant.
+
+We used an approach like this to abstract over curves
+in the [Threshold Signature library](https://github.com/taurusgroup/multi-party-sig/blob/main/pkg/math/curve/curve.go) I worked on at Taurus.
+
+One problem with this approach is that there's no good way
+to represent the methods which create an element of the group
+out of thin air, like:
+
+```haskell
+class Group a where
+    one :: a
+    ...
+```
+
+For this, one approach is to define a secondary interface,
+related to the group, which knows how to create elements of that
+group:
+
+```go
+type GroupDomain interface {
+    One() Group
+}
+
+type Group interface {
+    Domain() GroupDomain
+    Inv() Group
+    Mul(Group) Group
+}
+```
+
+For Elliptic Curves, the natural thing to do is to define
+an interface for a `Curve`, which knows how to create scalars
+and points.
+
+This approach is still somewhat artificial, but is actually
+what we'll be basing ourselves upon when using generics,
+albeit with more type safety.
 
 # Enter Generics
 
@@ -169,3 +203,234 @@ complicated than necessary in that context.
 
 All of this to say that I won't be explaining how they work
 completely here, so I refer you to [the Go reference](https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md).
+
+The core of this proposal is that functions can now
+accept type parameters, like:
+
+```go
+func id[T any](t T) T {
+    return t
+}
+
+func main() {
+    id[int](3)
+    id[string]("foo")
+}
+```
+
+In theory, one version of `id` will get created for each
+type it gets used with. What matters is that the dispatch
+doesn't have to be done at runtime, unlike with interfaces.
+
+This function doesn't really do anything interesting with
+the generic type. In fact, with `T any`, we can't really
+do anything with the type itself, beyond moving it
+around between containers.
+
+To do interesting things, we need some kind of *constraint*
+on `T`, so that we can assume certain behaviors, and then
+make use of those behaviors.
+
+Go decided to base its constraint system off of its existing
+interface system. So, we can take a normal interface:
+
+```go
+type Serializable interface {
+    Serialize() []byte
+}
+```
+
+and then use it as a constraint in a generic function:
+
+```go
+func actuallySerialize[T Serializable](t T) []byte {
+    return t.Serialize()
+}
+```
+
+Now, we could have written this as:
+
+```go
+func actuallySerializeI(t Serializable) []byte {
+    return t.Serialize()
+}
+```
+
+The difference is that one of these uses static dispatch,
+and the other uses dynamic dispatch. Otherwise, they're pretty
+similar.
+
+Where things really get interesting is that types can
+also be generic. So you can have:
+
+```go
+type Array[T any] struct {
+    data []T
+}
+```
+
+We can also have generic interfaces:
+
+```go
+type ConvertibleTo[T any] interface {
+    Convert() T
+}
+```
+
+And `ConvertibleTo[T]` can also be used as a type constraint!
+
+```go
+func convert[T any, C ConvertibleTo[T]](c C) X {
+    return c.Convert()
+}
+```
+
+This is the fundamental construct we'll use to create a
+trait for groups, along with the "domain" idea we saw earlier.
+
+# Representing Groups
+
+The basic idea is that instead of making an interface for
+a group, we make an interface parameterized by a group,
+which knows how to perform operations over that group.
+
+To illustrate the idea, we have:
+
+```go
+type Group[E any] interface {
+    One() E
+    Inv(E) E
+    Mul(E, E) E
+}
+```
+
+This mimics the `Group` typeclass we had in Haskell earlier.
+
+Now, the type implementing this interface will just be
+a dummy type:
+
+```go
+type F13Element int
+
+type F13 struct{}
+
+func (F13) One() F13Element {
+    return 1
+}
+
+func (F13) Inv(e F13Element) F13Element {
+    // return e ** 12 % 13
+}
+
+func (F13) Mul(a, b F13Element) F13Element {
+    return a * b % 13
+}
+```
+
+We can then create and use a generic function over groups like this:
+
+```go
+func square[E any, G GroupDomain[E]](group G, e E) E {
+	return group.Mul(e, e)
+}
+
+func main() {
+	square[F13Element, F13](F13{}, 2)
+}
+```
+
+The object for the group itself doesn't really contain any
+information, what matters is that the methods on that object
+implement the operations for that group. All we care about
+is the dictionary of methods the object carries around.
+The advantage of generics is that this dictionary only
+exists at compile time, and we have a larger amount
+of type-safety compared to the runtime casting approach.
+
+{{<note>}}
+This is actually very similar to the Haskell approach,
+in some sense. In Haskell, a class is analogous to a generic
+data
+type containing the functions of that class as fields.
+A function with a type constraint is really a function taking
+an element of this generic data type as an argument. This
+is exactly what we're doing in Go.
+{{</note>}}
+
+## Associated Types
+
+In most uses of a group, we also want to access the associated
+class of scalars for that group. We can do this pretty
+easily as well:
+
+```go
+type Scalars[S any] interface {
+    Zero() S
+    One() S
+    Add(S, S) S
+    Neg(S) S
+    Mul(S, S) S
+    Inv(S) S
+}
+
+type Group[S any, E any, SD Scalars[S]] interface {
+    Scalars() SD
+    Identity() E
+    Generator() E
+    Mul(E, E) E
+    Inv(E) E
+    Scale(S, E) E
+}
+```
+
+A group is parameterized by three things now. First, we
+have the type of elements in the group, then we have the
+type of scalars in the group, and then we need some
+type which can manipulate the scalars.
+
+Like with groups, the type implementing `Scalars[S]` will
+be an empty struct, acting only as a vehicle for the
+dictionary of methods.
+
+We can then implement a generic method using these types:
+
+```go
+func twoTimesG[E, S any, SD Scalars[S], G Group[S, E, SD]](group G) E {
+    scalars := group.Scalars()
+    one := scalars.One()
+    two := scalars.Add(one, one)
+    return group.Scale(two, group.Generator())
+}
+```
+
+I think this scales to a more complete description
+of a Cryptographic group, with methods for deserialization,
+conversion from ints, etc, but I've yet to actually
+try writing a full package with this technique.
+
+# Conclusion
+
+This method is really a straightforward application of
+some ideas from Haskell, but I expect this kind of technique
+to show up in some shape or form, because the ability
+to abstract over things like groups, and in general
+algebraic structures, is quite useful. Even if you're not
+doing math, there are many situations where something
+of one type can be combined with itself to make
+another thing of that same type.
+
+I think the method I've described here should also be directly
+useful to create a generic Elliptic Curve library for Cryptography,
+which would be a worthwhile addition to the Go ecosystem.
+When writing our Threshold Signature library, we wanted
+to abstract over curves, instead of doing everything over
+`secp256k1`, and I think this approach would be better than
+the dynamic dispatch version we came up with. Having a standardized
+solution to interoperate across different libraries would
+be great as well.
+
+I think this technique isn't the ultimate solution to this
+problem though, and it's possible that people will find
+more elegant ways of expressing the same concept in Go.
+Maybe Go's generics will evolve more functionality over time;
+who knows?
