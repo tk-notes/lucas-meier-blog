@@ -13,3 +13,5 @@ link: "https://github.com/cronokirby/seed-split"
 A simple tool to split seed phrases (like with Ethereum, Bitcoin, etc.) into
 multiple shares. Any threshold of these shares can then be used to recover
 the original seed phrase.
+
+A good occasion to implement arithmetic over binary fields from scratch as well.
