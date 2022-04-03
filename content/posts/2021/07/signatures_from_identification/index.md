@@ -34,7 +34,7 @@ What you *know* is a great way to prove *who* you are.
 Like many serious topics in security,
 we start with a game. The game involves a challenger,
 and yourself. You want to prove who you are to this challenger. You
-do this by exchanging messages with eacho ther. We call this game
+do this by exchanging messages with eachother. We call this game
 an "identification protocol". At least, I do.
 
 The simplest protocol follows the club analogy.
@@ -498,12 +498,12 @@ This scheme has arbitrary modifications designed to skirt existing
 patents. At least, some people have intuited that.
 
 Personally, I think DSA is an ugly scheme compared to the more natural
-Schnorr signatures. It is not only aesthetics, but the shape of DSA
+Schnorr signatures. This isn't just a matter of aesthetics: but the shape of DSA
 makes building more complicated extensions difficult. Thresholdizing
 Schnorr Signatures is easy, but thresholdizing DSA is substantially
 trickier.
 
 Patents are intended to spur innovation. In this case, innovation
-was necessary avoid the arbitrary roadblocks imposed by patents.
+was necessary to avoid the arbitrary roadblocks imposed by patents.
 
 I don't think patents are the right tool for incentivizing innovation in Cryptography.
