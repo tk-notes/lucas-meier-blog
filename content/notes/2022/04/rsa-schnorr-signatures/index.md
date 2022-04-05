@@ -75,7 +75,7 @@ $$
 \begin{aligned}
 k &\xleftarrow{R} \mathbb{Z}/(N)^*\cr
 K &\gets k^e \mod N\cr
-c &\gets H(N, e, K, m)\cr
+c &\gets H(N, e, X, K, m)\cr
 r &\gets k \cdot x^c \mod N\cr
 (K&, r)
 \end{aligned}
@@ -91,7 +91,7 @@ our security parameter, we'll have perfectly suitable exponent.
 
 **Verification**
 $$
-r^e \stackrel{?}{\equiv} K \cdot X^{H(N, e, K, m)}\mod N
+r^e \stackrel{?}{\equiv} K \cdot X^{H(N, e, X, K, m)}\mod N
 $$
 
 # Security
