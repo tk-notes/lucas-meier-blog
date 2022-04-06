@@ -67,7 +67,7 @@ For the memes, let's explicitly describe the signature scheme.
 **Key-Generation**
 
 Generate random primes $p, q$ of half the desired modulus size.
-Let $N = p \cdot q$, and pick $e$ such that $\text{gcd}(e, (p - 1)(q - 1)) = 1$. (For example, by choosing $e = 65537$).
+Let $N = p \cdot q$, and pick $e$ such that $\text{gcd}(e, (p - 1)(q - 1)) = 1$.
 
 Pick a random $x\xleftarrow{R} \mathbb{Z}/(N)^*$,
 and then set $X \gets s^e \mod N$.
@@ -89,10 +89,11 @@ $$
 
 
 {{<note>}}
-What type should $c$ have? Well, ideally it should be taken modulo
-$\varphi(N)$, but obviously we can't know that value. Instead, if we
-take a uniform integer with $\text{size}(N) + \lambda$ bits, with $\lambda$
-our security parameter, we'll have perfectly suitable exponent.
+What type should $c$ have? Well, one approach is to take it such
+that $c$ is coprime with $e$, so that we'll have extractability.
+Basically, given $x^c$ and $x^e$, you can learn $x$. We also need
+$e$ to be large enough to have our security parameter, i.e.
+$e > 2^128$ or so.
 {{</note>}}
 
 **Verification**
