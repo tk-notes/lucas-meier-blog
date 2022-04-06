@@ -8,6 +8,11 @@ note-tags:
 katex: true
 ---
 
+{{<note>}}
+I wasn't aware when quickly writing this up, but it turns out that this is
+an application of the [Guillou-Quisquater protocol](https://link.springer.com/chapter/10.1007/3-540-45961-8_11).
+{{</note>}}
+
 [Maurer's 2009 paper](https://crypto.ethz.ch/publications/files/Maurer09.pdf)
 provides a generalization of schnorr signatures to a large class of situations.
 Essentially, any time you have a group homomorphism $\varphi : G \to H$,
@@ -53,6 +58,7 @@ $$
 
 Furthermore, this homomorphism is one way, provided we don't know
 the factorization of $N$, and we think RSA is hard.
+
 
 # The Signature Protocol
 
