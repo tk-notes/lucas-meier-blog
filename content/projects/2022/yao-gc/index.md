@@ -13,6 +13,6 @@ link: "https://github.com/cronokirby/yao-gc"
 An implementation of [Yao's Garbled Circuits](https://www.wikiwand.com/en/Garbled_circuit).
 
 This is a protocol which lets two parties compute a boolean function
-of their private inputs, without revealing those inputs to eachother.
+of their private inputs, without revealing those inputs to each other.
 
 This is one of the earliest and simplest two-party MPC protocols.
