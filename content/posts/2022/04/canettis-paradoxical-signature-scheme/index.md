@@ -130,7 +130,104 @@ is completely unrelated. And being able to learn $e \cdot X$
 from $E$ and $X$ is reducable to the Computation-Diffie-Hellman
 (CDH) problem.
 
+This approach also extends to the case of protocols,
+where multiple players are interacting, instead of
+just an adversary interacting with a challenger. In this case,
+the random oracle is modelled as a common function that all
+the players have access to. Internally, it still works
+with the lazy random outputs technique we used here; or
+with something equivalent.
+
 # Hash Functions
+
+In practice, we don't have random oracles, nor magic gnomes.
+Instead, we have actual hash functions, like BLAKE3, SHA256, etc.
+So, the question is: do these functions behave like random oracles?
+
+## Trivial Differences
+
+There's one trivial way in which all of these fail to be random
+oracles, which is that we can *pre-compute* their outputs.
+For example, the SHA256 of the empty string is:
+
+```txt
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+```
+
+I can tell that SHA256 is being used, and not a random oracle,
+simply by querying the random oracle on the empty string.
+Since the random oracle is initialized at the start of the
+security game, it won't already have this output baked in. In
+all likelihood, I'll see a different outupt for the empty string.
+
+This stems from a more fundamental issue with modelling the security
+of hash functions. Because a hash function doesn't have any
+dependency on secret inputs, it's possible for an adversary
+trying to break that hash function to have a lot of knowledge
+already "baked in".
+
+For example, SHA256 necessarily has collisions,
+two inputs with the same hash, because
+the output space is smaller than the input space; more pigeons
+than holes. But, no one knows a collision, nor does anyone
+know procedure for efficiently finding one. Nonetheless,
+there does *exist* some program which immediately outputs
+a collision. And, if you tried to model collision resistance
+as a security game, you'd run into this issue that this preminiscent
+adversary would win that game, because there's no secret
+information involved.
+
+On the other hand, if the hash function were calculated using
+a secret key, such that calculating the function without the key were difficult, then the adversary would be forced to actually
+interact with the challenger, and find a collision, rather
+than being born knowing that collision.
+
+Another related approach is to use a keyed hash function,
+but also provide the adversary with the key. We could even
+integrate this into our hybrid encryption scheme from the
+previous section. The public key would also include
+a hashing key to be used with the hash function, when deriving
+the encryption key from the share Diffie-Hellman secret.
+
+You can abstract this a bit further, by modelling
+a hash function such as SHA256 as a *family* of hash functions.
+SHA256 relies on the following block of constant values:
+
+```txt
+428a2f98 71374491 b5c0fbcf e9b5dba5
+3956c25b 59f111f1 923f82a4 ab1c5ed5
+d807aa98 12835b01 243185be 550c7dc3
+72be5d74 80deb1fe 9bdc06a7 c19bf174
+e49b69c1 efbe4786 0fc19dc6 240ca1cc
+2de92c6f 4a7484aa 5cb0a9dc 76f988da
+983e5152 a831c66d b00327c8 bf597fc7
+c6e00bf3 d5a79147 06ca6351 14292967
+27b70a85 2e1b2138 4d2c6dfc 53380d13
+650a7354 766a0abb 81c2c92e 92722c85
+a2bfe8a1 a81a664b c24b8b70 c76c51a3
+d192e819 d6990624 f40e3585 106aa070
+19a4c116 1e376c08 2748774c 34b0bcb5
+391c0cb3 4ed8aa4a 5b9cca4f 682e6ff3
+748f82ee 78a5636f 84c87814 8cc70208
+90befffa a4506ceb bef9a3f7 c67178f2
+```
+
+"These words represent the first 32
+   bits of the fractional parts of the cube roots of the first sixty-
+   four prime numbers.",
+as per [RFC 6234](https://datatracker.ietf.org/doc/html/rfc6234#section-5.1).
+
+But you could have chosen *different* values for these constants.
+So, in some sense, you can think of SHA256 as a family
+of hash functions, one for each choice of constants. Then
+you'd model security games involving SHA256 as first involving
+a public, but random, choice for these parameters, and then
+using the version of SHA256 with those parameters.
+This would avoid the trivial issue of adversaries magically
+knowing collisions, because their knowledge would
+depend on this choice of parameters.
+
+## Some Non-Trivial Differences
 
 # Canetti's Paradox
 
