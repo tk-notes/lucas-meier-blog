@@ -229,7 +229,124 @@ depend on this choice of parameters.
 
 ## Some Non-Trivial Differences
 
+SHA256 specifically is actually not a random oracle in
+a less trivial way. This is because it suffers from
+[Length Extension Attacks](https://www.wikiwand.com/en/Length_extension_attack).
+
+Essentially, if you know $H(m_0)$, and the length of $m_0$,
+then you can learn $H(m_0 || m_1)$, for a somewhat specially
+crafted $m_1$.
+
+Now, this quirk doesn't violate any kind of collision
+or preimage property we expect hash functions to have,
+although it does lead to broken protocols if they naively
+concatenate variable length inputs.
+
+On the other hand, this behavior is very different from
+that of a random oracle. With a random oracle, the output
+is chosen at random, so we aren't able to predict what
+the output is going to be on a different message,
+no matter what the relation is with other messages.
+
+With SHA256, we can predict the output on related messages,
+thus breaking this unpredictability.
+
+Now, this is a quirk of SHA256, which breaks the random oracle
+properties. The question is then: are there hash functions
+without any such quirk?
+
 # Canetti's Paradox
+
+This is the question Canetti et al answered, in the negative:
+no matter which hash function you choose, there will be
+a "quirk" which lets you distinguish this hash function
+from a random oracle. In fact, the quirk they found was
+"this hash function can be implemented by a deterministic computer program". This is a quirk shared by ... every hash function
+we know of, and will ever invent.
+
+## Strings are Programs
+
+To understand this quirk, we'll first have to take a bit of
+a detour. Let me start with a notion that was controversial
+100 years ago, but is pretty much accepted by any programmer
+nowadays:
+
+You can interpret a string of characters as a program.
+
+If you take a string like `foo`, `bar`, `print("hello")`,
+then you can try and interpret them in your favorite programming
+language of choice, and you either get a valid program which
+does something, or you don't. That last string,
+`print("hello")` is a valid python program, which prints something
+out.
+
+So, given a string, we might have a valid program. Given
+this program, we might be able to interpret it as a hash function.
+For example, the following string:
+
+```python
+def hash(x):
+  return b"0"
+```
+
+is the world's worst hash function, but it most definitely
+hash the shape of a hash function.
+
+All of this is just to say that given a string $s \in \\{0, 1\\}^*$,
+I can interpret that string as a function
+${\langle s \rangle : \\{0, 1\\}^\* \to \\{0, 1\\}^\* + \bot}$,
+potentially outputting $\bot$ if we have an invalid program,
+or the program doesn't have the shape of a hash function, etc.
+
+## The Quirk
+
+So, let's say I'm given an oracle as an opaque box $H$.
+I'm trying to figure out whether or not I have a real random
+oracle, or whether or not this box is just running some
+kind of deterministic computer program on each message.
+
+Given a message $m$, I can interpret this message as
+function $\langle m \rangle$, and then evaluate it on the original
+message $m$, to get
+
+$$
+\langle m \rangle (m)
+$$
+
+I can then compare this with the result of $H$, checking:
+
+$$
+\langle m \rangle(m) \stackrel{?}{=} H(m)
+$$
+
+And here's the magic part. If $H$ is actually a computer program,
+then there's a special message $m_*$ which will make this
+check pass. All I have to do is pass in the source code
+for $H$. If $m_*$ is the source code for the program implementing
+$H$, then $\langle m_* \rangle$ is the same function as $H$,
+and so the check will pass, both sides being equal to $H(m_*)$
+
+On the other hand, if $H$ is a genuine random oracle,
+there's no way to consistently make the check pass, because
+the output is genuinely unpredictable, and has no relation
+with whatever is happening with the $\langle m \rangle(m)$
+part.
+
+So, no matter which hash function $H$ you use to try
+and implement a random oracle, you will always run into
+this quirk, because your hash function is implemented by
+a computer program. And this quirk is also easy
+to find, because if you're using $H$ in your program, it's
+because you have access to code implementing $H$.
+
+## A broken Encryption Scheme 
+
+So, there's a quirk which lets us tell the difference between
+a concrete hash function and random oracle, no matter the hash
+function: does that actually mean that secure schemes using
+random oracles become broken if we use a concrete hash function?
+
+Sometimes, yes.
 
 # Lessons?
 
