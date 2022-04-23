@@ -1,5 +1,5 @@
 ---
-title: "Canetti's Paradoxical Signature Scheme"
+title: "Canetti's Paradoxical Encryption Scheme"
 date: 2022-04-15T23:58:37+02:00
 draft: true
 katex: true
@@ -348,6 +348,108 @@ random oracles become broken if we use a concrete hash function?
 
 Sometimes, yes.
 
+Let's start with the hybrid encryption scheme we had earlier:
+
+$$
+\boxed{
+\begin{aligned}
+&\underline{\texttt{Enc}(m : \mathcal{M})}: \mathcal{C}\cr
+&\ e \xleftarrow{R} \mathbb{F}_q\cr
+&\ E := e \cdot G\cr
+&\ k := H(e \cdot X)\cr
+&\ c := \texttt{SymmetricEnc}(k, m_b)\cr
+&\ \texttt{return } (E, c)\cr
+\end{aligned}
+}
+$$
+
+Since this scheme makes use of a hash function $H$, we can try
+and modify this scheme so that it gets broken because of the quirk.
+We want to end up with a scheme which is secure for random oracles,
+but broken for any concrete hash function.
+
+What's the easiest way to make a scheme broken? Leak the private key!
+We can modify the scheme to simply leak the private key along with
+the ciphertext, using our quirk:
+
+$$
+\boxed{
+\begin{aligned}
+&\underline{\texttt{Enc'}(m : \mathcal{M})}: \mathcal{C}'\cr
+&\ e \xleftarrow{R} \mathbb{F}_q\cr
+&\ E := e \cdot G\cr
+&\ k := H(e \cdot X)\cr
+&\ c := \texttt{SymmetricEnc}(k, m_b)\cr
+&\ \colorbox{palegreen}{$\text{leak} :=x \texttt{ if } \langle m \rangle(m) = H(m)\texttt{ else } \bot$}\cr
+&\ \texttt{return } (E, c, \colorbox{palegreen}{leak})\cr
+\end{aligned}
+}
+$$
+
+We interpret the message as a hash function, and evaluate it at $m$,
+comparing it with the result of $H$. If $H$ is a random oracle,
+then finding a message which makes this check pass is exceedingly difficult,
+and so nothing will actually get leaked. On the other hand, if $H$
+is a real hash function, then we can encrypt the source code
+of $H$, and have our encryption scheme spit out the secret key.
+
+Thus, this scheme provides a nice counter-example, which shows
+that just because a scheme is secure in the random-oracle, doesn't
+mean that it will be secure when we replace that oracle with
+a real hash function.
+
 # Lessons?
 
+While this is a nice theoretical result, the scheme we've created
+is a bit silly, for two reasons:
+
+- In practice, a scheme isn't going to have an explicit "trapdoor" which
+  automatically leaks its private key if some condition is met.
+- The quirk that $\langle m \rangle(m) = H(M)$ seems quite artificial as well.
+
+Now, while these points are true, I think we shouldn't be too quick to
+dismiss this result. In general, counter-examples in Cryptography
+seem quite contrived at a first glance, but they can show up in
+more subtle ways.
+
+There are many examples of vulnerabilities where a small amount
+of information leakage can be exploited to mount a more complete
+attack. Take the example of [Bleichenbacher's Attack](https://link.springer.com/content/pdf/10.1007%2FBFb0055716.pdf), or [Padding Oracles](https://www.wikiwand.com/en/Padding_oracle_attack). So while in our contrived
+scheme, there's an obvious trapdoor, it's possible that a concrete
+scheme suffers from smaller and more subtle information leakage
+because of the difference between a random oracle and a concrete hash function.
+
+This brings us to the second point. The quirk we've noticed
+exploits a fundamental, but somewhat trivial difference between hash functions
+and random oracles: hash functions can be implemented with a program.
+We used this difference to create a scheme which is only secure
+with random oracles; it's not clear if this property actually matters
+for security in "realistic" schemes. On the other hand, it's possible
+that there are more *subtle* differences between random oracles
+and hash functions, and that these differences do result in
+exploitable vulnerabilities in actual schemes.
+
+By using a very clear difference, and a very clear trapdoor, we make
+our counter-example crystal clear. But just because our counter-example
+is far removed from concrete schemes, doesn't mean that there aren't
+subtler differences and trapdoors which might exist with those schemes.
+
 # Conclusion
+
+At this point, one question should be: can proofs in the random oracle
+model be trusted? I think I want to say yes to this question. Obviously,
+we shouldn't take the random oracle model as a trivial difference, and if
+a proof can avoid relying on it, that's all for the better. On the other
+hand, there are now many proofs relying on this model, and the only major
+flaw I know of resulting from the use of this model is perhaps
+the presence of [Length Extension Attacks](https://www.wikiwand.com/en/Length_extension_attack), and other similar issues with message concatenation.
+
+There are assumptions that we have to rely on in Cryptography,
+like the hardness of certain problems, and maybe the random oracle
+model is just one of the assumptions we'll have to concede.
+
+It may also be possible to provider a *weaker* form of the random oracle
+model which is still strong enough to be useful for proofs, but weak
+enough that we can use concrete hash functions in order to implement it.
+
+Maybe you'll be the person who discovers these models 8^).
