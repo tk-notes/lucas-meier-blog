@@ -7,11 +7,24 @@ tags:
   - "Cryptography"
 ---
 
-Hook
+When proving security, Cryptographers often model hash functions
+as random oracles, which act like random functions. In practice,
+hash functions are different from random oracles. The question is: does this
+difference impact security?
 
 <!--more-->
 
-Introduction.
+It turns out that it does. In 1998, Ran Canetti, Oded Goldreich, and Shai
+Halevi [constructed an example](https://eprint.iacr.org/1998/011.pdf) of an encryption scheme which
+was secure with random oracles, but insecure if any concrete
+hash function were to be used. This example shows that, in general,
+proving that a scheme is secure with random oracles is not enough
+to show that it's secure with a real hash function.
+
+I'll be trying to present this fun little result in a more informal
+way, leaning on some of the natural intuition we have about
+how computer programs work, instead of the heavier formalisms used
+in their paper.
 
 # The Ideal of the Random Oracle
 
