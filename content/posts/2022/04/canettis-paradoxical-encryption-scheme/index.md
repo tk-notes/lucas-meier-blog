@@ -1,5 +1,5 @@
 ---
-title: "Canetti's Paradoxical Encryption Scheme"
+title: "Canetti et al's Paradoxical Encryption Scheme"
 date: 2022-04-15T23:58:37+02:00
 draft: true
 katex: true
@@ -28,25 +28,27 @@ in their paper.
 
 # The Ideal of the Random Oracle
 
-A *random oracle* is not really something that exists. Rather,
-it is a technique we use when modelling security. We
+A *random oracle* is not really something that exists:
+it is a *technique* we use to reason about security. We
 model some component of a Cryptographic scheme *as* a random
-oracle, in order to study the security of that scheme.
+oracle, and study the security of that scheme with this model.
+We often say that some scheme is secure "in the random oracle model",
+when talking about security proofs made using this technique.
 
 ## Example: Hybrid Encryption
 
 As an example, let's consider a scheme using *hybrid encryption*.
 We'll combine a Diffie-Hellman key-exchange, with a symmetric
-encryption scheme, in order to create an *asymmetric* encryption
+encryption scheme, to create an *asymmetric* encryption
 scheme.
 
 The private key will be a scalar $x \in \mathbb{F}_q$,
 and the associated public key will be the point
 ${X := x \cdot G \in \mathbb{G}}$.
 
-Encrypting a message can be describe with three steps
+Encrypting a message can be described with three steps:
 
-1. Generate a random key-pair $(e, E := e \cdot G)$, and obtain the shared secret ${S := e \cdot X}$.
+1. Generate a random key pair $(e, E := e \cdot G)$, and obtain the shared secret ${S := e \cdot X}$.
 2. Derive a symmetric key $k$ from this secret.
 3. Encrypt the message $m$ using $k$, to obtain $c$. Join $c$ with $E$ to produce the ciphertext $(E, c)$.
 
@@ -59,17 +61,20 @@ chosen function. There shouldn't be any way to predict
 what the output of the function will be, without actually
 calling the function.
 
-The analogy we often use is that this random oracle
-is like a gnome in a box. When we give an input to the gnome,
+This random oracle
+is like a gnome in a box generating random
+outputs for our function. When we give an input to the gnome,
 it will check if it's already decided on an output, and
 generate a random output otherwise.
 
+{{<img "1.png">}}
+
 In practice, we don't actually need to talk about gnomes
 when proving the security of schemes. Instead, this book-keeping
-is managed by the challenger in the security game.
+is managed as part of the game we use to model security.
 
 To illustrate, let's look at the $\text{IND-CPA}$ security
-of this encryption scheme.
+of this hybrid encryption scheme.
 
 {{<note>}}
 I've been getting into the somewhat unorthodox libary based presentation of security games, as featured in
@@ -79,8 +84,8 @@ to skim over the security game aspects: they're secondary
 to the point I'm trying to get at.
 {{</note>}}
 
-We model the security of this encryption scheme by
-having an adversary interact with it:
+We model the security of this encryption scheme as two
+libraries $\mathcal{L}_0$ and $\mathcal{L}_1$:
 
 $$
 \boxed{
@@ -105,8 +110,8 @@ $$
 }
 $$
 
-This represents two libraries, $\mathcal{L}_0$, and $\mathcal{L}_1$.
-If the encryption scheme is secure, then an adversary shouldn't
+The adversary interacts with one of these libraries.
+If the encryption scheme is secure, then the adversary shouldn't
 be able to figure out which of the two libraries it's interacting with.
 
 This library makes calls to the hash function $H$. In the random
@@ -133,29 +138,32 @@ generated it before.
 And this is really all there is to random oracles. They're
 much easier to work with, because their output has no structure
 whatsoever, unlike a real hash function. This makes proofs
-in the random oracle model quite a lot simpler. In this
-particular case, the idea of the security proof is essentially
+in the random oracle model simpler. In this
+case, a sketch of the security proof is essentially
 that the only way to break the scheme would be to somehow
-gain information about the key $k$, but because we model
+gain information about the key $k$. But because we model
 $H$ as a random oracle, the only way to do that would be
 to learn $e \cdot X$, since the output
 is completely unrelated. And being able to learn $e \cdot X$
-from $E$ and $X$ is reducable to the Computation-Diffie-Hellman
+from $E$ and $X$ is reducable to the Computational Diffie-Hellman
 (CDH) problem.
 
 This approach also extends to the case of protocols,
 where multiple players are interacting, instead of
-just an adversary interacting with a challenger. In this case,
+just one adversary interacting with a challenger. In this case,
 the random oracle is modelled as a common function that all
 the players have access to. Internally, it still works
 with the lazy random outputs technique we used here; or
 with something equivalent.
 
+{{<img "2.png">}}
+
 # Hash Functions
 
 In practice, we don't have random oracles, nor magic gnomes.
-Instead, we have actual hash functions, like BLAKE3, SHA256, etc.
-So, the question is: do these functions behave like random oracles?
+Instead, we have actual hash functions, like BLAKE3, or SHA256,
+aut cetera.
+Do these functions behave like random oracles?
 
 ## Trivial Differences
 
@@ -176,11 +184,11 @@ all likelihood, I'll see a different outupt for the empty string.
 This stems from a more fundamental issue with modelling the security
 of hash functions. Because a hash function doesn't have any
 dependency on secret inputs, it's possible for an adversary
-trying to break that hash function to have a lot of knowledge
+to have a lot of knowledge about that hash function
 already "baked in".
 
-For example, SHA256 necessarily has collisions,
-two inputs with the same hash, because
+For example, SHA256 necessarily has collisions --
+two inputs with the same hash -- because
 the output space is smaller than the input space; more pigeons
 than holes. But, no one knows a collision, nor does anyone
 know procedure for efficiently finding one. Nonetheless,
@@ -190,10 +198,12 @@ as a security game, you'd run into this issue that this preminiscent
 adversary would win that game, because there's no secret
 information involved.
 
+{{<img "4.png">}}
+
 On the other hand, if the hash function were calculated using
 a secret key, such that calculating the function without the key were difficult, then the adversary would be forced to actually
-interact with the challenger, and find a collision, rather
-than being born knowing that collision.
+interact with the challenger, actively finding a collision instead
+of being born knowing that collision.
 
 Another related approach is to use a keyed hash function,
 but also provide the adversary with the key. We could even
@@ -284,14 +294,13 @@ a detour. Let me start with a notion that was controversial
 100 years ago, but is pretty much accepted by any programmer
 nowadays:
 
-You can interpret a string of characters as a program.
+**You can interpret a string of characters as a program.**
 
-If you take a string like `foo`, `bar`, `print("hello")`,
-then you can try and interpret them in your favorite programming
-language of choice, and you either get a valid program which
-does something, or you don't. That last string,
-`print("hello")` is a valid python program, which prints something
-out.
+If you take a string like `foo`, `bar`, or `print("hello")`,
+then you can try and interpret it in your favorite programming
+language. You'll either get a valid program which
+does something, or you won't. That last string,
+`print("hello")` happens to be a valid python program, printing `hello`.
 
 So, given a string, we might have a valid program. Given
 this program, we might be able to interpret it as a hash function.
@@ -317,6 +326,8 @@ So, let's say I'm given an oracle as an opaque box $H$.
 I'm trying to figure out whether or not I have a real random
 oracle, or whether or not this box is just running some
 kind of deterministic computer program on each message.
+
+{{<img "3.png">}}
 
 Given a message $m$, I can interpret this message as
 function $\langle m \rangle$, and then evaluate it on the original
@@ -407,9 +418,8 @@ is a real hash function, then we can encrypt the source code
 of $H$, and have our encryption scheme spit out the secret key.
 
 Thus, this scheme provides a nice counter-example, which shows
-that just because a scheme is secure in the random-oracle, doesn't
-mean that it will be secure when we replace that oracle with
-a real hash function.
+that there are schemes secure in the random oracle model, but insecure
+when instantiated with a real hash function.
 
 # Lessons?
 
@@ -422,13 +432,14 @@ is a bit silly, for two reasons:
 
 Now, while these points are true, I think we shouldn't be too quick to
 dismiss this result. In general, counter-examples in Cryptography
-seem quite contrived at a first glance, but they can show up in
-more subtle ways.
+seem quite contrived at a first glance, but they can illustrate
+more subtle issues.
 
 There are many examples of vulnerabilities where a small amount
 of information leakage can be exploited to mount a more complete
-attack. Take the example of [Bleichenbacher's Attack](https://link.springer.com/content/pdf/10.1007%2FBFb0055716.pdf), or [Padding Oracles](https://www.wikiwand.com/en/Padding_oracle_attack). So while in our contrived
-scheme, there's an obvious trapdoor, it's possible that a concrete
+attack. Take the example of [Bleichenbacher's Attack](https://link.springer.com/content/pdf/10.1007%2FBFb0055716.pdf), or [Padding Oracles](https://www.wikiwand.com/en/Padding_oracle_attack). So while the trapdoor
+on our contrived scheme is very obvious,
+it's possible that a concrete
 scheme suffers from smaller and more subtle information leakage
 because of the difference between a random oracle and a concrete hash function.
 
@@ -436,22 +447,25 @@ This brings us to the second point. The quirk we've noticed
 exploits a fundamental, but somewhat trivial difference between hash functions
 and random oracles: hash functions can be implemented with a program.
 We used this difference to create a scheme which is only secure
-with random oracles; it's not clear if this property actually matters
-for security in "realistic" schemes. On the other hand, it's possible
+with random oracles. But, it's not clear if this property actually matters
+for security in "realistic" schemes. For example,
+Pseudo-Random Functions (PRF)s can also implemented with a program,
+but are believed to be as unpredictable as a random oracle. 
+On the other hand, it's possible
 that there are more *subtle* differences between random oracles
 and hash functions, and that these differences do result in
 exploitable vulnerabilities in actual schemes.
 
 By using a very clear difference, and a very clear trapdoor, we make
-our counter-example crystal clear. But just because our counter-example
-is far removed from concrete schemes, doesn't mean that there aren't
-subtler differences and trapdoors which might exist with those schemes.
+our counter-example crystal clear. But even though our counter-example
+is far removed from concrete schemes, there could still be
+subtler differences and trapdoors which might exist with more realistic schemes.
 
 # Conclusion
 
 At this point, one question should be: can proofs in the random oracle
-model be trusted? I think I want to say yes to this question. Obviously,
-we shouldn't take the random oracle model as a trivial difference, and if
+model be trusted? I think I want to say *yes* to this question. Obviously,
+we shouldn't take the random oracle model as a trivial assumption, and if
 a proof can avoid relying on it, that's all for the better. On the other
 hand, there are now many proofs relying on this model, and the only major
 flaw I know of resulting from the use of this model is perhaps
