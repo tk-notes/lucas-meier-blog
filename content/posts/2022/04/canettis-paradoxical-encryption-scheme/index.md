@@ -1,7 +1,7 @@
 ---
 title: "Canetti et al's Paradoxical Encryption Scheme"
-date: 2022-04-15T23:58:37+02:00
-draft: true
+date: 2022-04-23T18:23:35+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -16,7 +16,7 @@ difference impact security?
 
 It turns out that it does. In 1998, Ran Canetti, Oded Goldreich, and Shai
 Halevi [constructed an example](https://eprint.iacr.org/1998/011.pdf) of an encryption scheme which
-was secure with random oracles, but insecure if any concrete
+was *secure* with random oracles, but *insecure* if any concrete
 hash function were to be used. This example shows that, in general,
 proving that a scheme is secure with random oracles is not enough
 to show that it's secure with a real hash function.
@@ -29,7 +29,7 @@ in their paper.
 # The Ideal of the Random Oracle
 
 A *random oracle* is not really something that exists:
-it is a *technique* we use to reason about security. We
+rather, it is a *technique* we use to reason about security. We
 model some component of a Cryptographic scheme *as* a random
 oracle, and study the security of that scheme with this model.
 We often say that some scheme is secure "in the random oracle model",
@@ -194,7 +194,7 @@ than holes. But, no one knows a collision, nor does anyone
 know procedure for efficiently finding one. Nonetheless,
 there does *exist* some program which immediately outputs
 a collision. And, if you tried to model collision resistance
-as a security game, you'd run into this issue that this preminiscent
+as a security game, you'd run into the issue that this preminiscent
 adversary would win that game, because there's no secret
 information involved.
 
@@ -274,17 +274,20 @@ no matter what the relation is with other messages.
 With SHA256, we can predict the output on related messages,
 thus breaking this unpredictability.
 
-Now, this is a quirk of SHA256, which breaks the random oracle
-properties. The question is then: are there hash functions
+While this quirk breaks
+the properties of a random oracle,
+it's very specific to SHA256 (or hash functions
+following the [Merkle-Damgård paradigm](https://www.wikiwand.com/en/Merkle%E2%80%93Damg%C3%A5rd_construction)).
+The question is then: are there hash functions
 without any such quirk?
 
 # Canetti's Paradox
 
-This is the question Canetti et al answered, in the negative:
+This is the question Canetti et al. answered, in the negative:
 no matter which hash function you choose, there will be
 a "quirk" which lets you distinguish this hash function
 from a random oracle. In fact, the quirk they found was
-"this hash function can be implemented by a deterministic computer program". This is a quirk shared by ... every hash function
+"this hash function can be implemented by a deterministic computer program". This is a quirk shared by **every** hash function
 we know of, and will ever invent.
 
 ## Strings are Programs
@@ -312,7 +315,7 @@ def hash(x):
 ```
 
 is the world's worst hash function, but it most definitely
-hash the shape of a hash function.
+has the shape of a hash function.
 
 All of this is just to say that given a string $s \in \\{0, 1\\}^*$,
 I can interpret that string as a function
@@ -449,14 +452,15 @@ and random oracles: hash functions can be implemented with a program.
 We used this difference to create a scheme which is only secure
 with random oracles. But, it's not clear if this property actually matters
 for security in "realistic" schemes. For example,
-Pseudo-Random Functions (PRF)s can also implemented with a program,
-but are believed to be as unpredictable as a random oracle. 
+Pseudo-Random Functions (PRF) can also implemented with a program,
+but are believed to be as unpredictable as a random oracle,
+provided you don't know the secret key used when evaluated them. 
 On the other hand, it's possible
 that there are more *subtle* differences between random oracles
 and hash functions, and that these differences do result in
 exploitable vulnerabilities in actual schemes.
 
-By using a very clear difference, and a very clear trapdoor, we make
+By using a very obvious difference, and a obvious clear trapdoor, we make
 our counter-example crystal clear. But even though our counter-example
 is far removed from concrete schemes, there could still be
 subtler differences and trapdoors which might exist with more realistic schemes.
