@@ -77,7 +77,7 @@ To illustrate, let's look at the $\text{IND-CPA}$ security
 of this hybrid encryption scheme.
 
 {{<note>}}
-I've been getting into the somewhat unorthodox libary based presentation of security games, as featured in
+I've been getting into the somewhat unorthodox library based presentation of security games, as featured in
 [The Joy of Cryptography](https://joyofcryptography.com/),
 so I'm going to present things in this style. Feel free
 to skim over the security game aspects: they're secondary
