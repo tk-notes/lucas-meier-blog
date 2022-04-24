@@ -18,7 +18,7 @@ Specifically, how to use it to solve a system of system of simple modular equati
 This came up today in an Advent of Code problem, and enough people were asking
 questions about the theorem to warrant a little blog post, in my opinion.
 
-In brief, the CRT let's us solve a system of equations:
+In brief, the CRT lets us solve a system of equations:
 
 $$
 \begin{aligned}
