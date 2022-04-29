@@ -27,6 +27,19 @@ to keep their input $x_i$ *secret*. The difficulty in MPC is not
 in computing the function $f$ among multiple parties, but rather in
 keeping all of the inputs hidden while performing that computation.
 
+## Example: The Millionaire Problem
+
+{{<todo>}}
+Yao's Millionaire Problem
+{{</todo>}}
+
+
+## Our Specific Setting
+
+{{<todo>}}
+Explain that we're working in the two-party setting, assuming
+semi-honest.
+{{</todo>}}
 
 # Detour: Oblivious Transfer
 
@@ -36,6 +49,11 @@ read for most people if we took care of explaining the idea of Oblivious
 Transfer first. You may not be among these people, so feel free to come
 back to this section later if that works better for you.
 {{</note>}}
+
+{{<todo>}}
+Explain how Oblivious Transfer works, at a high level, and then
+link to an example with Simplest OT.
+{{</todo>}}
 
 # Functions as Lookup Tables
 
