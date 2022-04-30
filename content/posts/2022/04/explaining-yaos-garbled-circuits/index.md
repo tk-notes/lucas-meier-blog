@@ -85,13 +85,49 @@ arbitrary number of parties compute some arbitrary function $f$.
 Garbled Circuits is a technique for doing MPC in the case
 where there are only two parties.
 
+### Boolean Circuits
+
 This technique nonetheless works with an arbitrary function $f$,
 although we need to assume a more concrete representation for
 that function. We assume that $f$ can be represented as a
-*boolean circuit*. The intuitive idea of a circuit as a bunch of
-wires conneced to boolean gates like $\\&, \oplus$, etc.
+*boolean circuit*. You can think of this circuit as a bunch of
+wires conneced to boolean gates like $\\&, \oplus$, etc. A
+more formal definition would model this circuit as a *graph*.
+The nodes would be the inputs or gates of the circuit, and the edges
+would the wires connecting gates together.
+
+{{<todo>}}
+Image of a stereotypical graph goes here.
+{{</todo>}}
+
+I think the most useful representation for this post is related
+to the idea of graphs, but not exactly the same. I like
+to think of a circuit as a collection of labeled wires. Each
+wire either comes from an input value, or from the output
+of another gate, like in this example:
+
+{{<todo>}}
+Example image with wire splitting.
+{{</todo>}}
+
+You can also model this idea as a little programming language,
+involving variables, reading input, and boolean operators:
+
+```txt
+let x = input(0)
+let y = input(1)
+let z = x & y
+let w = y | w
+return (z, w)
+```
+
+But models are less important than what you do with them, so let's
+mosey on and have a look at that.
 
 # Functions as Lookup Tables
+
+The core idea that the Garbled Circuits technique is based on is
+a simple observation: you can represent a function as a lookup table.
 
 # Walking on Wires
 
