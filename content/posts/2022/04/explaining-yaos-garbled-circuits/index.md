@@ -128,10 +128,30 @@ mosey on and have a look at that.
 
 The core idea that the Garbled Circuits technique is based on is
 a simple observation: you can represent a function as a lookup table.
+We can use this observation to evaluate a function at some input,
+without learn what that input is.
+
+To illustrate the idea, let's start with some function $f : \\{0, \ldots, n\\}^2 \to Z$.
+We can create a table mapping each input to its corresponding output:
+
+$$
+\begin{vmatrix}
+f(0, 0)&f(0,1)&\cdots&f(0, n)\cr
+f(1, 0)&f(1,1)&\cdots&f(1, n)\cr
+\vdots&\vdots&\vdots&\vdots\cr
+f(n, 0)&f(n, 1)&\cdots&f(n, n)\cr
+\end{vmatrix}
+$$
+
+To evaluate $f$ on the input $(x, y)$, all we have to do is lookup
+the corresponding entry of table.
+
+## Pointed Keys
 
 # Walking on Wires
 
-# Detour: Oblivious Transfer
+# Delivering The Input
+## Oblivious Transfer
 
 {{<note>}}
 I wasn't sure where to put this section, but felt it would be a simpler

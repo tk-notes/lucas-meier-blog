@@ -191,7 +191,7 @@ For example, SHA256 necessarily has collisions --
 two inputs with the same hash -- because
 the output space is smaller than the input space; more pigeons
 than holes. But, no one knows a collision, nor does anyone
-know procedure for efficiently finding one. Nonetheless,
+know a procedure for efficiently finding one. Nonetheless,
 there does *exist* some program which immediately outputs
 a collision. And, if you tried to model collision resistance
 as a security game, you'd run into the issue that this preminiscent
