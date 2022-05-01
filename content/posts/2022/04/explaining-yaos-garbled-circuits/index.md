@@ -13,17 +13,18 @@ The protocol so fun you have to implement it! Like
 
 <!--more-->
 
-Yao's Garbled Circuits is a Cryptographic scheme which allows
+Yao's Garbled Circuits is a Cryptographic scheme that allows
 two parties with secret inputs to evaluate an arbitrary function
-on those inputs, without revealing those inputs to each-other.
+on those inputs, without revealing them to each other.
 As far as I can tell, the protocol was first described
 orally by Andrew Yao in 1986, but the first written description
 was in the subsequent [How to Play Any Mental Game](https://dl.acm.org/doi/pdf/10.1145/28395.28420) paper, by Goldreich, Micali, and Wigderson.
 But, I'm not an academic historian, so take this with a grain of salt,
 and feel free to correct me on Twitter if you know better.
 
-I first heard about this scheme last summer, and it seemed
-quite mysterious to me at the time, like so many things in Cryptography.
+I first heard about this scheme last summer, and like so
+many things in Cryptography, it seemed
+quite mysterious to me at the time.
 And just like so many of those things, it turned out to be
 a lot simpler than I expected; hopefully this post can impart
 a bit of that feeling to you as well.
@@ -33,10 +34,14 @@ a bit of that feeling to you as well.
 Garbled Circuits are a special case of a more general idea called
 (secure) Multi-Party Computation (MPC).
 
-The premise is that you have a group of parties $P_1, \ldots, P_n$,
-with each party $P_i$ having their own secret input $x_i$. The
-players want to compute some function $f(x_1, \ldots, x_n)$ on their inputs,
+The premise is that you have a group of parties $P_1, \ldots, P_n$.
+Each party $P_i$ has their own secret input $x_i$. The
+parties want to compute some function $f(x_1, \ldots, x_n)$ on their inputs,
 learning the result $y$.
+
+{{<todo>}}
+Illustration
+{{</todo>}}
 
 The simplest way to do this would be for the parties to share their
 inputs with each other. Each party would know all of the inputs $x_1, \ldots,
@@ -87,23 +92,23 @@ collaborate to train a model for identifying cancer, without having
 sensitive health information leave the individual hospitals.
 
 {{<note>}}
-Now, the result of such a process would be a Machine Learning model,
+The result of such a process would be a Machine Learning model,
 and it can be surprisingly easy to use such a model to extract
 information about the data it was trained on. See:
 ["Extracting Training Data from Large Language Models"](https://www.usenix.org/system/files/sec21-carlini-extracting.pdf)
 as a recent example.
 
-MPC means you'll only learn the result of your function $f$,
+MPC allows you to only learn the result of your function $f$,
 but that result can sometimes imply a lot of information about
 the inputs involved. Beware.
 {{</note>}}
 
 ## Our Specific Setting
 
-So far we've seen MPC in the context of having an
-arbitrary number of parties compute some arbitrary function $f$.
-Garbled Circuits is a technique for doing MPC in the case
-where there are only two parties. We also assume that the participants
+So far we've seen MPC in the with an
+arbitrary number of parties, computing some arbitrary function $f$.
+Garbled Circuits is a technique for doing MPC when
+there are only two parties. We also assume that the participants
 are _semi-honest_. They might be curious about what the input
 of the other party is, but they won't cheat by misbehaving,
 and deviating from what the protocol asks them to do.
@@ -114,10 +119,10 @@ This technique nonetheless works with an arbitrary function $f$,
 although we need to assume a more concrete representation for
 that function. We assume that $f$ can be represented as a
 _boolean circuit_. You can think of this circuit as a bunch of
-wires conneced to boolean gates like $\\&, \oplus$, etc. A
+wires connected to boolean gates like $\\&, \oplus$, etc. A
 more formal definition would model this circuit as a _graph_.
 The nodes would be the inputs or gates of the circuit, and the edges
-would the wires connecting gates together.
+would be the wires connecting gates together.
 
 {{<todo>}}
 Image of a stereotypical graph goes here.
@@ -149,7 +154,7 @@ mosey on and have a look at that.
 
 # Walking on Wires
 
-The Garbled Circuits protocol is _assymetric_ each of the two
+The Garbled Circuits protocol is _assymetric_: each of the two
 parties does something different. One of the parties is
 what I'll call the _garbler_: their job is to obfuscate
 the circuit and the input values, and hand that mess over
@@ -161,8 +166,8 @@ with the garbler, and everybody is happy.
 ## A single gate
 
 To illustrate the essentials, let's consider the case
-where the parties have secret bits $x_0$ and $x_1$ respectively,
-and want to compute a boolean function $f(x_0, x_1)$ on those inputs.
+where the parties have secret bits $x_0$ and $x_1$, respectively,
+and want to compute a boolean function $f(x_0, x_1)$ on these inputs.
 
 We can think of this function as a lookup table:
 
@@ -178,7 +183,8 @@ $f(x_0, x_1)$ by simply looking up the entry $F[x_0, x_1]$.
 Of course, each party only has one of the inputs, so this doesn't work.
 
 Now, this next idea is a bit of a reach, so bear with me.
-The garbler will generate 4 encryption keys $k^a_0, k^a_1, k^b_0, k^b_1$.
+The garbler will generate 4 encryption keys $k^a_0, k^a_1, k^b_0, k^b_1$,
+one for each wire, and each of the two possible values that wire can have.
 Then, they create an encrypted version of the table $F$:
 
 $$
@@ -187,6 +193,14 @@ F' := \begin{vmatrix}
 \text{Enc}((k^a_1, k^b_0), f(1, 0)) & \text{Enc}((k^a_1, k^b_1), f(1, 1)) \cr
 \end{vmatrix}
 $$
+
+{{<note>}}
+I assume the existence of a randomized encryption scheme which
+encrypts and decrypts messages using two keys. A simple way
+to do this is encrypting once with each key. Another cooler,
+and more efficient way is to xor the keys together. Proving
+that this is secure is left as an exercise to the reader.
+{{</note>}}
 
 Now, if you were to magically have the keys $k^a_{x_0}$ and $k^b_{x_1}$,
 then those keys wouldn't tell you any information
@@ -201,7 +215,7 @@ Now, one problem is that since the layout of $F'$ is the same
 as that of $F$, we know which input we've decrypted simply
 by observing where our decryption is successful. To get around
 this, we can simply shuffle the table around. The easiest way
-to do this is to conditionally swap both rows, and conditionally
+to do this is to randomly swap both rows, and randomly
 swap both columns.
 
 In order to avoid having to try and decrypt all 4 entries, we can
@@ -211,6 +225,10 @@ tells us to look at the entry $F[1, 0]$ to use these keys.
 But, we don't know that $(k^a, 1)$ actually corresponds to
 $(k^a_1, 1)$, because it's possible that we decided to flip
 the two rows in the table, and we actually have $(k^a_0, 1)$.
+
+{{<todo>}}
+Ilustrate
+{{</todo>}}
 
 Thus, if we can somehow deliver the
 garbled table $F'$ along with $k^a_{x_0}$ and $k^b_{x_1}$
@@ -224,10 +242,10 @@ All they have to do is just send it along. $k^a_0$ isn't any
 more recognizable than $k^a_1$, and our shuffling and pointer
 bit flipping help make that the case.
 
-Now, for $k^b_{x_1}$, where in a bit of a pickle. The garbler knows
+Now, for $k^b_{x_1}$, we're in a bit of a pickle. The garbler knows
 $k^b_0$ and $k^b_1$, and the evaluator knows $x_1$. We'd like
-for the evaluator to somehow learn $k^b_{x_0}$, without learning
-the other key, and without the garbler learning $x_0$.
+for the evaluator to somehow learn $k^b_{x_1}$, without learning
+the other key, and without the garbler learning $x_1$.
 It seems we're at a bit of an impasse, at least without a
 neat little tool.
 
@@ -248,7 +266,7 @@ such as a friendly gnome, inside:
 illustrate
 {{</todo>}}
 
-For our purposes, all you really know is that you can instantiate
+For our purposes, all you really need to know is that you can instantiate
 this protocol without any magic. The details don't really matter
 for Garbled Circuits. If you're curious, I'd recommend
 taking a gander at [The Simplest Protocol for Oblivious Transfer](https://eprint.iacr.org/2015/267.pdf), which is one way, among many, of
@@ -258,8 +276,8 @@ instantiating this construction.
 
 Now, notice that we can directly use the Oblivious Transfer protocol
 for our previous dilemma. The garbler has $k^b_{0}$ and $k^b_1$
-as their two messages, and the evaluator has $x_0$, and would
-like to end up with just $k^b_{x_0}$. This is the exact
+as their two messages, and the evaluator has $x_1$, and would
+like to end up with just $k^b_{x_1}$. This is the exact
 setup Oblivious Transfer was designed to solve.
 
 So, to recap our scheme so far, to evaluate $f(x_0, x_1)$, with the garbler
@@ -298,7 +316,7 @@ As long as we can encrypt it, it doesn't really matter.
 So, we could have the output of the function be another key,
 which would then be used as the input to a different gate.
 
-To illustrate, let's say we have two input wire $a$ and $b$,
+To illustrate, let's say we have two input wires $a$ and $b$,
 connected to some gate $f$, producing an output wire $c$:
 
 {{<todo>}}
@@ -373,7 +391,7 @@ $$
 To summarize, the garbler generates all of the encryption keys
 for each wire, and then sends the correct input keys to the evaluator,
 either by choosing them directly, if the garbler has the input
-bit for that key, or through running an Oblivious Transfer
+bit for that key, or by running an Oblivious Transfer
 with the evaluator, if they're the one with the input bit. The
 garbler then sends along the encrypted tables for each gate,
 along with the encrypted output tables. The evaluator can
@@ -385,12 +403,12 @@ the output back to the garbler, and everyone is happy.
 # Conclusion
 
 I found this scheme so compelling when I first read about
-it a month or so ago that I felt compelled
+it a month or so ago that I had
 to [implement it](https://github.com/cronokirby/yao-gc);
 it was only natural that I'd end up writing about it too.
 
 There are probably 100 explanations of Yao's Garbled Circuits
-out there, given that it's one of the earliest MPC protocols,
+out there, given that it's one of the earliest MPC schemes,
 and spawned an entire paradigm of protocols.
 Another explanation I like is in the [Pragmatic MPC book](https://securecomputation.org/), which has a lot of great material
 beyond just this scheme.
