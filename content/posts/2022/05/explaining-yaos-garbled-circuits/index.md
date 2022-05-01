@@ -1,7 +1,7 @@
 ---
 title: "Explaining Yao's Garbled Circuits"
-date: 2022-05-01T00:25:21+02:00
-draft: true
+date: 2022-05-01T18:18:47+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -39,9 +39,7 @@ Each party $P_i$ has their own secret input $x_i$. The
 parties want to compute some function $f(x_1, \ldots, x_n)$ on their inputs,
 learning the result $y$.
 
-{{<todo>}}
-Illustration
-{{</todo>}}
+{{<img "1.png">}}
 
 The simplest way to do this would be for the parties to share their
 inputs with each other. Each party would know all of the inputs $x_1, \ldots,
@@ -94,7 +92,7 @@ sensitive health information leave the individual hospitals.
 {{<note>}}
 The result of such a process would be a Machine Learning model,
 and it can be surprisingly easy to use such a model to extract
-information about the data it was trained on. See:
+information about the data it was trained on. See
 ["Extracting Training Data from Large Language Models"](https://www.usenix.org/system/files/sec21-carlini-extracting.pdf)
 as a recent example.
 
@@ -124,9 +122,7 @@ more formal definition would model this circuit as a _graph_.
 The nodes would be the inputs or gates of the circuit, and the edges
 would be the wires connecting gates together.
 
-{{<todo>}}
-Image of a stereotypical graph goes here.
-{{</todo>}}
+{{<img "2.png">}}
 
 I think the most useful representation for this post is related
 to the idea of graphs, but not exactly the same. I like
@@ -134,19 +130,17 @@ to think of a circuit as a collection of labeled wires. Each
 wire either comes from an input value, or from the output
 of another gate, like in this example:
 
-{{<todo>}}
-Example image with wire splitting.
-{{</todo>}}
+{{<img "3.png">}}
 
 You can also model this idea as a little programming language,
 involving variables, reading input, and boolean operators:
 
 ```txt
-let x = input(0)
-let y = input(1)
-let z = x & y
-let w = y | w
-return (z, w)
+let a = input(0)
+let b = input(1)
+let c = a & b
+let d = c | b
+return (c, d)
 ```
 
 But models are less important than what you do with them, so let's
@@ -154,7 +148,7 @@ mosey on and have a look at that.
 
 # Walking on Wires
 
-The Garbled Circuits protocol is _assymetric_: each of the two
+The Garbled Circuits protocol is _asymmetric_: each of the two
 parties does something different. One of the parties is
 what I'll call the _garbler_: their job is to obfuscate
 the circuit and the input values, and hand that mess over
@@ -226,9 +220,7 @@ But, we don't know that $(k^a, 1)$ actually corresponds to
 $(k^a_1, 1)$, because it's possible that we decided to flip
 the two rows in the table, and we actually have $(k^a_0, 1)$.
 
-{{<todo>}}
-Ilustrate
-{{</todo>}}
+{{<img "4.png">}}
 
 Thus, if we can somehow deliver the
 garbled table $F'$ along with $k^a_{x_0}$ and $k^b_{x_1}$
@@ -259,12 +251,10 @@ and the two run an Oblivious Transfer protocol so that:
 - The sender learns nothing
 
 Like many protocols in Cryptography, you can think of this
-ideal protocol as magical box with a trusted third party,
+ideal protocol as a magical box with a trusted third party,
 such as a friendly gnome, inside:
 
-{{<todo>}}
-illustrate
-{{</todo>}}
+{{<img "5.png">}}
 
 For our purposes, all you really need to know is that you can instantiate
 this protocol without any magic. The details don't really matter
@@ -280,7 +270,7 @@ as their two messages, and the evaluator has $x_1$, and would
 like to end up with just $k^b_{x_1}$. This is the exact
 setup Oblivious Transfer was designed to solve.
 
-So, to recap our scheme so far, to evaluate $f(x_0, x_1)$, with the garbler
+Let's recap our scheme so far. To evaluate $f(x_0, x_1)$, with the garbler
 having $x_0$, and the evaluator having $x_1$, first the garbler generates
 random keys $k^a_0, k^a_1, k^b_0, k^b_1$ (including their
 corresponding pointer bits), along with the encrypted table:
@@ -319,9 +309,7 @@ which would then be used as the input to a different gate.
 To illustrate, let's say we have two input wires $a$ and $b$,
 connected to some gate $f$, producing an output wire $c$:
 
-{{<todo>}}
-Figure
-{{</todo>}}
+{{<img "6.png">}}
 
 Like with each of the input wires, the output wire $c$ has
 two keys $k^c_0$ and $k^c_1$ associated with it. Instead of
@@ -345,11 +333,11 @@ then use as an input to the next gate they need to evaluate.
 ## Bird's Eye View
 
 We've seen all of the individual pieces, so let's take a little
-step back and really look at how everything fits together.
+step back and look at how everything fits together.
 Once again, I think looking at our circuit as a collection of wires
 makes the most sense.
 
-For every wire $w$, there will be two keys $k^w_0$ and $k^w_1$,
+For every wire $w$, there will be two keys, $k^w_0$ and $k^w_1$,
 for each of the two possible values that wire can take. These
 keys also contain a random pointer bit (with $k^w_1$ having the
 opposite of $k^w_0$) which tells us which part of the encrypted lookup
@@ -368,9 +356,9 @@ needs to be conducted, using $k^w_0$, $k^w_1$
 as messages, along with the evaluator's
 bit $x$.
 
-In the second case, the evaluator will have received the keys
-for the two inputs to the gate, and can use the encrypted table
-to lookup the resulting output key.
+In the second case, where the wire is the output of some gate, the evaluator will have received the keys
+for the two inputs to that gate, and can use the encrypted table
+to look the resulting output key up.
 
 Finally, after going through the circuit, the evaluator will
 end up with a set of output keys, corresponding to the output
