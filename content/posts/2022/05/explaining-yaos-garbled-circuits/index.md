@@ -103,7 +103,7 @@ the inputs involved. Beware.
 
 ## Our Specific Setting
 
-So far we've seen MPC in the with an
+So far we've seen MPC in the case with an
 arbitrary number of parties, computing some arbitrary function $f$.
 Garbled Circuits is a technique for doing MPC when
 there are only two parties. We also assume that the participants
