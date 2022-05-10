@@ -342,7 +342,7 @@ This kind of malleability is also discussed further in
 
 {{<ref
   "1"
-  "http://www.bolet.org/~pornin/2005-acns-pornin+stern.pdf"
+  "https://eprint.iacr.org/2020/823.pdf"
   "[1] Jacqueline Brendel, Cas Cremers, Dennis Jackson, and Mang Zhao. “The Provable Security of Ed25519: Theory and Practice”">}}
 
 {{<ref
