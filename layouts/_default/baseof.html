@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="description" content="{{ .Description}} - Read more: {{ .Permalink }}">
     <meta name="google-site-verification" content="hh-QeqMHugXr0q_PWilmf43ag2edckl5dniziK5UCn0" />
-    {{ if .Params.katex }}
+    {{ if or (.Params.katex) (eq .Section "projects") }}
       {{ partial "katex.html" . }}
     {{ end }}
     <script async src="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@0.2.0/loading-attribute-polyfill.min.js" integrity="sha256-kX73NqVUoUbV0K44kgoqP8P8IZfU0OEjr/afCnK2Mrg=" crossorigin="anonymous"></script>

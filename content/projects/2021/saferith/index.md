@@ -1,5 +1,5 @@
 ---
-title: "Safenum"
+title: "Saferith"
 date: 2021-04-18
 type: project
 tech:
@@ -8,7 +8,7 @@ tech:
   - "Math"
 withpost: false
 description: ""
-link: "https://github.com/cronokirby/safenum"
+link: "https://github.com/cronokirby/saferith"
 ---
 
 A library providing constant-time Big Number arithmetic, for Go. Essentially,
