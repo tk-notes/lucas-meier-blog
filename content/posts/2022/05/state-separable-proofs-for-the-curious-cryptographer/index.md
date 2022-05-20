@@ -100,16 +100,67 @@ This composition defines a new package, whose state is the combination
 of the states in $A$ and $B$. We replace a call to a function in $B$
 by inlining the code of that function directly inside of $A$.
 
-Let's take the example of $\mathcal{L}_G$ and $\mathcal{L}_F$. Now,
-one slight issue is that their internal state $k$ shares a name,
+Let's take the example of $\mathcal{L}_G$ and $\mathcal{L}_F$.
+One slight issue is that their internal state $k$ shares a name,
 so simply inlining the code in $\mathcal{L}_F$ wouldn't work. To get
 around this, one convention I like to use is that everything inside
 of a package is implicitly namespaced by that package. So the $k$
 inside of $\mathcal{L}_F$ is really $\mathcal{L}_F.k$, and the
 $k$ inside of $\mathcal{L}_G$ is also shorthand for $\mathcal{L}_G.k$.
+The same goes for function names.
+With this convention, we can explicitly describe the package as follows:
 
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\mathcal{L}_G \circ \mathcal{L}_F$
+}\cr
+\cr
+&\mathcal{L}_F.k \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+&\mathcal{L}_G.k \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+\cr
+&\underline{\mathtt{G}(m):}\cr
+&\ \texttt{return } m \oplus \mathcal{L}_F.k \oplus \mathcal{L}_G.k\cr
+\end{aligned}
+}
+$$
 
-### Parallel Composition
+Instead of the call to $\texttt{F}$ we had before, we've now inlined
+that code directly in the package. To resolve ambiguities in the variable
+names, we've also explicitly included their namespace.
+
+### Associativity
+
+One interesting aspect of composition is that it's *associative*. In other
+words, $(A \circ B) \circ C$ is the exact same package as $A \circ (B \circ C)$. The order in which you inline function definitions doesn't matter.
+When you first inline the definitions in $B$, and then those in $C$,
+this yields the result as first inlining those in $C$, and then inlining
+all of that inside of $A$.
+
+Now, I've said that these packages are "the same", but I mean this
+in a precise way. In this case I mean that $(A \circ B) \circ C$
+and $A \circ (B \circ C)$ are the exact same package, the state and
+code are all exactly the same, up to a potential renaming of variable
+and function names. We'll refer to this kind of relation
+between packages as *definitional equality*, and we'll denote it
+by $\equiv$. Continuing with this example, we have:
+
+$$
+(A \circ B) \circ C \equiv A \circ (B \circ C)
+$$
+
+Another silly example is that if we add the word $\text{foo}$ to every
+name inside of the package $A$, in order to get the package $A_{\text{foo}}$,
+then we'd have:
+
+$$
+A \equiv A_{\text{foo}}
+$$
+
+because definitional equality doesn't care about variable or function names.
+
+## Parallel Composition
 
 ## Adversaries
 
