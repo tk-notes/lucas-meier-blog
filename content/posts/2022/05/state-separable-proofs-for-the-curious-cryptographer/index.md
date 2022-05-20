@@ -457,7 +457,7 @@ $$
 &\text{out}[\cdot] \gets \bot\cr
 \cr
 &\underline{\mathtt{QueryF}(m : \mathcal{X}): \mathcal{Y}}\cr
-&\ \texttt{if } m \notin \text{out}\cr
+&\ \texttt{if } m \notin \text{out}:\cr
 &\ \quad \text{out}[m] \xleftarrow{R} \mathcal{Y}\cr
 &\ \texttt{return } \text{out}[m] \cr
 \end{aligned}
@@ -469,6 +469,62 @@ a random function. We say that the PRF $F$ is secure if
 $\text{PRF}_0$ and $\text{PRF}_1$ are indistinguishable.
 
 ### Encryption
+
+A symmetric encryption scheme consists of two functions:
+
+$$
+\begin{aligned}
+E &: \mathcal{K} \times \mathcal{M} \xrightarrow{R} \mathcal{C}\cr
+D &: \mathcal{K} \times \mathcal{C} \to \mathcal{M}
+\end{aligned}
+$$
+
+Both of them take a key. One encrypts a message with a key,
+producing a ciphertext, and the
+other decrypts a ciphertext with a key, producing a message.
+Encryption can be randomized, while decryption should be deterministic.
+
+For the scheme to be considered correct, encrypting a message and then
+decrypting the ciphertext should return the same message.
+
+In terms of security, the intuitive idea is that an adversary shouldn't
+be able to distinguish between an encryption of an actual message and
+an encryption of a random message.
+
+Using a real vs a random message is often referred to as $\text{IND}\text{\textdollar}$, with $\text{IND}$ being reserved for a variant of the game
+where you submit two messages, and receive the encryption of one of the messages.
+
+With state-separable proofs, you really want to use "real vs ideal" as the
+defining principle for all of your games, since that makes composition
+a lot easier.
+
+Because of this, I'll refer to this notion as $\text{IND}$. 
+We'll also also let the adversary encrypt messages of their choice.
+This addition is usually referred to as chosen plaintext attack (CPA).
+
+Thus, $\text{IND-CPA}$ security is defined by a pair of games:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-CPA}_b$
+}\cr
+\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \texttt{return } E(k, m_b)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{return } E(k, m)\cr
+\end{aligned}
+}
+$$
+
+An encryption scheme is $\text{IND-CPA}$ secure if these two games
+are indistinguishable.
 
 ### Encryption with a PRF
 
