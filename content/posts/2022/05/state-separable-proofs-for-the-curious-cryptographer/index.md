@@ -162,6 +162,101 @@ because definitional equality doesn't care about variable or function names.
 
 ## Parallel Composition
 
+So far we've seen how to link packages together, using the exports
+of one package to satisfy the imports of another. We called this *sequential composition*.
+There's another form of composition which isn't as useful, but is still
+interesting to look at. This is *parallel composition*. The idea is that
+if the functions exported by two packages are distinct, then we can
+form a new package by combining the state of both packages, and
+exporting the functions provided by both packages. We denote
+this composition by $\begin{matrix}A\cr \hline B \end{matrix}$ or $A \otimes B$.
+
+As an example, we have:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $A$
+}\cr
+\cr
+&k \xleftarrow{R} \mathbb{Z}/(q)\cr
+\cr
+&\underline{\mathtt{F}(m):}\cr
+&\ \texttt{return } m + k\cr
+\end{aligned}
+}
+\otimes
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $B$
+}\cr
+\cr
+&k \xleftarrow{R} \mathbb{Z}/(q)\cr
+\cr
+&\underline{\mathtt{G}(m):}\cr
+&\ \texttt{return } m \cdot k\cr
+\end{aligned}
+}
+\equiv
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $A \otimes B$
+}\cr
+\cr
+&A.k \xleftarrow{R} \mathbb{Z}/(q)\cr
+&B.k \xleftarrow{R} \mathbb{Z}/(q)\cr
+\cr
+&\underline{\mathtt{F}(m):}\cr
+&\ \texttt{return } m + A.k\cr
+&\underline{\mathtt{G}(m):}\cr
+&\ \texttt{return } m \cdot B.k\cr
+\end{aligned}
+}
+$$
+
+The parallel composition combines both states, and exposes both of the functions.
+
+More formally, this composition is well defined when
+$\text{out}(A) \cup \text{out}(B) = \emptyset$, and we have:
+
+$$
+\begin{aligned}
+\text{out}(A \otimes B) &= \text{out}(A) \cup \text{out}(B)\cr
+\text{in}(A \otimes B) &= \text{in}(A) \cup \text{in}(B)\cr
+\end{aligned}
+$$
+
+One property of parallel composition which is apparent from the definition
+is that it's associative and commutative. You have:
+
+$$
+(A \otimes B) \otimes C \equiv A \otimes (B \otimes C)
+$$
+
+and
+
+$$
+A \otimes B \equiv B \otimes A
+$$
+
+### Combining Sequential and Parallel Composition
+
+These two notions of composition actually work quite well together.
+If you have 4 packages $A, A', B, B'$, then you have:
+
+$$
+\frac{A}{A'} \circ \frac{B}{B'} \equiv \frac{A \circ B}{A' \circ B'}
+$$
+
+provided that the individual compositions are well defined, based on the imported and exported functions.
+
+This equality holds because inlining one function doesn't affect
+any of the other functions. This equality is very useful
+when linking packages defined via parallel composition.
+
 ## Adversaries
 
 ### Advantages
