@@ -423,6 +423,55 @@ game-based security.
 
 ## Example: Encryption with a PRF
 
+As an example, let's consider the case of using a Pseudo-Random Function (PRF)
+in order to build an encryption scheme secure under chosen plaintext attack.
+
+### PRFs
+
+A PRF $F : \mathcal{K} \times \mathcal{X} \to \mathcal{Y}$ is function
+from $\mathcal{X} \to \mathcal{Y}$ which also takes in a key. The idea
+is that if you don't know the key, you shouldn't be able to tell this
+function apart from a random function. We capture this notion of
+security through a pair of games:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{PRF}_0$
+}\cr
+\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
+&\underline{\mathtt{QueryF}(m : \mathcal{X}): \mathcal{Y}}\cr
+&\ \texttt{return } F(k, m)\cr
+\end{aligned}
+}
+\quad \quad
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{PRF}_1$
+}\cr
+\cr
+&\text{out}[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{QueryF}(m : \mathcal{X}): \mathcal{Y}}\cr
+&\ \texttt{if } m \notin \text{out}\cr
+&\ \quad \text{out}[m] \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } \text{out}[m] \cr
+\end{aligned}
+}
+$$
+
+In one game, we actually query the PRF, and in the other, we're querying
+a random function. We say that the PRF $F$ is secure if
+$\text{PRF}_0$ and $\text{PRF}_1$ are indistinguishable.
+
+### Encryption
+
+### Encryption with a PRF
+
 # Hybrid Arguments
 
 ## The General Hybrid Argument
