@@ -377,7 +377,47 @@ is rarely needed.
 
 ### Indistinguishability
 
+Now, this notion of equality is much too strong. It requires games
+to look exactly the same, even under the scrutiny of an adversary
+with no limits on their computation time. This isn't enough to
+do very much Cryptography at all.
+
+We relax this notion by only considering
+"efficient" adversaries. These adversaries have a runtime polynomial
+in some ambient security parameter $\lambda$. In fact, when
+we refer to "adversaries" we usually mean "efficient adversaries".
+
+This leads us to the notion of $\epsilon$-indistinguishability.
+We say that two games $A$ and $B$ are $\epsilon$-indistinguishable,
+or $A \stackrel{\epsilon}{\approx} B$ when for all efficient
+adversaries $\mathcal{A}$, we have
+
+$$
+\epsilon(\mathcal{A} \circ ?_b(A, B)) \leq \epsilon
+$$
+
+In other words, for adversaries bounded in their computation,
+they can only distinguish the two games with advantage at most $\epsilon$.
+
+One useful property of this definition comes from the triangle inequality:
+
+$$
+A \stackrel{\epsilon_1}{\approx} B, \ B \stackrel{\epsilon_2}{\approx} C
+\implies A \stackrel{\epsilon_1 + \epsilon_2}{\approx} C
+$$
+
+This property allows us to do "game-hopping" where we chain small
+differences together to examine the indistinguishability of a larger
+game.
+
+Finally, we say that two games are *indistinguishable* when they
+are $\epsilon$-indistinguishable, with $\epsilon$ being a *negligeable*
+function of $\lambda$, defined in the same way as for traditional
+game-based security.
+
 ## Summary
+
+# Defining Security
 
 # Reductions
 
