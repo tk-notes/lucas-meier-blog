@@ -259,7 +259,123 @@ when linking packages defined via parallel composition.
 
 ## Adversaries
 
+So far, we've defined packages which import and export functions,
+and can be composed together in various ways. While this is very neat,
+it's not yet "praktisch", as they'd say in German; we're still
+pretty far away from capturing the notion of security, as we
+did with the more traditional game-based definition. To do this, we
+need to introduce a few more notions based on packages.
+
+The first notion is that of a *game*. A game is simply a package $G$
+with no imports, i.e. $\text{in}(G) = \emptyset$. This captures
+the idea that a game is something you can interact with directly.
+If the game had any imports, there wouldn't be a well defined notion
+of what it does, because the imported functions could significantly
+change the behavior.
+
+The second notion is that of an *adversary*. An adversary is a package $\mathcal{A}$
+with many potential imports, but only a single exported function. This
+function, commonly named $\texttt{run}(): \\{0, 1\\}$ is used to execute the adversary.
+
+The idea here is that each adversary plays against some interface of functions
+it can interact with. When we link an adversary $\mathcal{A}$ with
+a game $G$ implementing the right interface, we end up with a package
+$\mathcal{A} \circ G$, exposing a single function $\texttt{run}$.
+Executing this function makes the adversary and the game interact,
+and ends up with us having a single bit $0$ or $1$. In fact, because
+of the random choices taken by these packages, we have a probability
+distribution over these outputs.
+
 ### Advantages
+
+This leads us to the natural notion of *advantage*. The idea is that
+we have a pair of games $G_0$ and $G_1$, with $\text{out}(G_0) = \text{out}(G_1)$. The advantage of an adversary $\mathcal{A}$ interacting with $G$
+tells us how well that adversary can distinguish between $G_0$ and $G_1$.
+
+We define the *advantage* of such an adversary as:
+
+$$
+\epsilon(\mathcal{A} \circ G_b) := |P[1 \gets \mathcal{A} \circ G_0] - P[1 \gets \mathcal{A} \circ G_1]|
+$$
+
+We look at the probability that $\texttt{run}$ returns $1$ in either situation,
+and the advantage measures how well the adversary is able to separate
+the two cases.
+
+One useful game I like to define is $?_b(A, B)$, which behaves
+like $A$ when $b = 0$, and $B$ otherwise. In other words:
+
+$$
+\begin{aligned}
+?_0(A, B) &\equiv A\cr
+?_1(A, B) &\equiv B
+\end{aligned}
+$$
+
+### Equality
+
+Sometimes there are multiple ways of defining a game, where despite
+the differences in the code, the behavior of the games is identical.
+
+For example, consider these two games:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $G_0$
+}\cr
+\cr
+&k \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+\cr
+&\underline{\mathtt{F}(m):}\cr
+&\ \texttt{return } m \oplus k\cr
+\end{aligned}
+}
+\quad \quad
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $G_1$
+}\cr
+\cr
+&k_0, k_1 \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+\cr
+&\underline{\mathtt{F}(m):}\cr
+&\ \texttt{return } m \oplus k_0 \oplus k_1 \cr
+\end{aligned}
+}
+$$
+
+It's not true that $G_0 \equiv G_1$, because the code is cleary
+different, even after potential renaming. On the other hand,
+the result is the same, because $k_0 \oplus k_1$ has the same distribution
+as $k$.
+
+Capturing what it means to have "the same behavior" is tricky. One way
+to do this is to lean on the notion of advantage we've just defined.
+
+We say that two games $A, B$ are *equal*, denoted $A = B$, when
+for any unbounded adversary, we have:
+
+$$
+\epsilon(\mathcal{A} \circ ?_b(A, B)) = 0
+$$
+
+In other words, no adversary, even with an unbounded amount of computation,
+can distinguish between the two games. This captures the intuitive idea
+that their behavior is the same.
+
+In our previous example, we had $G_0 = G_1$, because the distributions
+were indeed the same.
+
+In most situations, $=$ is much more useful than $\equiv$, since it's
+more robust to unimportant changes, like moving variables around,
+or replacing a complicated expression with something having the same
+distribution. In fact, outside of the basic definitions, $\equiv$
+is rarely needed.
+
+### Indistinguishability
 
 ## Summary
 
