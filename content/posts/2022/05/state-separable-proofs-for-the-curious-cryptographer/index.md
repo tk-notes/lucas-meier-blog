@@ -388,16 +388,18 @@ in some ambient security parameter $\lambda$. In fact, when
 we refer to "adversaries" we usually mean "efficient adversaries".
 
 This leads us to the notion of $\epsilon$-indistinguishability.
-We say that two games $A$ and $B$ are $\epsilon$-indistinguishable,
-or $A \stackrel{\epsilon}{\approx} B$ when for all efficient
-adversaries $\mathcal{A}$, we have
+We say that two games $A$ and $B$ are $\epsilon$-indistinguishable
+with respect to $\mathcal{A}$,
+or $A \stackrel{\epsilon}{\approx} B$ when we have
 
 $$
 \epsilon(\mathcal{A} \circ ?_b(A, B)) \leq \epsilon
 $$
 
-In other words, for adversaries bounded in their computation,
-they can only distinguish the two games with advantage at most $\epsilon$.
+(the adversary is left implicit very often)
+
+In other words, this adversary can only
+distinguish the two games with advantage at most $\epsilon$.
 
 One useful property of this definition comes from the triangle inequality:
 
@@ -410,12 +412,11 @@ This property allows us to do "game-hopping" where we chain small
 differences together to examine the indistinguishability of a larger
 game.
 
-Finally, we say that two games are *indistinguishable* when they
-are $\epsilon$-indistinguishable, with $\epsilon$ being a *negligeable*
-function of $\lambda$, defined in the same way as for traditional
-game-based security.
-
-## Summary
+Finally, we say that two games are *indistinguishable* when
+for every efficient adversary $\mathcal{A}$, there exists an $\epsilon$,
+which is a negligeable function of $\lambda$,
+such that these games
+are $\epsilon$-indistinguishable.
 
 # Defining Security
 
@@ -515,7 +516,7 @@ $$
 \cr
 &\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
 &\ m_1 \xleftarrow{R} \mathcal{M}\cr
-&\ \texttt{return } E(k, m_b)\cr
+&\ \texttt{return } \texttt{Encrypt}(m_b)\cr
 \cr
 &\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
 &\ \texttt{return } E(k, m)\cr
@@ -527,6 +528,252 @@ An encryption scheme is $\text{IND-CPA}$ secure if these two games
 are indistinguishable.
 
 ### Encryption with a PRF
+
+The simplest encryption scheme is the one-time pad. One problem with this
+scheme is that we can only encrypt one message. A PRF lets us get
+around this limitation, by letting us generate new pads on demand.
+
+Given a PRF over $\mathcal{X}$ and $\mathcal{Y}$,
+with $\mathcal{Y}$ some type where $\oplus$ makes sense, we can define
+an encryption scheme with $\mathcal{M} = \mathcal{Y}$  and $\mathcal{C} = \mathcal{X} \times \mathcal{Y}$ as follows:
+
+$$
+\begin{aligned}
+&\underline{E(k, m):}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ \texttt{return } (x, m \oplus F(k, x))\cr
+\cr
+&\underline{D(k, (x, c)):}\cr
+&\ \texttt{return } c \oplus F(k, x) \cr
+\end{aligned}
+$$
+
+What we want to show is that the security of this scheme reduces
+to the security of the underlying PRF.
+
+In particular, we want to show that $\text{IND-CPA}_b$ reduces to
+$\text{PRF}_b$. The precise statement is that:
+
+$$
+\text{IND-CPA}_b \leq \frac{Q^2}{|\mathcal{X}|} + \text{PRF}_b
+$$
+
+using our short-hand notation for reductions from earlier, and with $Q$
+denoting the number of queries made to the $\texttt{Encrypt}$ function
+in the $\text{IND-CPA}_b$ game.
+
+{{<note>}}
+We'll use this $Q$ in a somewhat informal way, but you could also explicitly
+modify the $\text{IND-CPA}_b$ game to take in this $Q$ as a parameter
+to the game, and have $\texttt{Encrypt}$ return $\bot$ after $Q$ queries
+have been made.
+{{</note>}}
+
+Our goal is to start with $\text{IND-CPA}_0$, and then hop our way
+over to $\text{IND-CPA}_1$, quantifying the distinguishing advantage
+along the way, based on the security of the underlying PRF.
+
+First, note that:
+
+$$
+\text{IND-CPA}_1 =
+\boxed{
+\begin{aligned}
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{Y}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ y \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, y)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{Y}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ \texttt{return } (x, m \oplus \texttt{QueryF}(x))\cr
+\end{aligned}
+}
+$$
+
+This is because xoring with a random message is equivalent to just sampling
+a random output.
+
+Second, note that we can abstract out the use of the PRF inside
+of these games:
+
+$$
+\text{IND-CPA}_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^0_b$
+}\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \texttt{return } \texttt{Encrypt}(m_b)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ \texttt{return } (x, m \oplus \texttt{QueryF}(x))\cr
+\end{aligned}
+}
+\circ \text{PRF}_0
+$$
+
+Then we have $\Gamma^0_b \circ \text{PRF}_0 \stackrel{\epsilon_0}{\approx} \Gamma^0_b \circ \text{PRF}_1$, with:
+
+$$
+\epsilon_0 = \epsilon(\mathcal{B} \circ \text{PRF}_b)
+$$
+
+for some adversary $\mathcal{B}$.
+
+{{<note>}}
+In this case, $\mathcal{B} \equiv \mathcal{A} \circ \Gamma^0_b$, but the actual
+adversary doesn't matter, we just need to show that our adversary
+$\mathcal{A}$ against $\text{IND-CPA}_b$ yields such an adversary $\mathcal{B}$, in order to reason about the advantage of $\mathcal{A}$.
+{{</note>}}
+
+Now, if we inline the random function in $\text{PRF}_1$, we have:
+
+$$
+\Gamma^0_0 \circ \text{PRF}_1 =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^1$
+}\cr
+\cr
+&\text{out}[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Challenge}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{return } \texttt{Encrypt}(m)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ \texttt{if } x \notin \text{out}:\cr
+&\ \quad \text{out}[x] \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, m \oplus \text{out}[x])\cr
+\end{aligned}
+}
+$$
+
+Now, if we were to remove the $x \notin \text{out}$ check, this would
+only change the behavior if the same $x$ were generated twice.
+This happens with probability at most $\frac{Q^2}{2 |\mathcal{X}|}$, by a standard birthday paradox argument. Thus, we have
+$\Gamma^1 \stackrel{Q^2 / 2 |\mathcal{X}|}{\approx} \Gamma^2$,
+where $\Gamma^2$ is defined as:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^2$
+}\cr
+\cr
+&\underline{\mathtt{Challenge}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{return } \texttt{Encrypt}(m)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ y \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, m \oplus y)\cr
+\end{aligned}
+}
+$$
+
+An equivalent way to write this would be:
+
+$$
+\Gamma^2 = 
+\boxed{
+\begin{aligned}
+&\underline{\mathtt{Challenge}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ y \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, y)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ y \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, m \oplus y)\cr
+\end{aligned}
+}
+$$
+
+We can then add in a random table again, to get:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^3$
+}\cr
+\cr
+&\text{out}[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Challenge}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ y \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, y)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ x \xleftarrow{R} \mathcal{X}\cr
+&\ \texttt{if } x \notin \text{out}:\cr
+&\ \quad \text{out}[x] \xleftarrow{R} \mathcal{Y}\cr
+&\ \texttt{return } (x, m \oplus \text{out}[x])\cr
+\end{aligned}
+}
+$$
+
+By the same difference lemma argument as before, we have
+$\Gamma^3 \stackrel{Q^2 / 2 |\mathcal{X}|}{\approx} \Gamma^2$.
+
+Notice that we have:
+
+$$
+\Gamma^3 = \Gamma^0_1 \circ \text{PRF}_1
+$$
+
+Since in the case where we use a random message, the call to $\texttt{Encrypt}$
+doesn't matter, as we saw earlier. From this point, we can reach
+$\text{IND-CPA}_1$, so we've done all the hops we need. Putting everything together, we have:
+
+$$
+\begin{aligned}
+\text{IND-CPA}_0 &= \Gamma^0_0 \circ \text{PRF}_0\cr
+&\stackrel{\epsilon_0}{\approx} \Gamma^0_0 \circ \text{PRF}_1\cr
+&= \Gamma^1\cr
+&\stackrel{Q^2 / 2 |\mathcal{X}|}{\approx} \Gamma^2\cr
+&\stackrel{Q^2 / 2 |\mathcal{X}|}{\approx} \Gamma^3\cr
+&= \Gamma^0_1 \circ \text{PRF}_1\cr
+&\stackrel{\epsilon_0}{\approx} \Gamma^0_1 \circ \text{PRF}_0\cr
+&= \text{IND-CPA}_1
+\end{aligned}
+$$
+
+So all we have to do is apply the triangle lemma, to get:
+
+$$
+\text{IND-CPA}_0 \stackrel{\epsilon}{\approx} \text{IND-CPA}_1
+$$
+
+with:
+
+$$
+\epsilon \leq \frac{Q^2}{|\mathcal{X}|} + 2 \epsilon(\mathcal{B} \circ \text{PRF}_b)
+$$
+
+In more words, we've shown that given an adversary $\mathcal{A}$
+for $\text{IND-CPA}_b$, there exists an adversary $\mathcal{B}$
+for $\text{PRF}_b$ such that:
+
+$$
+\epsilon(\mathcal{A} \circ \text{IND-CPA}_b) \leq
+\frac{Q^2}{\mathcal{|X|}} + \epsilon(\mathcal{B} \circ \text{PRF}_b)
+$$
+
+with $Q$ the number of queries made to the encryption oracle.
+
+$\square$
+
 
 # Hybrid Arguments
 
