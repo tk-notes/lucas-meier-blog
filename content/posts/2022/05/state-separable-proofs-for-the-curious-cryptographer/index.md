@@ -777,7 +777,7 @@ $\square$
 
 # Hybrid Arguments
 
-In our definition of the $\text{IND}$ game, we allowed adversaries
+In our definition of the $\text{IND-CPA}$ game, we allowed adversaries
 to make multiple queries to $\texttt{Challenge}$. A different
 variant of the game only allows one query to be made:
 
@@ -785,7 +785,7 @@ $$
 \boxed{
 \begin{aligned}
 &\colorbox{#dbeafe}{\large
-  $\text{IND-1}_b$
+  $\text{IND-CPA-1}_b$
 }\cr
 \cr
 &\text{count} \gets 0\cr
@@ -796,6 +796,9 @@ $$
 &\ \text{count} \gets \text{count} + 1\cr
 &\ m_1 \xleftarrow{R} \mathcal{M}\cr
 &\ \texttt{return } E(k, m_b)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}) : \mathcal{C}}\cr
+&\ \texttt{return } E(k, m)
 \end{aligned}
 }
 $$
@@ -804,16 +807,16 @@ The $\texttt{assert}$ will make sure that only one query can be made,
 returning $\bot$ if further queries are attempted.
 
 A natural question is how much being able to make multiple queries helps.
-An adversary for $\text{IND-1}$ can obviously break $\text{IND}$,
+An adversary for $\text{IND-CPA-1}$ can obviously break $\text{IND-CPA}$,
 since the latter allows them to make the one query they need.
 In the other direction, the question is more subtle. It turns out
-that if we make $Q$ queries in the $\text{IND}$ game, then our advantage
-is only larger by a factor of $Q$, compared to the $\text{IND-1}$ game.
+that if we make $Q$ queries in the $\text{IND-CPA}$ game, then our advantage
+is only larger by a factor of $Q$, compared to the $\text{IND-CPA-1}$ game.
 
 The intuition behind the proof is that we bridge that gap
-between $\text{IND}_0$ and $\text{IND}_1$, we create a series of
+between $\text{IND-CPA}_0$ and $\text{IND-CPA}_1$, we create a series of
 hybrid games $H_0, \ldots, H_Q$. The first hybrid starts
-at $\text{IND}_0$, and the last ends at $\text{IND}_1$. At each step,
+at $\text{IND-CPA}_0$, and the last ends at $\text{IND-CPA}_1$. At each step,
 instead of moving from $m_0$ to $m_1$ in all of the queries, we only
 change to $m_1$ in a single query:
 
@@ -822,7 +825,7 @@ illustration
 {{</todo>}}
 
 Then the idea is that distinguishing between two successive games is like
-distinguishing between $\text{IND-1}_0$ and $\text{IND-1}_1$:
+distinguishing between $\text{IND-CPA-1}_0$ and $\text{IND-CPA-1}_1$:
 
 {{<todo>}}
 illustration
@@ -946,6 +949,133 @@ $$
 $\square$
 
 ## Our Specific Case
+
+Now, let's recall our specific case. We have the following game:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-CPA}_b$
+}\cr
+\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \texttt{return } E(k, m_b)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{return } E(k, m)\cr
+\end{aligned}
+}
+$$
+
+As well as a variant $\text{IND-CPA-1}_b$, which only allows a single
+query to challenge. $\text{IND-CPA-1}_b$ will play the role of $G_b$,
+and $\text{IND-CPA}_b$ the role of $M_b$. We'll implicitly limit
+$\text{IND-CPA}_b$ to $Q$ queries, for the sake of the argument.
+
+The next step is to define $H_0, \ldots H_Q$:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{H}_i$
+}\cr
+\cr
+&\text{count} \gets Q\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ b \gets \text{count} \geq i\cr
+&\ \text{count} \gets \text{count} - 1\cr
+&\ \texttt{return } E(k, m_b)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{return } E(k, m)\cr
+\end{aligned}
+}
+$$
+
+For $H_0$, we always use $m_0$, for $H_1$ we start using $m_1$ only
+for the last query, when count is $0$, for $H_2$ we use $m_1$
+for the last two, etc., until we reach $H_Q$, which always uses
+$m_1$. Thus, we clearly have $H_0 = \text{IND}_0$ and $H_1 = \text{IND}_1$.
+
+The final step is to construct our shims $R_0, \ldots, R_{Q - 1}$.
+The idea is that we use the $\text{IND-CPA-1}$ game to make the transition
+between choosing $m_0$ and choosing $m_1$.
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{R}_i$
+}\cr
+\cr
+&\text{count} \gets Q\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{if } \text{count} > i:\cr
+&\ \quad \texttt{return } \text{IND-CPA-1}.\texttt{Encrypt}(m_0)\cr
+&\ \texttt{elif } \text{count} = i:\cr
+&\ \quad \texttt{return } \text{IND-CPA-1}.\texttt{Challenge}(m_0)\cr
+&\ \texttt{else } \text{count} < i:\cr
+&\ \quad m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \quad \texttt{return } \text{IND-CPA-1}.\texttt{Encrypt}(m_1)\cr
+\cr
+&\underline{\mathtt{Encrypt}(m : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{return } \text{IND-CPA-1}.\texttt{Encrypt}(m)\cr
+\end{aligned}
+}
+$$
+
+For example, in the game $R_0$, we always encrypt $m_0$ until
+we reach the $Q$th query. At this point, if we're against
+$\text{IND-CPA-1}_0$, then we'll encrypt $m_0$, otherwise, we
+end up encrypting $m_1$. And the linking works fine, since we
+only make a single call to $\texttt{Challenge}$.
+
+Thus, we have that:
+
+$$
+\begin{aligned}
+R_i \circ \text{IND-CPA-1}_0 &= H_i\cr
+R_i \circ \text{IND-CPA-1}_0 &= H\_{i+1}\cr
+\end{aligned}
+$$
+
+At this point, all of the conditions are satisfied for us to apply
+the hybrid argument lemma we proved earlier, to conclude that
+for every adversary $\mathcal{A}$ against $\text{IND-CPA}$,
+making $Q$ challenge queries,
+there exists an adversary $\mathcal{B}$ against $\text{IND-CPA-1}$
+satisfying:
+
+$$
+\epsilon(\mathcal{A} \circ \text{IND-CPA}_b) \leq
+Q \cdot \epsilon(\mathcal{B} \circ \text{IND-CPA-1}_b)
+$$
+
+This means that whether or not you allow multiple challenge
+queries doesn't fundamentally change the security of the scheme.
+You just get a linear increase in advantage by being able to make
+more queries. Thus, you can safely allow multiple challenge queries
+if that's more convenient.
+
+{{<note>}}
+It's important to note that this hybrid argument wouldn't work
+without having the $\texttt{Encrypt}$ queries available to us.
+This is an essential difference, in fact. If the encryption
+scheme were deterministic, then $\text{IND-1}$ might be secure,
+but $\text{IND}$ would fail to be, because we could call
+$\texttt{Challenge}$ multiple times with the same message, and figure
+out whether the game is encrypting real messages or not.
+{{</note>}}
 
 # Random Oracles
 
