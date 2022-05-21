@@ -555,7 +555,7 @@ In particular, we want to show that $\text{IND-CPA}_b$ reduces to
 $\text{PRF}_b$. The precise statement is that:
 
 $$
-\text{IND-CPA}_b \leq \frac{Q^2}{|\mathcal{X}|} + \text{PRF}_b
+\text{IND-CPA}_b \leq \frac{Q^2}{|\mathcal{X}|} + 2\text{PRF}_b
 $$
 
 using our short-hand notation for reductions from earlier, and with $Q$
@@ -767,7 +767,7 @@ for $\text{PRF}_b$ such that:
 
 $$
 \epsilon(\mathcal{A} \circ \text{IND-CPA}_b) \leq
-\frac{Q^2}{\mathcal{|X|}} + \epsilon(\mathcal{B} \circ \text{PRF}_b)
+\frac{Q^2}{\mathcal{|X|}} + 2\epsilon(\mathcal{B} \circ \text{PRF}_b)
 $$
 
 with $Q$ the number of queries made to the encryption oracle.
@@ -777,9 +777,175 @@ $\square$
 
 # Hybrid Arguments
 
+In our definition of the $\text{IND}$ game, we allowed adversaries
+to make multiple queries to $\texttt{Challenge}$. A different
+variant of the game only allows one query to be made:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-1}_b$
+}\cr
+\cr
+&\text{count} \gets 0\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0 : \mathcal{M}): \mathcal{C}}\cr
+&\ \texttt{assert } \text{count} = 0\cr
+&\ \text{count} \gets \text{count} + 1\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \texttt{return } E(k, m_b)\cr
+\end{aligned}
+}
+$$
+
+The $\texttt{assert}$ will make sure that only one query can be made,
+returning $\bot$ if further queries are attempted.
+
+A natural question is how much being able to make multiple queries helps.
+An adversary for $\text{IND-1}$ can obviously break $\text{IND}$,
+since the latter allows them to make the one query they need.
+In the other direction, the question is more subtle. It turns out
+that if we make $Q$ queries in the $\text{IND}$ game, then our advantage
+is only larger by a factor of $Q$, compared to the $\text{IND-1}$ game.
+
+The intuition behind the proof is that we bridge that gap
+between $\text{IND}_0$ and $\text{IND}_1$, we create a series of
+hybrid games $H_0, \ldots, H_Q$. The first hybrid starts
+at $\text{IND}_0$, and the last ends at $\text{IND}_1$. At each step,
+instead of moving from $m_0$ to $m_1$ in all of the queries, we only
+change to $m_1$ in a single query:
+
+{{<todo>}}
+illustration
+{{</todo>}}
+
+Then the idea is that distinguishing between two successive games is like
+distinguishing between $\text{IND-1}_0$ and $\text{IND-1}_1$:
+
+{{<todo>}}
+illustration
+{{</todo>}}
+
+Since there are $Q$ hops, that's how we get the factor of $Q$ in our
+advantage.
+
 ## The General Hybrid Argument
 
-## CDH
+We can formalize this argument in a general way, which will be useable
+for a wide variety of games.
+
+The basic setup is that we have two different game pairs $G_0$ and $G_1$,
+with $\text{out}(G_0) = \text{out}(G_1)$,
+which represent our "single query" games, and $M_0$ and $M_1$,
+with $\text{out}(M_0) = \text{out}(M_1)$, which
+represent our "multi query" games. We then have a series of hybrid games
+$H_0, \ldots, H_Q$, satisfying $\text{out}(H_i) = \text{out}(M_b)$.
+Finally, we have a series of "shims" $R_0, \ldots, R_{Q - 1}$,
+with $\text{in}(R_i) = \text{out}(G_b)$ and $\text{out}(R_i) = \text{out}(M_b)$.
+
+If it holds that:
+
+$$
+\begin{aligned}
+H_0 &= M_0\cr
+H_Q &= M_1
+\end{aligned}
+$$
+
+and that for all $i \in \\{0,\ldots, Q - 1\\}$, we have:
+
+$$
+\begin{aligned}
+R_i \circ G_0 &= H_i\cr
+R_i \circ G_1 &= H_{i + 1}\cr
+\end{aligned}
+$$
+
+Then for any adversary $\mathcal{A}$ against $M$, there exists an adversary
+$\mathcal{B}$ against $G$, satisfying:
+
+$$
+\epsilon(\mathcal{A} \circ M_b) = Q \cdot \epsilon(\mathcal{B} \circ G_b)
+$$
+
+**Proof:**
+
+First, we have:
+
+$$
+\epsilon(\mathcal{A} \circ M_b)
+= |P[1 \gets \mathcal{A} \circ M_0] - P[1 \gets \mathcal{A} \circ M_1]|
+$$
+
+Because of the properties of $H_0$ and $H_Q$, we can write this as:
+
+$$
+|P[1 \gets \mathcal{A} \circ H_0] - P[1 \gets \mathcal{A} \circ H_1]|
+$$
+
+We can then write this as a telescoping sum:
+
+$$
+\left|\sum_{i = 0}^{Q - 1} P[1 \gets \mathcal{A} \circ H_i] -
+P[1 \gets \mathcal{A} \circ H_{i + 1}]\right|
+$$
+
+This works because the intermediate terms cancel each other out,
+giving us the final result.
+
+Next, we apply the properties of $R_i$, giving us:
+
+$$
+\left|\sum_{i = 0}^{Q - 1} P[1 \gets \mathcal{A} \circ R_i \circ G_0] -
+P[1 \gets \mathcal{A} \circ R_i \circ G_1]\right|
+$$
+
+At this point, we need to introduce a little gadget. We define
+a new package $R$, which samples a random $j \in \\{0, \ldots, Q - 1\\}$,
+and then behaves like the package $R_j$.
+
+Conditioning on $j$, we can write our current value as:
+
+$$
+\left|\sum_{i = 0}^{Q - 1} P[1 \gets \mathcal{A} \circ R \circ G_0 \ |\ j = i] -
+P[1 \gets \mathcal{A} \circ R_i \circ G_1 \ |\ j = i]\right|
+$$
+
+Now, by basic probability, we have that:
+
+$$
+\frac{1}{Q} \sum_{i = 0}^{Q - 1} P[1 \gets \mathcal{A} \circ R \circ G_b \ |\ j = i] = P[1 \gets \mathcal{A} \circ R \circ G_b]
+$$
+
+since $P[j = i] = \frac{1}{Q}$.
+
+Multiplying our current telescoping sum by $\frac{1}{Q}$ inside,
+and $Q$ on the outside, we get:
+
+$$
+Q \cdot \left|P[1 \gets \mathcal{A} \circ R \circ G_0] -
+P[1 \gets \mathcal{A} \circ R \circ G_1]\right|
+$$
+
+Denoting the package $\mathcal{A} \circ R$ as an adversary $\mathcal{B}$,
+This is just the value:
+
+$$
+Q \cdot \epsilon(\mathcal{B} \circ G_b)
+$$
+
+Tying everything together, we conclude that:
+
+$$
+\epsilon(\mathcal{A} \circ M_b) = Q \cdot \epsilon(\mathcal{B} \circ G_b)
+$$
+
+
+$\square$
+
+## Our Specific Case
 
 # Random Oracles
 
