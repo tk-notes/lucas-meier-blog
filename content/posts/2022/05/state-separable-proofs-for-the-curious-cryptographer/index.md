@@ -1134,13 +1134,178 @@ from these values, you would be able to decrypt ciphertexts.
 This problem is referred to as the Computational Diffie-Hellman (CDH)
 problem.
 
-In traditional game-based security
+In traditional game-based security, the way you'd model
+the security of the CDH problem is with a simple game, wherein
+an adversary tries to guess $ab \cdot G$ from $A$ and $B$:
 
+$$
+\boxed{
+\begin{aligned}
+&a, b \xleftarrow{R} \mathbb{Z}/(q)&\cr
+&A, B, C \gets a \cdot G, b \cdot G, ab \cdot G&\cr
+&&\xrightarrow{(A, B)}\cr
+&&\xleftarrow{C'}\cr
+&\text{win} \gets C = C'\cr
+\end{aligned}
+}
+$$
+
+The advantage in this game would be defined as the probability
+that $\text{win}$ gets set to $1$; in other words, the probability
+that the adversary succeeds in finding $C$.
+
+For this to be useful in a state-separable proof setting,
+we'd need to make this into a pair of games, modelling a
+"real vs ideal" situation. It's not immediately clear how to do that.
+
+We can emulate the first message sent to the adversary with a method
+returning that information, so that's not the issue. In order
+to emulate the winning aspect, we can have a method which lets
+the adversary make an attempt, and tell them whether or not they've
+guess correctly. If in the ideal case, we make it impossible for the adversary
+to win, then their distinguishing ability is related to whether
+or not they can guess correctly. Putting this into a package, we have:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{CDH}_b$
+}\cr
+\cr
+&a, b \xleftarrow{R} \mathbb{Z}/(q)\cr
+&A, B \gets a \cdot G, b \cdot G \cr
+\cr
+&\underline{\mathtt{Pair}():}\cr
+&\ \texttt{return } (A, B)\cr
+\cr
+&\underline{\mathtt{Challenge}(C):}\cr
+&\ \texttt{return } b = 0 \land C = ab \cdot G\cr
+\end{aligned}
+}
+$$
+
+In the case that $b = 1$, $\texttt{Challenge}$ always returns $0$,
+otherwise, it directly tells us whether or not the guess was correct.
+This means that the difference between the two games is bounded
+by the probability that an adversary makes a correct guess.
+If they can't make a correct guess, then they won't be able to distinguish the two games.
+
+One subtle difference we've introduced with this game is that
+the adversary is allowed to make multiple different guesses
+for $C$, whereas in the traditional game, the adversary can only
+make a single guess. We can fix this by modifying $\texttt{Challenge}$
+to return $\bot$ after the first guess, giving us a $\text{CDH-1}$ game.
+It turns out that allowing $Q$ queries instead of a single one
+only increases the advantage by a factor of $Q$, so we can use
+the multi-query $\text{CDH}$ variant without hesitation. Proving
+this, on the other hand, relies on a somewhat technical argument,
+so the next subsection can safely be skipped.
+
+### Single vs Multiple Guesses
+
+We can generalize this proof to many situations beyond just
+the CDH problem. In general, we define a *guessing scheme*
+as a set of types $\mathcal{P}, \mathcal{S}, \mathcal{G}$, along
+with functions:
+
+$$
+\begin{aligned}
+\text{Setup} &: \bullet \xrightarrow{R} \mathcal{P} \times \mathcal{S}\cr
+\text{Correct} &: \mathcal{P} \times \mathcal{S} \times \mathcal{G} \to \\{0, 1\\}
+\end{aligned}
+$$
+
+We have some public information $\mathcal{P}$, some secret information
+$\mathcal{S}$, as well as a type of guesses $\mathcal{G}$. Given
+all of the information, and a guess, we can determine if that
+guess is correct. In the case of the CDH problem, the public
+information is $A, B$, the secret information $a, b$, and the guess
+$C$ is correct when $C = ab \cdot G$.
+
+Given a guessing scheme, we have the associated guessing game:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{Guess}_b$
+}\cr
+\cr
+&(p, s) \xleftarrow{R} \text{Setup}()\cr
+\cr
+&\underline{\mathtt{Public}():}\cr
+&\ \texttt{return } p\cr
+\cr
+&\underline{\mathtt{Guess}(g):}\cr
+&\ \texttt{return } b = 0 \land \text{Correct}(p, s, g)\cr
+\end{aligned}
+}
+$$
+
+We also have a restricted version of the game, $\text{Guess-1}_b$,
+where only a single guess is allowed; subsequent guesses return
+$\bot$.
+
+We prove that $\text{Guess}_b \leq Q \cdot \text{Guess-1}_b$
+with $Q$ the number of guesses made.
+
+**Proof:**
+
+We start with an adversary $\mathcal{A}$ against $\text{Guess}_b$.
+Our adversary $\mathcal{B}$ will not be constructed using
+a wrapper package around $\text{Guess-1}_b$, like we've done
+with everything else so far. Instead, $\mathcal{B}$ will itself
+run $\mathcal{A}$, with a simulated version of $\text{Guess}_b$,
+and use its behavior to make a single guess. More formally,
+$\mathcal{B}$ plays against $\text{Guess-1}_b$,
+with $\texttt{run}$ behaving as follows:
+
+1. $\mathcal{B}$ calls $\texttt{Public}$, receiving $p$.
+2. $\mathcal{B}$ runs $\mathcal{A}$ with a simulated version of $\text{Guess-1}_1$. In this simulation, $\texttt{Public}$ returns the $p$ $\mathcal{B}$ saw earlier, and $\texttt{Guess}$ always returns $0$. The guesses $\\{g_0, \ldots, g_Q\\}$ made by $\mathcal{A}$ are recorded in a list.
+3. $\mathcal{B}$ picks one of the $Q$ guesses at random, and calls $\texttt{Guess}$ with that guess, and then returns $1$ if $\texttt{Guess}$ does.
+
+Since $\mathcal{B}$ will never return $1$ against $\text{Guess-1}_1$,
+we have:
+
+$$
+\epsilon(\mathcal{B} \circ \text{Guess-1}_b) = P[1 \gets \mathcal{B} \circ \text{Guess-1}_0]
+$$
+
+This probability satisfies:
+
+$$
+P[1 \gets \mathcal{B} \circ \text{Guess-1}_b] \geq P[\exists i.\ g_i \text{ is correct},\ j = i]
+= \frac{1}{Q}P[\exists i.\ g_i \text{ is correct}]
+$$
+
+this means that:
+
+$$
+Q\cdot \epsilon(\mathcal{B} \circ \text{Guess-1}_b) \geq P[\exists i.\ g_i \text{ is correct}]
+$$
+
+But, unless that last even happens, then $\mathcal{A}$ won't be
+able to distinguish between $\text{Guess}_0$ and $\text{Guess}_1$.
+Thus we have:
+
+$$
+\epsilon(\mathcal{A} \circ \text{Guess}_b) \leq P[\exists i.\ g_i \text{ is correct}]
+$$
+
+Putting this all together, we have:
+
+$$
+\epsilon(\mathcal{A} \circ \text{Guess}_b) \leq Q \cdot \epsilon(\mathcal{B} \circ \text{Guess-1}_b)
+$$
+
+$\square$
 
 ## The $\text{IND-CPA}$ Game, with Random Oracles
 
 ## Reducing to CDH
 
 # Conclusion
+
 
 ## Resources
