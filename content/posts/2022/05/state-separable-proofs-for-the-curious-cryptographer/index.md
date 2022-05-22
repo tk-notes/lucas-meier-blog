@@ -1303,7 +1303,203 @@ $\square$
 
 ## The $\text{IND-CPA}$ Game, with Random Oracles
 
+After that little detour, let's get back to the main course.
+We want to investigate the $\text{IND-CPA}$ security of our
+hybrid encryption scheme. In this model of security, the adversary
+tries to distinguish between encryptions of a real message,
+and encryptions of a random message. In principle, they're
+also allowed to make queries for encryptions of messages on their
+choice, hence the $\text{CPA}$. One neat aspect of public-key
+encryption is that we don't need to allow for these,
+since the adversary can use the public key to do encryption by
+themselves. We also need to model the hash function used inside
+of our encryption scheme. We model this as a random oracle,
+making $H$ a perfectly random function, which we allow the
+adversary to query. Putting this all together, our game pair looks
+like this:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-CPA}_b$
+}\cr
+\cr
+&a \gets \mathbb{Z}/(q)\cr
+&A \gets a \cdot G\cr
+\cr
+&\underline{\mathtt{Pk}():}\cr
+&\ \texttt{return } A\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0):}\cr
+&\ b \gets \mathbb{Z}/(q)\cr
+&\ k \gets \texttt{H}(b \cdot A)\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \texttt{return } (b \cdot G, E(k, m_b))\cr
+\cr
+&h[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{H}(P):}\cr
+&\ \texttt{if } P \notin h:\cr
+&\ \quad h[P] \xleftarrow{R} \mathcal{K}\cr
+&\ \texttt{return } h[P]\cr
+\end{aligned}
+}
+$$
+
+Instead of actually querying a hash function, instead we treat
+it as a completely random function, which we also allow the adversary
+to query. This is the essence of proofs on the "random oracle model".
+
 ## Reducing to CDH
+
+We'll show that the $\text{IND-CPA}$ security of this scheme
+reduces to the $\text{CDH}$ security of the underlying group,
+as well as the $\text{IND}$ security of the underlying symmetric
+encryption scheme.
+
+Using a hybrid argument, we can instead work with $\text{IND-CPA-1}$,
+since this only decreases the advantage by a factor of $Q$, the
+number of challenge queries made.
+
+First, let's separate out the $\text{CDH}$ game:
+
+$$
+\text{IND-CPA-1}_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^0_b$
+}\cr
+\cr
+&h[\cdot] \gets \bot\cr
+&k \xleftarrow{R} \mathcal{K}\cr
+&\text{count} \gets 0\cr
+\cr
+&\underline{\mathtt{Pk}():}\cr
+&\ (A, \cdot) \gets \texttt{Pair}()\cr
+&\ \texttt{return } A\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0):}\cr
+&\ \texttt{assert } \text{count++} = 0\cr
+&\ (\cdot, B) \gets \texttt{Pair}()\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ \texttt{return } (B, E(k, m_b))\cr
+\cr
+&\underline{\mathtt{H}(P):}\cr
+&\ \texttt{if } \text{CDH}.\texttt{Challenge}(P):\cr
+&\ \quad h[P] \gets k\cr
+&\ \texttt{if } P \notin h:\cr
+&\ \quad h[P] \xleftarrow{R} \mathcal{K}\cr
+&\ \texttt{return } h[P]\cr
+\end{aligned}
+}
+\circ \text{CDH}_0
+$$
+
+The basic idea here is that since the adversary only makes
+a single challenge query, we can use a hardcoded ephemeral key $B$.
+We can also generate the single symmetric key we need in advance.
+We need to make sure that when the hash function is evaluated
+at $ab \cdot G$, that this symmetric key is what comes out. We
+do this by deferring to $\text{CDH}_0$, which will give
+us that information.
+
+Now, when we're playing against $\text{CDH}_1$ instead, then
+this check will never hold, and thus $k$ is completely
+unliked from $\texttt{H}$. We can simplify this situation as follows:
+
+$$
+\Gamma^0_b \circ \text{CDH}_1 =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^1_b$
+}\cr
+\cr
+&h[\cdot] \gets \bot\cr
+&A, B \xleftarrow{R} \mathbb{G}\cr
+&\text{count} \gets 0\cr
+\cr
+&\underline{\mathtt{Pk}():}\cr
+&\ \texttt{return } A\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0):}\cr
+&\ \texttt{assert } \text{count++} = 0\cr
+&\ m_1 \xleftarrow{R} \mathcal{M}\cr
+&\ k \xleftarrow{R} \mathcal{K}\cr
+&\ \texttt{return } (B, E(k, m_b))\cr
+\cr
+&\underline{\mathtt{H}(P):}\cr
+&\ \texttt{if } P \notin h:\cr
+&\ \quad h[P] \xleftarrow{R} \mathcal{K}\cr
+&\ \texttt{return } h[P]\cr
+\end{aligned}
+}
+$$
+
+Since $\text{CDH}_1$ doesn't give us any useful information about
+$A$ and $B$, we might as well just generate them ourselves.
+Because our key $k$ has no relation with the rest of our package,
+we can now unlike the symmetric encryption aspect, deferring
+to the $\text{IND}$ game for symmetric encryption:
+
+$$
+\Gamma^1_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^2$
+}\cr
+\cr
+&h[\cdot] \gets \bot\cr
+&A, B \xleftarrow{R} \mathbb{G}\cr
+&\text{count} \gets 0\cr
+\cr
+&\underline{\mathtt{Pk}():}\cr
+&\ \texttt{return } A\cr
+\cr
+&\underline{\mathtt{Challenge}(m_0):}\cr
+&\ \texttt{assert } \text{count++} = 0\cr
+&\ \texttt{return } (B, \text{IND}.\texttt{Challenge}(m_0))\cr
+\cr
+&\underline{\mathtt{H}(P):}\cr
+&\ \texttt{if } P \notin h:\cr
+&\ \quad h[P] \xleftarrow{R} \mathcal{K}\cr
+&\ \texttt{return } h[P]\cr
+\end{aligned}
+}
+\circ \text{IND}_b
+$$
+
+And now all we have to do this is tie all of these games together,
+to bridge $\text{IND-CPA-1}_0$ and $\text{IND-CPA-1}_1$:
+
+$$
+\begin{aligned}
+\text{IND-CPA-1}_0
+&= \Gamma^0_0 \circ \text{CDH}_0\cr
+&\stackrel{\epsilon_1}{\approx} \Gamma^0_0 \circ \text{CDH}_1\cr
+&= \Gamma^1_0\cr
+&= \Gamma^2 \circ \text{IND}_0\cr
+&\stackrel{\epsilon_2}{\approx} \Gamma^2 \circ \text{IND}_1\cr
+&= \Gamma^1_1\cr
+&= \Gamma^0_1 \circ \text{CDH}_1\cr
+&\stackrel{\epsilon_1}{\approx} \Gamma^0_1 \circ \text{CDH}_0\cr
+&= \text{IND-CPA-1}_1
+\end{aligned}
+$$
+
+This gives us:
+
+$$
+\epsilon(\mathcal{A} \circ \text{IND-CPA-1}_b) \leq
+2 \cdot \epsilon(\mathcal{B} \circ \text{CDH}_b) +
+\epsilon(\mathcal{C} \circ \text{IND}_b)
+$$
+
+for some adversaries $\mathcal{B}$ and $\mathcal{C}$, which is
+what we set out to prove.
 
 # Conclusion
 
