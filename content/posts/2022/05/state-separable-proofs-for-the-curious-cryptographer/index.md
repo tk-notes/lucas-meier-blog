@@ -1501,6 +1501,8 @@ $$
 for some adversaries $\mathcal{B}$ and $\mathcal{C}$, which is
 what we set out to prove.
 
+$\square$
+
 # Conclusion
 
 
