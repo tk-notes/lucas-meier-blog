@@ -626,6 +626,8 @@ $$
 for some adversary $\mathcal{B}$.
 
 {{<note>}}
+This adversary $\mathcal{B}$ is actually subtle to define.
+
 We'll use this $\epsilon_0$ at two points in the game.
 - Once for $\Gamma^0_0 \circ \text{PRF}_0 \stackrel{\epsilon_0}{\approx} \Gamma^0_0 \circ \text{PRF}_1$
 - And another time for $\Gamma^0_1 \circ \text{PRF}_0 \stackrel{\epsilon_0}{\approx} \Gamma^0_1 \circ \text{PRF}_1$
@@ -642,6 +644,12 @@ advantage, and using this as our $\mathcal{B}$. This works
 because the $\stackrel{\epsilon}{\approx}$ only requires that
 the distinguishing adversary $\mathcal{A}$ has an advantage
 *bounded by* $\epsilon$, which gives us the flexibility we need.
+
+This trick works in many other situations. The general lesson
+is that if you have some underlying game $G_b$ which you
+use in several different hops, you can refer to all of its uses
+with a single $\epsilon$, implicitly taking the adversary
+against $G_b$ with the best advantage.
 {{</note>}}
 
 Now, if we inline the random function in $\text{PRF}_1$, we have:
