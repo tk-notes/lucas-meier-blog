@@ -1678,5 +1678,30 @@ $\square$
 
 # Conclusion
 
+There are many more examples I could give, and I fear
+that it takes a lot of wrestling with the proofs yourself
+before you can really grok the techniques involved,
+but hopefully this post imparted some of that feeling to you.
+
+Personally, I find it much easier to work with state-separable
+proofs than I did with more traditional game-based proofs.
+I was so enthused by this ease that I felt compelled
+to write this blog post, even though it ended up being considerably
+longer than I expected.
+
+I'm planning to also write a more beginner-friendly
+introduction to provable security, which would reach a wider
+audience, but I felt like there would be enough people
+who would benefit from a more advanced post like this one.
+I certainly would have liked to have a resource like
+this when I was first wrapping my head around state-separable
+proofs a month ago.
 
 ## Resources
+
+[Mike Rosulek's The Joy of Cryptography](https://joyofcryptography.com/) is a neat book which uses this technique pervasively,
+so that can be an interesting read for people looking for more
+examples.
+
+[State Separation for Code-Based Game-Playing Proofs](https://eprint.iacr.org/2018/306) is the original paper introducing the technique, and might be an interesting read for people
+who are really motivated.
