@@ -626,9 +626,22 @@ $$
 for some adversary $\mathcal{B}$.
 
 {{<note>}}
-In this case, $\mathcal{B} \equiv \mathcal{A} \circ \Gamma^0_b$, but the actual
-adversary doesn't matter, we just need to show that our adversary
-$\mathcal{A}$ against $\text{IND-CPA}_b$ yields such an adversary $\mathcal{B}$, in order to reason about the advantage of $\mathcal{A}$.
+We'll use this $\epsilon_0$ at two points in the game.
+- Once for $\Gamma^0_0 \circ \text{PRF}_0 \stackrel{\epsilon_0}{\approx} \Gamma^0_0 \circ \text{PRF}_1$
+- And another time for $\Gamma^0_1 \circ \text{PRF}_0 \stackrel{\epsilon_0}{\approx} \Gamma^0_1 \circ \text{PRF}_1$
+
+There's a slight issue in that there's no single adversary here.
+We have ${\mathcal{B}_0 := \mathcal{A} \circ \Gamma^0_0}$ and
+${\mathcal{B}_1 := \mathcal{A} \circ \Gamma^0_1}$. At a first
+glance, it would seem that we need to use a different $\epsilon$
+in both situations.
+
+We can get around this technical impass by picking the adversary
+between $\mathcal{B}_0$ and $\mathcal{B}_1$ with the largest
+advantage, and using this as our $\mathcal{B}$. This works
+because the $\stackrel{\epsilon}{\approx}$ only requires that
+the distinguishing adversary $\mathcal{A}$ has an advantage
+*bounded by* $\epsilon$, which gives us the flexibility we need.
 {{</note>}}
 
 Now, if we inline the random function in $\text{PRF}_1$, we have:
