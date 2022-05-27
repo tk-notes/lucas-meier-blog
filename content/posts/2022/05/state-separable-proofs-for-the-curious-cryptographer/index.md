@@ -8,7 +8,26 @@ tags:
   - "Foundations"
 ---
 
+This blog post is an introduction to *state-separable* proofs,
+a technique for proving the security of Cryptographic proofs.
+
 <!--more-->
+
+The target audience for this post is me, a month ago. As in,
+I expect the reader to have some background knowledge
+around game-based security in Cryptography. The goal of
+this post is to show people familiar with proving security
+using games what state-separable proofs bring to the table,
+and how they offer a neat way of making proof writing
+a lot easier.
+
+If you're not familiar with game-based security, I'm not sure
+if this post will be easy to understand, but I did
+write [a list of Cryptography book recommendations](/posts/2022/05/some-cryptography-books-i-like/) a couple weeks ago, so that
+may be a good starting point if you'd like to learn more. I'm
+also planningon writing a more beginner-friendly introduction
+to provable security, so keep your eyes peeled for if I follow
+through on that promise.
 
 # Introduction
 
