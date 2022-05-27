@@ -420,6 +420,36 @@ are $\epsilon$-indistinguishable.
 
 # Defining Security
 
+This notion of *indistinguishability* is what we'll use to
+define the security of different constructions.
+Whenever we have a construction, like a signature scheme,
+or an encryption scheme, and we want to reason about it's
+security, we'll do so with a pair of games $G_b$. The scheme
+will be considered secure if those games are indistinguishable.
+
+One slight difference with game based security is that we'll
+have a strong preference for games in a "real vs ideal" style.
+We'll want one game to be based on interacting with our
+actual scheme, and another to be based on interacting with
+an ideal version of our scheme.
+
+For example, with encryption, you might consider a real
+game where you can encrypt messages, as compared to an ideal
+game, where encryption returns a random ciphertext.
+If you can't distinguish between the two, then the encryption
+scheme is secure.
+
+With traditional game-based security, sometimes you have other
+styles of game definition, which also work. For example,
+the $\text{IND}$ notion security for encryption involves
+asking for the encryption of one of two messages. In one game,
+you get the left message, in the other, the right message.
+
+The reason we prefer real vs ideal is that it allows us
+to consistently define games in this paradigm, which
+is much more amenable to composition. Using small ideal components,
+you build up a large ideal construction.
+
 # Reductions
 
 ## Example: Encryption with a PRF
