@@ -452,7 +452,129 @@ you build up a large ideal construction.
 
 # Reductions
 
-## Example: Encryption with a PRF
+Taking our notion of security at face value, to prove
+that a scheme is secure, we'd prove that two games $G_0, G_1$
+are indistinguishable. To do that, we'd need to show
+that for every adversary $\mathcal{A}$, we have
+$\epsilon(\mathcal{A} \circ G_b) \leq \epsilon$, for some negligeable $\epsilon$.
+
+Proving that every adversary has a negligeable advantage is
+essentially impossible for everything but the simplest schemes.
+In fact, in many cases, such a proof would immediately
+lead you to conclude that $P \neq \text{NP}$, which a lot
+of people have spent a considerable amount of time trying
+to prove.
+
+What you do instead is that you rely on the hardness of some
+other problem. For example, you may assume that factoring
+integers is hard, and use that to build an encryption scheme
+which is also hard.
+
+The way this linking is done, is via reductions. A reduction
+uses an adversary $\mathcal{A}$ for some game $A_b$, and
+uses that adversary to build other adversaries $\mathcal{B}_i$
+for games $B^i_b$. If $A_b$ is broken, then all of the $B^i_b$
+games are also broken. Conversely, if all of these games
+are secure, then so must $A_b$ be.
+
+More concretely, a reduction is a statement of the form:
+
+For all adversaries $\mathcal{A}$ against $A_b$, there
+exists adversaries $\mathcal{B}_i$ against $B^i_b$ such that:
+$$
+\epsilon(\mathcal{A} \circ A_b) \leq f(\epsilon(\mathcal{B}_0 \circ B^0_b), \ldots, \epsilon(\mathcal{B}_N \circ B^N_b))
+$$
+
+Now, $f$ is usually some very simple function like $f(x, y) = 2 \cdot x + y$, or something like that. It's usually the case
+that if the arguments to $f$ are negligeable, then so will
+its output be.
+
+This equation has the nice property that if the right side
+is negligeable, then so must the left side be. In other words,
+if all the games on the right are secure, then so is the game
+on the left. Conversely, if the game on the left is broken,
+so must one of the games on right be.
+
+A shorthand notation I like to use for this statement is:
+
+$$
+A_b \leq f(B^0_b, \ldots, B^N_b)
+$$
+
+This is just shorthand for the above statement about adversaries
+and advantages, and allows a concise overview of the relation
+between different games.
+
+## Building Reductions
+
+Our notion of reduction is basically the same as
+with traditional game-based security, so it isn't exactly
+clear what advantage is gained by using state-separable proofs.
+
+This advantage lies in *associativity*.
+
+Let's say we have an adversary $\mathcal{A}$ for $G_b$,
+and we want to use this adversary to attack $H_b$. What we
+can do is build a shim package $S$, such that $\text{in}(S) = \text{out}(H_b)$ and $\text{out}(S) = \text{in}(G_b)$. We then have
+a game:
+
+$$
+S \circ H_b
+$$
+
+The advantage of $\mathcal{A}$ against this game is:
+
+$$
+\epsilon(\mathcal{A} \circ (S \circ H_b))
+$$
+
+But, because of associativity, this is the same quantity as:
+
+$$
+\epsilon((\mathcal{A} \circ S) \circ H_b)
+$$
+
+We can see this situation as $\mathcal{A}$ playing against
+$(S \circ H_b)$, or as the adversary $(\mathcal{A} \circ S)$,
+playing against $H_b$.
+
+In this example, our reduction would proceed simply from this point:
+
+$$G_0 = S \circ H_0 \stackrel{\epsilon_0}{\approx} S \circ H_1 = G_1$$
+
+with $\epsilon_0 := \epsilon(\mathcal{B} \circ H_b)$,
+and $\mathcal{B} := (\mathcal{A} \circ S)$.
+
+And from this equality, we conclude that:
+
+$$
+\epsilon(\mathcal{A} \circ G_b) \leq \epsilon(\mathcal{B} \circ H_b)
+$$
+
+or, in shorthand:
+
+$$
+G_b \leq H_b
+$$
+
+This example really captures the essence of what makes
+state-separable proofs nice. Our reductions will be made
+through the use of clever shim packages like $S$,
+which implicitly define new adversaries for us to use. Our
+full reduction then becomes a matter of constructing
+a series of small hops, to navigate our way from $G_0$ to $G_1$.
+
+In traditional game-based security, you often need to more
+explicitly construct the adversaries you use in a reduction,
+which is more cumbersome, and less amenable to the local reasoning
+you get with state-separable proofs.
+
+In the rest of this post, we'll go over several more examples
+of how reductions work, so hopefully that will clarify
+things quite a bit more, and give you an even better feel
+for how reductions work in practice.
+
+# Example: Encryption with a PRF
 
 As an example, let's consider the case of using a Pseudo-Random Function (PRF)
 in order to build an encryption scheme secure under chosen plaintext attack.
