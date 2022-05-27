@@ -31,13 +31,181 @@ through on that promise.
 
 # Introduction
 
+The security of Cryptographic schemes is usually reasoned
+about with games. In these games, an adversary tries to
+break some scheme, by interacting with a challenger making
+use of that scheme. State-separable proofs are a technique
+to make write this style of proof simpler.
+
+The gist of the technique is that it allows you to turn a complicated proof
+into a series of much simpler steps. This is done
+by decomposing large monolithic games, into smaller,
+more composable snippets of code, which we call *packages*.
+
 ## Why We Care
+
+Personally I care about state-separable proofs because
+I've found them to be much easier to work with. Hopefully
+I can impart some of this feeling onto you, but ultimately
+this is somewhat subjective.
+
+A more objective argument in favor of this technique is that
+it makes it much easier to create reusable proof techniques.
+With traditional game-based proofs, certain arguments,
+like hybrid arguments, are often repeated each time they're used.
+You remember the basic technique of a hybrid argument, but you
+have to spell it out each time you want to use it.
+
+With state-separable proofs, a lot more of the mechanics of
+writing proofs is encoded in the formalism you use. More steps
+of the proof correspond to concrete actions with the mathematical
+objects representing various components of games, if that makes sense. This means that it's a lot easier to formulate
+things like a hybrid argument in a way which is generic,
+and thus immediately reusable in different contexts.
+
+Continuing with this example, in this post we'll see
+a "generic hybrid argument" which just requires a few bits
+of structure to instantiate, and then the result can immediately
+be reused, without having to invoke or reuse the details
+of the argument.
+
+I've been somewhat vague in this section, but hopefully
+the rest of this post will be able to better illustrate
+how this reusability plays out in practice.
 
 ## Overview
 
+In the rest of this post, we'll first briefly review
+how traditional game-based proofs work, and then learn the formalism
+we use for state-separable proofs. We'll then see
+how reductions work with this technique, using
+the example of reduction an encryption scheme to the
+security of a pseudo-random-function (PRF).
+We'll then see how to make a generic hybrid argument,
+applying that to multiple vs single-query encryption security.
+Finally, we'll conclude with an example on hybrid encryption,
+which lets us see how to model "computational problems"
+like the computational Diffie Hellman problem (CDH),
+and how random oracles work with this technique.
+
 # State-Separable What?
 
+I've praised the benefits of state-separable proofs quite
+a bit already, so you might be impatient to learn
+exactly what it is I'm talking about.
+
+What they boil down to is really a formalism for games,
+which lends itself better to composability. They're
+sort of an alternative to game-based security, in the
+sense that they have their own formalism for various
+aspects of that technique. On the other hand,
+the strategy for proving things is still somewhat similar,
+so in other sense state-separable proofs are
+more of an extension of traditional game-based proofs.
+
 ## Security Games
+
+Before we get to state-separable proofs, it might be useful
+to recall how traditional game-based proofs work.
+
+The basic idea is that the security of some scheme, say,
+encryption, takes the form of a *game*. This game is played
+between a challenger, $\mathcal{C}$, and an adversary $\mathcal{A}$.
+The challenger sort of resembles the user of a scheme, in
+that they have private information, like keys, associated
+with the scheme. The adversary plays the role of a malicious
+actor trying to break the scheme.
+
+These two players interact, and at the end of the game,
+it's clear whether or not the adversary has won.
+
+As an example, you might have a game where an adversary
+can ask the challenger to encrypt messages, and the goal
+of the adversary is to guess the secret key.
+
+There are different ways to formalize and write this game
+down. One way I liked was to write down what messages
+get exchanged, like this:
+
+$$
+\boxed{
+\begin{aligned}
+&k \xleftarrow{R} \mathcal{K}\cr
+&&\xleftarrow{m_i}\cr
+&c_i \gets \text{Enc}(k, m_i)\cr
+&&\xrightarrow{c_i}\cr
+&&\xleftarrow{\hat{k}}\cr
+&\text{win} \gets \hat{k} = k\cr
+\end{aligned}
+}
+$$
+
+The challenger is sort of like a box, and the adversary
+interacts with them by sending and receiving messages.
+
+Since the adversary can win, and the game involves randomness,
+we usually talk about the *advantage* of an adversary
+based on the probability that they win the game. Sometimes
+you can win relatively often by just playing randomly,
+so we often subtract this "trivial win rate" in order to get
+the advantage.
+
+In this example, we might define the advantage as:
+
+$$
+\text{Adv}[\mathcal{A}] := |P[\text{win} = 1| - |\mathcal{K}||
+$$
+
+Sometimes security involves several games, and then the
+advantage is defined as something like:
+
+$$
+\text{Adv}[\mathcal{A}] := |P[\text{out} = 1\ |\ \text{Game}_0] -
+P[\text{out} = 1\ |\ \text{Game}_1] |
+$$
+
+The idea in this case is that you want to capture how
+well the adversary does at distinguishing between the two games.
+For example, can the adversary distinguish
+a real encryption scheme from a perfect scheme
+which just returns random ciphertexts.
+
+Reductions work by taking an adversary for one game,
+and creating an adversary for a different game.
+This often takes the form of what I call a "three-column proof"
+where you have the challenger on the left, the adversary
+on the right, and then some wrapping code in the middle:
+
+$$
+\boxed{
+\begin{aligned}
+&k \xleftarrow{R} \mathcal{K}\cr
+&&&&\xleftarrow{m_i}\cr
+&&&m_i \gets m_i \oplus 1&\cr
+&&\xleftarrow{m_i}\cr
+&c_i \gets \text{Enc}(k, m_i)\cr
+&&\xrightarrow{c_i}\cr
+&&&&\xrightarrow{c_i}\cr
+&&&&\xleftarrow{\hat{k}}\cr
+&&\xleftarrow{\hat{k}}\cr
+&\text{win} \gets \hat{k} = k\cr
+\end{aligned}
+}
+$$
+
+The idea is that the wrapping code takes the adversary on
+the right, and then plays with its messages, in order
+to play the game on the left. But this is just a convenient
+formalism to describe an adversary for the game on the left.
+You could describe it in other ways, and there's not
+really a standard way of describing this process of
+creating new adversaries when doing reductions.
+
+For many schemes, you'll need multiple reductions,
+since the security of the scheme might depend on
+several different assumptions. For example, 
+a public key encryption scheme might depend on a symmetric
+encryption scheme, and also the RSA assumption.
 
 ## Packages
 
