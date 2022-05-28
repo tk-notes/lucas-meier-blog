@@ -264,11 +264,11 @@ $$
 $$
 
 This package is similar to the previous one, except that it relies
-on a function $\texttt{G}$, which isn't defined inside of the package.
+on a function $\texttt{F}$, which isn't defined inside of the package.
 Instead, this package depends on some external function. Think of
 this like a computer program which depends on another library.
 We say that the *imports* of $\mathcal{L}_G$ are ${\text{in}(\mathcal{L}_G) =
-\\{\texttt{G}\\}}$.
+\\{\texttt{F}\\}}$.
 
 ## Composition
 
