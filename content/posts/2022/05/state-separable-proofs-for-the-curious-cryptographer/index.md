@@ -39,7 +39,7 @@ to make writing this style of proof simpler.
 
 The gist of the technique is that it allows you to turn a complicated proof
 into a series of much simpler steps. This is done
-by decomposing large monolithic games, into smaller,
+by decomposing large monolithic games into smaller,
 more composable snippets of code, which we call *packages*.
 
 ## Why We Care
