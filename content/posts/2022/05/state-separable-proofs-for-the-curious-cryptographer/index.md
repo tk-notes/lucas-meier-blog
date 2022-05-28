@@ -1,7 +1,7 @@
 ---
 title: "State-Separable Proofs for the Curious Cryptographer"
-date: 2022-05-20T18:02:59+02:00
-draft: true
+date: 2022-05-28T15:49:42+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -1196,16 +1196,12 @@ at $\text{IND-CPA}_0$, and the last ends at $\text{IND-CPA}_1$. At each step,
 instead of moving from $m_0$ to $m_1$ in all of the queries, we only
 change to $m_1$ in a single query:
 
-{{<todo>}}
-illustration
-{{</todo>}}
+{{<img "1.png">}}
 
 Then, the idea is that distinguishing between two successive games is like
 distinguishing between $\text{IND-CPA-1}_0$ and $\text{IND-CPA-1}_1$:
 
-{{<todo>}}
-illustration
-{{</todo>}}
+{{<img "2.png">}}
 
 Since there are $Q$ hops, we end up with a factor of $Q$ in our
 advantage.
