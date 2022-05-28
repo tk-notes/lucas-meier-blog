@@ -1453,7 +1453,7 @@ out whether the game is encrypting real messages or not.
 # Hybrid Encryption
 
 As a final example, I'd like to explore hybrid encryption,
-where we combine a a key exchange with symmetric encryption,
+where we combine a key exchange with symmetric encryption,
 in order to create a public key encryption scheme.
 This will let us explore a few interesting techniques in proofs,
 including random oracles, and modelling games where the adversary
