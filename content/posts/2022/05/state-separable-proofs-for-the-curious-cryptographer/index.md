@@ -9,11 +9,11 @@ tags:
 ---
 
 This blog post is an introduction to *state-separable* proofs,
-a technique for proving the security of Cryptographic proofs.
+a technique for proving the security of Cryptographic schemes.
 
 <!--more-->
 
-The target audience for this post is me, a month ago. As in,
+The target audience for this post is me, a month ago. That is to say,
 I expect the reader to have some background knowledge
 around game-based security in Cryptography. The goal of
 this post is to show people familiar with proving security
@@ -25,7 +25,7 @@ If you're not familiar with game-based security, I'm not sure
 if this post will be easy to understand, but I did
 write [a list of Cryptography book recommendations](/posts/2022/05/some-cryptography-books-i-like/) a couple weeks ago, so that
 may be a good starting point if you'd like to learn more. I'm
-also planningon writing a more beginner-friendly introduction
+also planning on writing a more beginner-friendly introduction
 to provable security, so keep your eyes peeled for if I follow
 through on that promise.
 
@@ -35,7 +35,7 @@ The security of Cryptographic schemes is usually reasoned
 about with games. In these games, an adversary tries to
 break some scheme, by interacting with a challenger making
 use of that scheme. State-separable proofs are a technique
-to make write this style of proof simpler.
+to make writing this style of proof simpler.
 
 The gist of the technique is that it allows you to turn a complicated proof
 into a series of much simpler steps. This is done
@@ -79,7 +79,7 @@ In the rest of this post, we'll first briefly review
 how traditional game-based proofs work, and then learn the formalism
 we use for state-separable proofs. We'll then see
 how reductions work with this technique, using
-the example of reduction an encryption scheme to the
+the example of reducing an encryption scheme to the
 security of a pseudo-random-function (PRF).
 We'll then see how to make a generic hybrid argument,
 applying that to multiple vs single-query encryption security.
@@ -94,13 +94,13 @@ I've praised the benefits of state-separable proofs quite
 a bit already, so you might be impatient to learn
 exactly what it is I'm talking about.
 
-What they boil down to is really a formalism for games,
+What they boil down to is a formalism for games,
 which lends itself better to composability. They're
 sort of an alternative to game-based security, in the
 sense that they have their own formalism for various
 aspects of that technique. On the other hand,
 the strategy for proving things is still somewhat similar,
-so in other sense state-separable proofs are
+so in another sense state-separable proofs are
 more of an extension of traditional game-based proofs.
 
 ## Security Games
@@ -143,10 +143,6 @@ $$
 The challenger is sort of like a box, and the adversary
 interacts with them by sending and receiving messages.
 
-{{<todo>}}
-Illustration
-{{</todo>}}
-
 Since the adversary can win, and the game involves randomness,
 we usually talk about the *advantage* of an adversary
 based on the probability that they win the game. Sometimes
@@ -172,7 +168,7 @@ The idea in this case is that you want to capture how
 well the adversary does at distinguishing between the two games.
 For example, can the adversary distinguish
 a real encryption scheme from a perfect scheme
-which just returns random ciphertexts.
+which just returns random ciphertexts?
 
 Reductions work by taking an adversary for one game,
 and creating an adversary for a different game.
@@ -198,7 +194,7 @@ $$
 $$
 
 The idea is that the wrapping code takes the adversary on
-the right, and then plays with its messages, in order
+the right, and then tweaks its messages, in order
 to play the game on the left. But this is just a convenient
 formalism to describe an adversary for the game on the left.
 You could describe it in other ways, and there's not
@@ -1191,10 +1187,10 @@ An adversary for $\text{IND-CPA-1}$ can obviously break $\text{IND-CPA}$,
 since the latter allows them to make the one query they need.
 In the other direction, the question is more subtle. It turns out
 that if we make $Q$ queries in the $\text{IND-CPA}$ game, then our advantage
-is only larger by a factor of $Q$, compared to the $\text{IND-CPA-1}$ game.
+is only larger by a factor of $Q$ compared to the $\text{IND-CPA-1}$ game.
 
-The intuition behind the proof is that we bridge that gap
-between $\text{IND-CPA}_0$ and $\text{IND-CPA}_1$, we create a series of
+The intuition behind the proof is that to bridge the gap
+between $\text{IND-CPA}_0$ and $\text{IND-CPA}_1$ we create a series of
 hybrid games $H_0, \ldots, H_Q$. The first hybrid starts
 at $\text{IND-CPA}_0$, and the last ends at $\text{IND-CPA}_1$. At each step,
 instead of moving from $m_0$ to $m_1$ in all of the queries, we only
@@ -1204,24 +1200,25 @@ change to $m_1$ in a single query:
 illustration
 {{</todo>}}
 
-Then the idea is that distinguishing between two successive games is like
+Then, the idea is that distinguishing between two successive games is like
 distinguishing between $\text{IND-CPA-1}_0$ and $\text{IND-CPA-1}_1$:
 
 {{<todo>}}
 illustration
 {{</todo>}}
 
-Since there are $Q$ hops, that's how we get the factor of $Q$ in our
+Since there are $Q$ hops, we end up with a factor of $Q$ in our
 advantage.
 
 ## The General Hybrid Argument
 
-We can formalize this argument in a general way, which will be useable
+We can formalize this argument in a general way, which will be usable
 for a wide variety of games.
 
 The basic setup is that we have two different game pairs $G_0$ and $G_1$,
 with $\text{out}(G_0) = \text{out}(G_1)$,
-which represent our "single query" games, and $M_0$ and $M_1$,
+which represent our "single query" games. We have
+another pair of games, $M_0$ and $M_1$,
 with $\text{out}(M_0) = \text{out}(M_1)$, which
 represent our "multi query" games. We then have a series of hybrid games
 $H_0, \ldots, H_Q$, satisfying $\text{out}(H_i) = \text{out}(M_b)$.
@@ -1351,7 +1348,7 @@ $$
 }
 $$
 
-As well as a variant $\text{IND-CPA-1}_b$, which only allows a single
+We also have a variant $\text{IND-CPA-1}_b$, which only allows a single
 query to challenge. $\text{IND-CPA-1}_b$ will play the role of $G_b$,
 and $\text{IND-CPA}_b$ the role of $M_b$. We'll implicitly limit
 $\text{IND-CPA}_b$ to $Q$ queries, for the sake of the argument.
@@ -1430,7 +1427,7 @@ R_i \circ \text{IND-CPA-1}_0 &= H\_{i+1}\cr
 $$
 
 At this point, all of the conditions are satisfied for us to apply
-the hybrid argument lemma we proved earlier, to conclude that
+the hybrid argument lemma we proved earlier. This lets us conclude that
 for every adversary $\mathcal{A}$ against $\text{IND-CPA}$,
 making $Q$ challenge queries,
 there exists an adversary $\mathcal{B}$ against $\text{IND-CPA-1}$
@@ -1460,12 +1457,13 @@ out whether the game is encrypting real messages or not.
 # Hybrid Encryption
 
 As a final example, I'd like to explore hybrid encryption,
-in the form of ElGamal encryption.
+where we combine a a key exchange with symmetric encryption,
+in order to create a public key encryption scheme.
 This will let us explore a few interesting techniques in proofs,
 including random oracles, and modelling games where the adversary
 is expected to return a complex answer, like a group element.
 
-First, let's recall how a the ElGamal encryption scheme works.
+First, let's recall how a this encryption scheme works.
 The basic idea is to combine a Diffie-Hellman key exchange with
 an encryption scheme. First, we need some Cryptographic
 group $\mathbb{G}$, generated by $G$, and with order $q$.
@@ -1481,7 +1479,7 @@ $$
 
 Finally, we need a hash function $H : \mathbb{G} \to \mathcal{K}$.
 
-With this, we can define the ElGamal encryption scheme:
+With this, we can define our encryption scheme:
 
 $$
 \begin{aligned}
@@ -1509,9 +1507,9 @@ the ciphertext.
 
 ## The CDH Problem
 
-When trying to break this scheme, you see the public key $A = a \cdot G$, the ephemeral key $B = b \cdot G$. If you could derive $ab \cdot G$
+When trying to break this scheme, you see the public key $A = a \cdot G$, and the ephemeral key ${B = b \cdot G}$. If you could derive $ab \cdot G$
 from these values, you would be able to decrypt ciphertexts.
-This problem is referred to as the Computational Diffie-Hellman (CDH)
+The problem of deriving $ab \cdot G$ from $A$ and $B$ is referred to as the Computational Diffie-Hellman (CDH)
 problem.
 
 In traditional game-based security, the way you'd model
@@ -1541,8 +1539,8 @@ we'd need to make this into a pair of games, modelling a
 We can emulate the first message sent to the adversary with a method
 returning that information, so that's not the issue. In order
 to emulate the winning aspect, we can have a method which lets
-the adversary make an attempt, and tell them whether or not they've
-guess correctly. If in the ideal case, we make it impossible for the adversary
+the adversary make an attempt, and tells them whether or not they've
+guessed correctly. If, in the ideal case, we make it impossible for the adversary
 to win, then their distinguishing ability is related to whether
 or not they can guess correctly. Putting this into a package, we have:
 
@@ -1642,7 +1640,7 @@ $\mathcal{B}$ plays against $\text{Guess-1}_b$,
 with $\texttt{run}$ behaving as follows:
 
 1. $\mathcal{B}$ calls $\texttt{Public}$, receiving $p$.
-2. $\mathcal{B}$ runs $\mathcal{A}$ with a simulated version of $\text{Guess-1}_1$. In this simulation, $\texttt{Public}$ returns the $p$ $\mathcal{B}$ saw earlier, and $\texttt{Guess}$ always returns $0$. The guesses $\\{g_0, \ldots, g_Q\\}$ made by $\mathcal{A}$ are recorded in a list.
+2. $\mathcal{B}$ runs $\mathcal{A}$ with a simulated version of $\text{Guess-1}_1$. In this simulation, $\texttt{Public}$ returns the $p$ that $\mathcal{B}$ saw earlier, and $\texttt{Guess}$ always returns $0$. The guesses $\\{g_0, \ldots, g_Q\\}$ made by $\mathcal{A}$ are recorded in a list.
 3. $\mathcal{B}$ picks one of the $Q$ guesses at random, and calls $\texttt{Guess}$ with that guess, and then returns $1$ if $\texttt{Guess}$ does.
 
 Since $\mathcal{B}$ will never return $1$ against $\text{Guess-1}_1$,
@@ -1652,7 +1650,7 @@ $$
 \epsilon(\mathcal{B} \circ \text{Guess-1}_b) = P[1 \gets \mathcal{B} \circ \text{Guess-1}_0]
 $$
 
-This probability satisfies:
+Denoting the guess $\mathcal{B}$ picks as $g_j$, this probability satisfies:
 
 $$
 P[1 \gets \mathcal{B} \circ \text{Guess-1}_b] \geq P[\exists i.\ g_i \text{ is correct},\ j = i]
@@ -1691,8 +1689,7 @@ and encryptions of a random message. In principle, they're
 also allowed to make queries for encryptions of messages on their
 choice, hence the $\text{CPA}$. One neat aspect of public-key
 encryption is that we don't need to allow for these,
-since the adversary can use the public key to do encryption by
-themselves. We also need to model the hash function used inside
+since the adversary can use the public key to do encryption themself. We also need to model the hash function used inside
 of our encryption scheme. We model this as a random oracle,
 making $H$ a perfectly random function, which we allow the
 adversary to query. Putting this all together, our game pair looks
@@ -1729,17 +1726,23 @@ $$
 
 Instead of actually querying a hash function, instead we treat
 it as a completely random function, which we also allow the adversary
-to query. This is the essence of proofs on the "random oracle model".
+to query. This is the essence of proofs in the "random oracle model".
 
 ## Reducing to CDH
 
 We'll show that the $\text{IND-CPA}$ security of this scheme
 reduces to the $\text{CDH}$ security of the underlying group,
 as well as the $\text{IND}$ security of the underlying symmetric
-encryption scheme.
+encryption scheme. In particular, we show that
+$$
+\text{IND-CPA-1}_b \leq
+2 \cdot \text{CDH}_b +
+\text{IND}_b
+$$
 
-Using a hybrid argument, we can instead work with $\text{IND-CPA-1}$,
-since this only decreases the advantage by a factor of $Q$, the
+It's easier to work with $\text{IND-CPA-1}$. With a hybrid
+argument, we can show that this
+only decreases the advantage by a factor of $Q$, the
 number of challenge queries made.
 
 First, let's separate out the $\text{CDH}$ game:
@@ -1821,7 +1824,7 @@ $$
 Since $\text{CDH}_1$ doesn't give us any useful information about
 $A$ and $B$, we might as well just generate them ourselves.
 Because our key $k$ has no relation with the rest of our package,
-we can now unlike the symmetric encryption aspect, deferring
+we can now unlink the symmetric encryption aspect, deferring
 to the $\text{IND}$ game for symmetric encryption:
 
 $$
@@ -1885,10 +1888,10 @@ $\square$
 
 # Conclusion
 
-Hopefully these examples have helped you get a feeling for how
+Hopefully these examples have helped you get a feel for how
 state-separable proofs work. A lot of the understanding comes
-from wrestling with proofs yourself, so hopefully you get
-a chance to try out the technique in an example that
+from wrestling with proofs yourself, so hopefully you'll get
+a chance to try out the technique with an example that
 matters to you.
 
 I've found working with state-separable proofs to be much
