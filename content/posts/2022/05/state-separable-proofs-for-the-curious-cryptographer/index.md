@@ -364,8 +364,9 @@ of one package to satisfy the imports of another. We called this *sequential com
 There's another form of composition which isn't as useful, but is still
 interesting to look at. This is *parallel composition*. The idea is that
 if the functions exported by two packages are distinct, then we can
-form a new package by combining the state of both packages, and
-exporting the functions provided by both packages. We denote
+form a new package by putting the state of these packages
+side-by-side, and
+exporting all the functions these packages provide. We denote
 this composition by $\begin{matrix}A\cr \hline B \end{matrix}$ or $A \otimes B$.
 
 As an example, we have:
@@ -417,7 +418,7 @@ $$
 The parallel composition combines both states, and exposes both of the functions.
 
 More formally, this composition is well defined when
-$\text{out}(A) \cup \text{out}(B) = \emptyset$, and we have:
+$\text{out}(A) \cap \text{out}(B) = \emptyset$, and gives us:
 
 $$
 \begin{aligned}
@@ -458,7 +459,7 @@ when linking packages defined via parallel composition.
 
 So far, we've defined packages which import and export functions,
 and can be composed together in various ways. While this is very neat,
-it's not yet "praktisch", as they'd say in German; we're still
+it's not yet "praktisch" (as they'd say in German); we're still
 pretty far away from capturing the notion of security, as we
 did with the more traditional game-based definition. To do this, we
 need to introduce a few more notions based on packages.
@@ -479,7 +480,7 @@ it can interact with. When we link an adversary $\mathcal{A}$ with
 a game $G$ implementing the right interface, we end up with a package
 $\mathcal{A} \circ G$, exposing a single function $\texttt{run}$.
 Executing this function makes the adversary and the game interact,
-and ends up with us having a single bit $0$ or $1$. In fact, because
+and finishes with a single bit $0$ or $1$. In fact, because
 of the random choices taken by these packages, we have a probability
 distribution over these outputs.
 
@@ -487,7 +488,7 @@ distribution over these outputs.
 
 This leads us to the natural notion of *advantage*. The idea is that
 we have a pair of games $G_0$ and $G_1$, with $\text{out}(G_0) = \text{out}(G_1)$. The advantage of an adversary $\mathcal{A}$ interacting with $G$
-tells us how well that adversary can distinguish between $G_0$ and $G_1$.
+tells us how well that adversary can distinguish $G_0$ from $G_1$.
 
 We define the *advantage* of such an adversary as:
 
@@ -509,10 +510,16 @@ $$
 \end{aligned}
 $$
 
+{{<note>}}
+I've referred to $?_b(A, B)$ as a "game", but strictly
+speaking it's a pair of games. These two notions are often
+conflated, without much harm.
+{{</note>}}
+
 ### Equality
 
-Sometimes there are multiple ways of defining a game, where despite
-the differences in the code, the behavior of the games is identical.
+Sometimes games might have different code, but behave
+in exactly the same way.
 
 For example, consider these two games:
 
@@ -570,14 +577,14 @@ In most situations, $=$ is much more useful than $\equiv$, since it's
 more robust to unimportant changes, like moving variables around,
 or replacing a complicated expression with something having the same
 distribution. In fact, outside of the basic definitions, $\equiv$
-is rarely needed.
+is rarely needed, and $=$ is used instead.
 
 ### Indistinguishability
 
 Now, this notion of equality is much too strong. It requires games
 to look exactly the same, even under the scrutiny of an adversary
-with no limits on their computation time. This isn't enough to
-do very much Cryptography at all.
+with no limits on their computation time. There's not a lot
+of Cryptography which can be done under these constraints.
 
 We relax this notion by only considering
 "efficient" adversaries. These adversaries have a runtime polynomial
@@ -593,7 +600,7 @@ $$
 \epsilon(\mathcal{A} \circ ?_b(A, B)) \leq \epsilon
 $$
 
-(the adversary is left implicit very often)
+(the adversary is usually left implicit)
 
 In other words, this adversary can only
 distinguish the two games with advantage at most $\epsilon$.
@@ -622,22 +629,22 @@ define the security of different constructions.
 Whenever we have a construction, like a signature scheme,
 or an encryption scheme, and we want to reason about it's
 security, we'll do so with a pair of games $G_b$. The scheme
-will be considered secure if those games are indistinguishable.
+will be considered secure if these games are indistinguishable.
 
-One slight difference with game based security is that we'll
+One slight difference with game-based security is that we'll
 have a strong preference for games in a "real vs ideal" style.
 We'll want one game to be based on interacting with our
 actual scheme, and another to be based on interacting with
 an ideal version of our scheme.
 
 For example, with encryption, you might consider a real
-game where you can encrypt messages, as compared to an ideal
+game where you use your cipher, as compared to an ideal
 game, where encryption returns a random ciphertext.
 If you can't distinguish between the two, then the encryption
 scheme is secure.
 
 With traditional game-based security, sometimes you have other
-styles of game definition, which also work. For example,
+styles of game definition which also work. For example,
 the $\text{IND}$ notion security for encryption involves
 asking for the encryption of one of two messages. In one game,
 you get the left message, in the other, the right message.
@@ -656,25 +663,25 @@ that for every adversary $\mathcal{A}$, we have
 $\epsilon(\mathcal{A} \circ G_b) \leq \epsilon$, for some negligeable $\epsilon$.
 
 Proving that every adversary has a negligeable advantage is
-essentially impossible for everything but the simplest schemes.
+essentially impossible for anything but the simplest of schemes.
 In fact, in many cases, such a proof would immediately
 lead you to conclude that $P \neq \text{NP}$, which a lot
 of people have spent a considerable amount of time trying
 to prove.
 
-What you do instead is that you rely on the hardness of some
+What you do instead is rely on the hardness of some
 other problem. For example, you may assume that factoring
 integers is hard, and use that to build an encryption scheme
 which is also hard.
 
 The way this linking is done, is via reductions. A reduction
-uses an adversary $\mathcal{A}$ for some game $A_b$, and
-uses that adversary to build other adversaries $\mathcal{B}_i$
+uses an adversary $\mathcal{A}$ for some game $A_b$
+to build other adversaries $\mathcal{B}_i$
 for games $B^i_b$. If $A_b$ is broken, then all of the $B^i_b$
 games are also broken. Conversely, if all of these games
-are secure, then so must $A_b$ be.
+are secure, then $A_b$ must be as well.
 
-More concretely, a reduction is a statement of the form:
+More concretely, a reduction is a statement (and corresponding proof) of the form:
 
 For all adversaries $\mathcal{A}$ against $A_b$, there
 exists adversaries $\mathcal{B}_i$ against $B^i_b$ such that:
@@ -682,15 +689,15 @@ $$
 \epsilon(\mathcal{A} \circ A_b) \leq f(\epsilon(\mathcal{B}_0 \circ B^0_b), \ldots, \epsilon(\mathcal{B}_N \circ B^N_b))
 $$
 
-Now, $f$ is usually some very simple function like $f(x, y) = 2 \cdot x + y$, or something like that. It's usually the case
+Now, $f$ is usually some very simple function like $f(x, y) = 2 \cdot x + y$, or something like that. It should be the case
 that if the arguments to $f$ are negligeable, then so will
 its output be.
 
 This equation has the nice property that if the right side
-is negligeable, then so must the left side be. In other words,
+is negligeable, then so is the left side. In other words,
 if all the games on the right are secure, then so is the game
 on the left. Conversely, if the game on the left is broken,
-so must one of the games on right be.
+then one of the games on the right is too.
 
 A shorthand notation I like to use for this statement is:
 
@@ -708,10 +715,12 @@ Our notion of reduction is basically the same as
 with traditional game-based security, so it isn't exactly
 clear what advantage is gained by using state-separable proofs.
 
-This advantage lies in *associativity*.
+This advantage comes from *associativity*.
 
 Let's say we have an adversary $\mathcal{A}$ for $G_b$,
-and we want to use this adversary to attack $H_b$. What we
+and we want to use this adversary to attack $H_b$.
+To do that, we need to build an adversary $\mathcal{B}$
+against $H_b$. What we
 can do is build a shim package $S$, such that $\text{in}(S) = \text{out}(H_b)$ and $\text{out}(S) = \text{in}(G_b)$. We then have
 a game:
 
@@ -731,18 +740,19 @@ $$
 \epsilon((\mathcal{A} \circ S) \circ H_b)
 $$
 
-We can see this situation as $\mathcal{A}$ playing against
-$(S \circ H_b)$, or as the adversary $(\mathcal{A} \circ S)$,
+We can see this situation as either $\mathcal{A}$ playing against
+$(S \circ H_b)$, or the adversary $(\mathcal{A} \circ S)$
 playing against $H_b$.
 
-In this example, our reduction would proceed simply from this point:
+In this example, our reduction would proceed straightforwardly:
 
 $$G_0 = S \circ H_0 \stackrel{\epsilon_0}{\approx} S \circ H_1 = G_1$$
 
 with $\epsilon_0 := \epsilon(\mathcal{B} \circ H_b)$,
 and $\mathcal{B} := (\mathcal{A} \circ S)$.
 
-And from this equality, we conclude that:
+From this equation, we see that
+$G_0 \stackrel{\epsilon_0}{\approx} G_1$, and thus conclude that:
 
 $$
 \epsilon(\mathcal{A} \circ G_b) \leq \epsilon(\mathcal{B} \circ H_b)
@@ -761,7 +771,7 @@ which implicitly define new adversaries for us to use. Our
 full reduction then becomes a matter of constructing
 a series of small hops, to navigate our way from $G_0$ to $G_1$.
 
-In traditional game-based security, you often need to more
+In traditional game-based security, you often need to
 explicitly construct the adversaries you use in a reduction,
 which is more cumbersome, and less amenable to the local reasoning
 you get with state-separable proofs.
