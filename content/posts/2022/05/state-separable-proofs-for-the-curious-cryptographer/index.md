@@ -860,7 +860,7 @@ a lot easier.
 
 Because of this, I'll refer to this notion as $\text{IND}$. 
 We'll also also let the adversary encrypt messages of their choice.
-This addition is usually referred to as chosen plaintext attack (CPA).
+This addition is usually referred to as "chosen plaintext attack" (CPA).
 
 Thus, $\text{IND-CPA}$ security is defined by a pair of games:
 
@@ -889,8 +889,8 @@ are indistinguishable.
 ### Encryption with a PRF
 
 The simplest encryption scheme is the one-time pad. One problem with this
-scheme is that we can only encrypt one message. A PRF lets us get
-around this limitation, by letting us generate new pads on demand.
+scheme is that we can only encrypt one message. A PRF bypasses
+this limitation, by letting us generate new pads on demand.
 
 Given a PRF over $\mathcal{X}$ and $\mathcal{Y}$,
 with $\mathcal{Y}$ some type where $\oplus$ makes sense, we can define
@@ -1112,7 +1112,7 @@ $$
 \Gamma^3 = \Gamma^0_1 \circ \text{PRF}_1
 $$
 
-Since in the case where we use a random message, the call to $\texttt{Encrypt}$
+since in the case where we use a random message, the call to $\texttt{Encrypt}$
 doesn't matter, as we saw earlier. From this point, we can reach
 $\text{IND-CPA}_1$, so we've done all the hops we need. Putting everything together, we have:
 
