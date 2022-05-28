@@ -934,6 +934,8 @@ $$
 \text{IND-CPA}_1 =
 \boxed{
 \begin{aligned}
+&k \xleftarrow{R} \mathcal{K}\cr
+\cr
 &\underline{\mathtt{Challenge}(m_0 : \mathcal{Y}): \mathcal{C}}\cr
 &\ x \xleftarrow{R} \mathcal{X}\cr
 &\ y \xleftarrow{R} \mathcal{Y}\cr
@@ -941,7 +943,7 @@ $$
 \cr
 &\underline{\mathtt{Encrypt}(m : \mathcal{Y}): \mathcal{C}}\cr
 &\ x \xleftarrow{R} \mathcal{X}\cr
-&\ \texttt{return } (x, m \oplus \texttt{QueryF}(x))\cr
+&\ \texttt{return } (x, m \oplus F(k, x))\cr
 \end{aligned}
 }
 $$
