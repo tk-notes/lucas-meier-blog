@@ -143,6 +143,10 @@ $$
 The challenger is sort of like a box, and the adversary
 interacts with them by sending and receiving messages.
 
+{{<todo>}}
+Illustration
+{{</todo>}}
+
 Since the adversary can win, and the game involves randomness,
 we usually talk about the *advantage* of an adversary
 based on the probability that they win the game. Sometimes
@@ -209,14 +213,18 @@ encryption scheme, and also the RSA assumption.
 
 ## Packages
 
-With state-separable proofs, we decompose security games into a smaller
-unit, called a *package*. A package consists of program code, which
-should be similar to what you'd write when describing schemes in pseudo-code.
-How we interpret this code isn't very important, we just need to know
-that it has a well defined semantics.
+With state-separable proofs, we decompose large security games into
+smaller units, called *packages*. A package consists of
+pseudo-code. This is similar to the kind of code we use
+to describe games.
+How we interpret this code isn't very important.
+We can give it a precise semantics with Turing machines,
+or some other formalism, but all that matters is that
+we agree on what the code means.
 
-Part of this code is dedicated to the *state* of the package. This state
-also has code to initialize it. The rest of the package is dedicated
+Part of this code is dedicated to the *state* of the package,
+with code dedicated to defining and initializing this state.
+The rest of this package is dedicated
 to *functions*. As an example, consider this package:
 
 $$
@@ -234,10 +242,11 @@ $$
 }
 $$
 
-The state of this package is the variable $k$. The functions exposed
-by this package are just $\\{\texttt{F}\\}$. We
-say that the *exports* of $\mathcal{L}_F$ are $\text{out}(\mathcal{L}_F) = \\{\texttt{F}\\}$. The semantics here are
-that before any of the functions can be called the initialization
+The state of this package is the variable $k$. The set of functions exposed
+by this package is $\\{\texttt{F}\\}$. We
+say that the *exports* of $\mathcal{L}_F$ are $\text{out}(\mathcal{L}_F) = \\{\texttt{F}\\}$. Before any of the functions
+in this package can be called,
+the initialization
 code is executed. This will set $k$ to a (uniform) random value in $\\{0, 1\\}^\lambda$.
 
 Packages are not limited to just *exporting* functions. They can
@@ -258,7 +267,7 @@ $$
 }
 $$
 
-This package is similar to the previous, except now it relies
+This package is similar to the previous one, except that it relies
 on a function $\texttt{G}$, which isn't defined inside of the package.
 Instead, this package depends on some external function. Think of
 this like a computer program which depends on another library.
@@ -268,13 +277,14 @@ We say that the *imports* of $\mathcal{L}_G$ are ${\text{in}(\mathcal{L}_G) =
 ## Composition
 
 Since $\mathcal{L}_G$ imports the function $\texttt{F}$, and
-$\mathcal{L}_F$ exports that same function, a natural question is if we can
+$\mathcal{L}_F$ exports that same function,
+a natural construction would be to
 create a larger package by linking the two packages together. Whenever
 $\mathcal{L}_G$ would make a call to $\texttt{F}$, the code inside
-of $\mathcal{L}_F$ would be executed. This is exactly what we define
+of $\mathcal{L}_F$ would be executed. This linking is defined
 as *sequential composition*.
 
-Whenever we have two packages $A$ and $B$, such that $\text{in}(A) \subseteq \text{out}(B)$, we can define the sequential composition:
+Whenever we have two packages $A$ and $B$, such that $\text{in}(A) \subseteq \text{out}(B)$, we can define their sequential composition:
 
 $$
 A \circ B
@@ -283,7 +293,7 @@ $$
 This package has the same exports as $A$, with $\text{out}(A \circ B) = \text{out}(A)$,
 and the same imports as $B$, with $\text{in}(A \circ B) = \text{in}(B)$.
 
-This composition defines a new package, whose state is the combination
+This composition defines a new package whose state is the combination
 of the states in $A$ and $B$. We replace a call to a function in $B$
 by inlining the code of that function directly inside of $A$.
 
@@ -295,7 +305,7 @@ of a package is implicitly namespaced by that package. So the $k$
 inside of $\mathcal{L}_F$ is really $\mathcal{L}_F.k$, and the
 $k$ inside of $\mathcal{L}_G$ is also shorthand for $\mathcal{L}_G.k$.
 The same goes for function names.
-With this convention, we can explicitly describe the package as follows:
+With this convention, we can explicitly describe their composition:
 
 $$
 \boxed{
@@ -315,7 +325,7 @@ $$
 
 Instead of the call to $\texttt{F}$ we had before, we've now inlined
 that code directly in the package. To resolve ambiguities in the variable
-names, we've also explicitly included their namespace.
+names, we've also explicitly written them down with their namespace.
 
 ### Associativity
 
@@ -326,18 +336,18 @@ this yields the result as first inlining those in $C$, and then inlining
 all of that inside of $A$.
 
 Now, I've said that these packages are "the same", but I mean this
-in a precise way. In this case I mean that $(A \circ B) \circ C$
+in a specific way. In this case I mean that $(A \circ B) \circ C$
 and $A \circ (B \circ C)$ are the exact same package, the state and
 code are all exactly the same, up to a potential renaming of variable
 and function names. We'll refer to this kind of relation
-between packages as *definitional equality*, and we'll denote it
+between packages as *definitional equality*, and denote it
 by $\equiv$. Continuing with this example, we have:
 
 $$
 (A \circ B) \circ C \equiv A \circ (B \circ C)
 $$
 
-Another silly example is that if we add the word $\text{foo}$ to every
+Another silly example is that if we append the word $\text{foo}$ to every
 name inside of the package $A$, in order to get the package $A_{\text{foo}}$,
 then we'd have:
 
@@ -1865,30 +1875,33 @@ $\square$
 
 # Conclusion
 
-There are many more examples I could give, and I fear
-that it takes a lot of wrestling with the proofs yourself
-before you can really grok the techniques involved,
-but hopefully this post imparted some of that feeling to you.
+Hopefully these examples have helped you get a feeling for how
+state-separable proofs work. A lot of the understanding comes
+from wrestling with proofs yourself, so hopefully you get
+a chance to try out the technique in an example that
+matters to you.
 
-Personally, I find it much easier to work with state-separable
-proofs than I did with more traditional game-based proofs.
-I was so enthused by this ease that I felt compelled
-to write this blog post, even though it ended up being considerably
-longer than I expected.
+I've found working with state-separable proofs to be much
+easier, and quite a bit of fun. This blog post wasn't something
+I would've thought to write about, but I felt compelled
+to after playing around with this technique for a while.
+I didn't expect this post to be so long either; hopefully
+its length was warranted.
 
-I'm planning to also write a more beginner-friendly
-introduction to provable security, which would reach a wider
-audience, but I felt like there would be enough people
-who would benefit from a more advanced post like this one.
-I certainly would have liked to have a resource like
-this when I was first wrapping my head around state-separable
+I'm also planning to write a more beginner-friendly
+introduction to provable security.
+This would be relevant to a larger audience, but I think there's
+enough people who could benefit from
+a more advanced post like this one.
+I would have liked to have a resource like
+this when first wrapping my head around state-separable
 proofs a month ago.
 
 ## Resources
 
 [Mike Rosulek's The Joy of Cryptography](https://joyofcryptography.com/) is a neat book which uses this technique pervasively,
-so that can be an interesting read for people looking for more
+so this can be an interesting read if you're looking for more
 examples.
 
-[State Separation for Code-Based Game-Playing Proofs](https://eprint.iacr.org/2018/306) is the original paper introducing the technique, and might be an interesting read for people
-who are really motivated.
+[State Separation for Code-Based Game-Playing Proofs](https://eprint.iacr.org/2018/306) is the original paper introducing the technique, and might be an interesting read if you want to
+know more details about the formalism.
