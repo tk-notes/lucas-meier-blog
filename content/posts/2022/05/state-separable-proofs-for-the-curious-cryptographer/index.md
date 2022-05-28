@@ -1347,7 +1347,7 @@ $$
 $$
 
 We also have a variant $\text{IND-CPA-1}_b$, which only allows a single
-query to challenge. $\text{IND-CPA-1}_b$ will play the role of $G_b$,
+query to $\texttt{Challenge}$. $\text{IND-CPA-1}_b$ will play the role of $G_b$,
 and $\text{IND-CPA}_b$ the role of $M_b$. We'll implicitly limit
 $\text{IND-CPA}_b$ to $Q$ queries, for the sake of the argument.
 
