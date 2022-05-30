@@ -153,7 +153,7 @@ the advantage.
 In this example, we might define the advantage as:
 
 $$
-\text{Adv}[\mathcal{A}] := |P[\text{win} = 1| - |\mathcal{K}||
+\text{Adv}[\mathcal{A}] := |P[\text{win} = 1| - |\mathcal{K}|^{-1}|
 $$
 
 Sometimes security involves several games, and then the
