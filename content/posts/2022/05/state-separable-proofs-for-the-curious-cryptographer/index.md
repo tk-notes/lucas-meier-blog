@@ -1420,7 +1420,7 @@ Thus, we have that:
 $$
 \begin{aligned}
 R_i \circ \text{IND-CPA-1}_0 &= H_i\cr
-R_i \circ \text{IND-CPA-1}_0 &= H\_{i+1}\cr
+R_i \circ \text{IND-CPA-1}_1 &= H\_{i+1}\cr
 \end{aligned}
 $$
 
