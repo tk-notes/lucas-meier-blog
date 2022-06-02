@@ -117,7 +117,8 @@ $\text{OMDL-Static}$, as follows:
 2. Retry the following steps until they succeed (resetting any state modifications):
 3. Choose random $r\_0, \ldots, r\_{n + 1} \xleftarrow{R} \mathbb{Z}/(q)$, and set $x_j \gets r_j \cdot x_j$, as well as $X_j \gets r_j \cdot X_j$.
 4. Choose a random $j \xleftarrow{R} [1, \ldots, n + 1]$, and swap $X_j$ and $X\_{n + 1}$, as well as $x_j$ and $x\_{n + 1}$.
-5. Run $\mathcal{A}$ using these group elements and scalars to answer their queries, and abort if they call $\texttt{DLog}$ with $\hat{i} \neq j$.
+5. Run $\mathcal{A}$ using these group elements and scalars to answer their queries,
+dividing by $r_j$ before forwarding their answers to $\texttt{Challenge}$, and abort if they call $\texttt{DLog}$ with $\hat{i} \neq j$.
 6. Return what $\mathcal{A}$ returned.
 
 The expected number of retries is $n + 1$. This is because the
@@ -127,5 +128,28 @@ at each iteration, so that they're indistinguishable from
 freshly sampled group elements. Thus, at each try,
 there's at most an $n / (n + 1)$ chance that we have to abort
 when running $\mathcal{A}$.
+
+$\square$
+
+# $\text{OMDL-Adaptive}_b \leq \text{OMDL-Static}_b$
+
+It's actually not any easier to prove $\text{OMDL-Adaptive} \leq \text{OMDL-Dynamic}$,
+so we'll prove this one instead.
+
+The basic idea of the reduction is the same, it's just that the analysis is
+more complicated. We re-randomize and shuffle the group elements as in the previous
+reduction, and we abort the adversary $\mathcal{A}$ if it ever queries the group
+element we have no scalar for. Analyzing this is trickier because of the adaptivity.
+
+The idea is that given our choices of group elements $X\_0, \ldots, X\_{n + 1}$,
+we can look at the sequence of queries made by $\mathcal{A}$, if they get
+the answer each time. This defines a sequence of random variables $i_0, \ldots, i_n$,
+which depends solely on $X_i$. We can also define a related random variable,
+$\hat{i}$, represented the index which *isn't* queried. This is a function of $i_0, \ldots, i_n$,
+and so depends solely on our choice of $X_i$.
+
+In particular, $\hat{i}$ is independent from the random $j$ we choose at each iteration,
+because of the re-randomization, and so the analysis from the previous reduction
+applies exactly.
 
 $\square$
