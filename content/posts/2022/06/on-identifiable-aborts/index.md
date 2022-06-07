@@ -40,14 +40,42 @@ notion falls short in practice.
 
 # Background
 
+{{<todo>}}
+Explain what Cryptographic protocols are, the threat model, as well
+as what identifiable aborts try to achieve.
+{{</todo>}}
+
 # Why You Might Want Identifiable Aborts
+
+{{<todo>}}
+Explain the consequences of not having aborts, and the economic reason.
+{{</todo>}}
 
 # Identifiable Aborts are Complicated
 
+{{<todo>}}
+Explain the complications of having IA, as well as the example of
+echo broadcast.
+{{</todo>}}
+
+# The Network is not Perfect
+
 # Identification Requires Authentication
+
+{{<todo>}}
+Explain why authentication necessarily requires signatures.
+{{</todo>}}
 
 # Handling Invalid Authentication
 
-# Why Things are Complicated
+{{<todo>}}
+Explain the dilemma of invalid signatures.
+{{</todo>}}
+
+# Context matters
+
+{{<todo>}}
+Explain why you need to consider the needs of the application.
+{{</todo>}}
 
 # Conclusion
