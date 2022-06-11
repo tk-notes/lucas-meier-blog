@@ -40,10 +40,19 @@ notion falls short in practice.
 
 # Background
 
-{{<todo>}}
-Explain what Cryptographic protocols are, the threat model, as well
-as what identifiable aborts try to achieve.
-{{</todo>}}
+Let's start with some background on Cryptographic protocols.
+The general situation here is that a group of parties need to cooperate
+to form some task.
+For example, they might want to run an auction using their bids, or they
+might want to use there shares of a private key in order to create a signature.
+To do this, they need to use some kind of *protocol* which specifies how
+they should interact and what they need to compute, in order to complete
+this task.
+
+There are two categories of properties you want from this kind of protocol:
+
+- **Liveness:** Making something good eventually happen
+- **Safety:** Preventing bad things from happening
 
 # Why You Might Want Identifiable Aborts
 
@@ -77,5 +86,7 @@ Explain the dilemma of invalid signatures.
 {{<todo>}}
 Explain why you need to consider the needs of the application.
 {{</todo>}}
+
+# Some Caveats
 
 # Conclusion
