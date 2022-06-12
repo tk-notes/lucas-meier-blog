@@ -51,14 +51,70 @@ this task.
 
 There are two categories of properties you want from this kind of protocol:
 
-- **Liveness:** Making something good eventually happen
-- **Safety:** Preventing bad things from happening
+- **Liveness**: Making something good eventually happen.
+- **Safety**: Preventing bad things from happening.
+
+At a basic level, one liveness property we want is that the task gets
+completed.
+We also want to know that the task has been computed correctly,
+which could be considered a safety property.
+In *Cryptographic* protocols,
+we also often care about *privacy*, making sure that secret values
+can be used without being revealed.
+
+When thinking about these properties, you also have to consider
+what kind of failures can happen. In fact, might you have to consider
+how *malicious* participants might be able to affect the result.
+
+The basic threat-models for failures in these kinds of protocols are
+
+- **Semi-Honest**: The participants will follow the rules of the protocol,
+but may still want to learn the private results, and may also crash.
+- **Malicious** (Often call Byzantine, in distributed systems jargon): The participants can arbitrarily deviate from the protocol.
 
 # Why You Might Want Identifiable Aborts
 
-{{<todo>}}
-Explain the consequences of not having aborts, and the economic reason.
-{{</todo>}}
+One property you might care about is *guaranteed output delivery*.
+This means that malicious participants can't prevent others from
+learning the result. Preventing others from learning the result by
+stopping execution is what we call an **abort**. Now, aborts are
+related to *liveness*. An abort doesn't make a protocol return the wrong
+result, it just halts the execution of the protocol.
+
+One problem is that if a majority of participants are malicious,
+then it's **not possible** to prevent them from causing aborts.
+This is [a theorem](https://dl.acm.org/doi/10.1145/12130.12168)
+in distributed systems theory, and there's no direct way around it.
+
+Now, while we can't prevent malicious parties from causing aborts,
+what we can try do is to make it so that aborts allow us to identify
+these parties. As an example, if you have a simple protocol which
+consists of everyone announcing their favorite food, and then waiting
+until everyone has spoken, then it's easy to detect malicious participants,
+since if they try to stall the protocol, it's also evident that they're
+not speaking.
+
+This bring us to the notion of **identifiable aborts**, which is a
+property that a protocol can satisfy.
+If a protocol has identifiable aborts, it means that while it cannot
+prevent malicious parties from causing the protocol to halt, it
+can make sure that *at least one* of those parties is identified
+upon such a malicious abort.
+
+Now, if this property is actually achieved, then it's almost as good
+as preventing aborts. This is because causing an abort can now
+have a penalty associated with it. Since a malicious participant
+causing aborts can be detected, they can also be penalized, by being
+removed from the set of participants. You could also require
+participants to put up some kind of "security deposit", which would
+be taken from them if they were ever caught, thus providing a direct
+economic penalty for causing aborts.
+
+On the other hand, with "unidentifiable" aborts, you can cause
+harm to the execution of the protocol without any penalty.
+This might allow a malicious participant to severely degrade the performance
+of any application making use of that protocol; a denial-of-service attack,
+essentially.
 
 # Identifiable Aborts are Complicated
 
