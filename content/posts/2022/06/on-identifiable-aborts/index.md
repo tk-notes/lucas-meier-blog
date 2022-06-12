@@ -101,7 +101,7 @@ prevent malicious parties from causing the protocol to halt, it
 can make sure that *at least one* of those parties is identified
 upon such a malicious abort.
 
-Now, if this property is actually achieved, then it's almost as good
+Now, if this property is *actually* achieved, then it's almost as good
 as preventing aborts. This is because causing an abort can now
 have a penalty associated with it. Since a malicious participant
 causing aborts can be detected, they can also be penalized, by being
@@ -118,10 +118,10 @@ essentially.
 
 # Identifiable Aborts are Complicated
 
-{{<todo>}}
-Explain the complications of having IA, as well as the example of
-echo broadcast.
-{{</todo>}}
+When analyzing protocols, you need to use some kind of model of how
+participants can interact:
+trying to model individual TCP packets isn't going to make proving
+things about your protocol very easy.
 
 # The Network is not Perfect
 
