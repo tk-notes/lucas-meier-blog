@@ -121,7 +121,31 @@ essentially.
 When analyzing protocols, you need to use some kind of model of how
 participants can interact:
 trying to model individual TCP packets isn't going to make proving
-things about your protocol very easy.
+things about your protocol very easy. In practice, you abstract
+away this communication using a vastly simplified model. The basic
+model usually assumes that the communication channels between
+peers are *authenticated*, in the sense that you can verify
+that messages were actually sent by the peer who claims to have sent it.
+Often you'll also implicitly assume that this authentication
+is "shareable". If you receive a message from some peer $A$,
+then you can convince other peers that $A$ sent you that message.
+This can be accomplished in practice by having a public key associated
+with each peer, and having each peer sign their messages.
+
+One issue is that the implementation details of this model can actually
+matter, and yet they're often swept under the rug. The idea of
+signing messages is relatively obvious, to the point that it isn't
+explicitly part of the descriptions for protocols. One thorny issue
+is how to deal with invalid signatures, which is rarely explicitly
+considered when analyzing the abort properties of a protocol. We'll
+get to this specific issue later.
+
+One bigger problem is that identifiable aborts are often a tacked
+on concern to protocols, and are sometimes poorly specified.
+One common pattern is for identifiable aborts to be *possible*
+but to require substantial detective work to actually implement.
+
+As an example, let's consider *authenticated broadcast*.
 
 # The Network is not Perfect
 
