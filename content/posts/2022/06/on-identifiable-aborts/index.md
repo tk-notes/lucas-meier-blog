@@ -146,6 +146,53 @@ One common pattern is for identifiable aborts to be *possible*
 but to require substantial detective work to actually implement.
 
 As an example, let's consider *authenticated broadcast*.
+With this primitive, you want one participant to send a message
+to the other participants, while guaranteeing that they can't cheat
+by sending different messages to this people.
+This is an important primitive for many protocols.
+Often you need to commit to the random choices you make in a protocol,
+and it's important that you're everyone agrees on what you've committed to.
+Using an authenticated broadcast makes it so that you can't send different
+values to different people.
+
+Often this primitive is used in protocols without actually specifying
+an implementation.
+A common method to implement it is with an *echo broadcast*.
+The idea is that after receiving a value from the broadcaster, each
+participant then re-transmits this value to the other participants.
+Each participant can then compare the value they initially received
+with these new values.
+If they see the same values, they know that the initial broadcast
+was consistent.
+
+This protocol is also often used in contexts where identifiable
+aborts are required.
+In principle, this protocol satisfies identifiable abort.
+The idea is that if each message is signed, and the broadcaster
+sends two different messages, then the parties will eventually
+be able to come to a consensus about this fact.
+Doing this involves a lot of implicit work that's not really
+specified.
+For example, each party needs to verify the signatures on all
+the messages they've received, otherwise they could be deceived
+into believing that the broadcaster cheated, when they in fact didn't
+Another important detail is that the messages need to be precisely
+bound to that execution of the protocol.
+Otherwise, you could use previously signed messages in order to attempt
+to make others believe that the broadcaster cheated in this round.
+This kind of session binding is a detail which is often omitted
+from protocol descriptions, but actually starts to matter if you need
+identifiable aborts.
+
+Anyhow, all of this is just to say that in practice providing
+identifiable aborts is often more complicated than hinted at in
+protocol descriptions.
+
+So, even with an abstracted model, identifiable aborts are complicated.
+Nonetheless, identifiable aborts might be worth it, if they can effectively
+prevent spurious aborts from happening.
+
+Unfortunately, I don't think this is the case in practice.
 
 # The Network is not Perfect
 
