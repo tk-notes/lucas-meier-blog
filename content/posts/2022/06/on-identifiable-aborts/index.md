@@ -8,7 +8,7 @@ tags:
   - "Protocols"
 ---
 
-Many Cryptographic protocols attempt to satisfy a notion of "identifiable
+Many cryptographic protocols attempt to satisfy a notion of "identifiable
 abort", where if a malicious party causes the protocol to prematurely halt,
 then they can be detected.
 In practice, I think that this notion isn't all that useful.
@@ -40,7 +40,7 @@ notion falls short in practice.
 
 # Background
 
-Let's start with some background on Cryptographic protocols.
+Let's start with some background on cryptographic protocols.
 The general situation here is that a group of parties need to cooperate
 to perform some task.
 For example, they might want to run an auction using their bids, or they
@@ -58,7 +58,7 @@ At a basic level, one liveness property we want is that the task gets
 completed.
 We also want to know that the task has been computed correctly,
 which could be considered a safety property.
-In *Cryptographic* protocols,
+In *cryptographic* protocols,
 we also often care about *privacy*, making sure that secret values
 can be used without being revealed.
 
@@ -229,7 +229,7 @@ Another possibility would be to attempt a bottleneck
 in the network between the nodes.
 While it can be possible to do a root cause analysis of
 these kinds of attacks, the attributability you get is
-much weaker than the Cryptographic identity that identifiable
+much weaker than the cryptographic identity that identifiable
 aborts try to achieve.
 
 Now, these kinds of failures are usually below the
@@ -250,7 +250,7 @@ the culprit can't be identified.
 
 If you want to achieve identifiable aborts, you need
 the messages to be authenticated in some way.
-This authentication needs to be Cryptographic,
+This authentication needs to be cryptographic,
 using some kind of signature scheme which can't be forged,
 or something of similar strength.
 
@@ -336,7 +336,7 @@ to identifiable aborts, because you might end up with systems
 where it's possible to cause honest participants to be slashed,
 which is even worse.
 
-In practice, I think that if a Cryptographic protocol starts suffering
+In practice, I think that if a cryptographic protocol starts suffering
 from spurious aborts, some kind of human investigation needs
 to happen.
 Identifiable aborts are useful here, because without some
