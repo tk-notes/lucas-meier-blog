@@ -196,6 +196,55 @@ Unfortunately, I don't think this is the case in practice.
 
 # The Network is not Perfect
 
+One fundamental problem is that some aborts can't be attributed
+to any particular person.
+Aborts which involve network failures can happen spuriously,
+and it's not possible to blame any participant in particular
+when they happen.
+If a participant stops communicating, it might be that their
+machine has crashed, or that a network partition has formed
+between them and the other participants, or a variety
+of other reasons.
+
+One aspect of network failures which stops them from being attributable
+is that participants might disagree about the nature of a failure.
+For example, if two nodes are separated from the other nodes
+because of a network partition, the two nodes might believe the
+other nodes have crashed, and conversely, the other nodes think
+those two nodes are the ones that have failed.
+In general, it's difficult to have immediate consensus over
+the state of the network after a failure, and establishing consensus
+over what happened isn't trivial either.
+
+Another pernicious aspect of network failures is that they
+can be induced.
+For example, it's possible to conduct a denial of service (DoS)
+attack against a node, which will appear as if that node
+has crashed.
+Effectively, the resources of that node will be tied
+up with the DoS attack, and the node won't be able to respond
+to the normal messages of the protocol.
+Another possibility would be to attempt a bottleneck
+in the network between the nodes.
+While it can be possible to do a root cause analysis of
+these kinds of attacks, the attributability you get is
+much weaker than the Cryptographic identity that identifiable
+aborts try to achieve.
+
+Now, these kinds of failures are usually below the
+level of abstraction that we use to model communication.
+In some sense, they're "out of scope" when considering
+identifiable aborts.
+Nonetheless, for practical deployment of protocols, network failures
+must be considered.
+
+While artificial network failures may not be attributable, they are
+a lot *noisier* than the kind of aborts we might cause inside
+the protocol.
+A DoS attack is a not a silent way to cause an abort, it's
+relatively easy to detect that it's happening, even if
+the culprit can't be identified.
+
 # Identification Requires Authentication
 
 {{<todo>}}
