@@ -36,13 +36,13 @@ many trials in our past, but not of much utility today.
 
 A basic illustration of how data hiding works: you hold a dispatch
 that you want to forward to a pal, but bad actors might scan
-any dispatch you forward; you want to try to fashion a hiding of dispatch
+any dispatch you forward; you want to try to fashion a hiding of that dispatch
 as it transits.
 
 First, you and your pal fashion a *sigil*, which allows you to
 accomplish data hiding.
 A *hiding transformation* works with a sigil, and a dispatch,
-and results in a *dark dispatch*.
+and forms a *dark dispatch*.
 I also call a normal dispatch a *light dispatch*, in contrast
 with this dark dispatch.
 You can also do a contrary transformation, an *unhiding transformation*,
@@ -60,9 +60,67 @@ For sigils must match, I call this form of data hiding:
 
 # Dissimilar Sigil Data Hiding
 
+With SSDH, you must fashion a matching sigil with all your pals you want
+to contact.
+For $N$ pals, you must hold $N^2$ sigils.
+Mainting this mass of sigils is painful.
+What if you could only hold $N$ "sigils", with which you could
+contact a pal holding that "sigil"?
+
+This vision is what **dissimilar sigil data hiding (DSDH)** is for.
+All participants hold a **public sigil**, and a **privy sigil**.
+Your public sigil is known by all, but only you should know
+your own privy sigil, and you should hold it in hiding.
+
+You can do data hiding to forward a dispatch to any party, using
+only a public sigil for that party.
+This forms a dark dispatch, as in similar sigil data hiding.
+That party can do a contrary transformation, using a privy sigil,
+which must match its public sigil.
+Without that privy sigil, you cannot do any unhiding of that
+dark dispatch to know its original light dispatch.
+
+In summary, with DSDH, anybody can forward a dispatch
+to any participant, using that participant's public sigil, which forms
+a dark dispatch.
+But, without a privy sigil to do an unhiding of this dispatch, you cannot
+know anything about is original dispatch.
+No information about privy sigils can flow out of a dark dispatch too,
+as in SSDH.
+
+## Accomplishing This
+
+This is hard to do, actually.
+An [important work](https://ee.stanford.edu/~hellman/publications/24.pdf) to do this is from 1976, using big multiplication groups in a ring.
+
+An additional approach, which is known as **RSA**, from its original authors' last initials, is to work with a product of two primary factors.
+It is not known how to factor this product fast, and this allows you to form
+a data hiding function which has a trapdoor, with which you can undo
+that hiding.
+In this situation, our trapdoor is knowing how to factor this product.
+This allows you to fashion a dissimilar sigil data hiding algorithm
+in a straightforward way.
+
+Finally, I am fond of **cubic arcs** in particular.
+Cubic arcs know an origin in a fascinating location in math, but surprisingly
+cryptography has found utility in this location.
+Simplifying a bit, a cubic arc is a formula of this kind:
+
+$$
+y^2 = x^3 + a x + b
+$$
+
+An arc contains all points in a ring which satisfy its formula.
+What is fascinating is that you can *add* two points on this arc,
+forming a third point on it.
+A cubic arc on a ring with no nil divisors, (and a bound on its count),
+forms a group!
+This group is similar to our multiplication groups from that first approach,
+but, in contrast, is tiny, and thus fast to work with too.
+
 # Digital Stamps
 
 # Unknowing Proofs
 
-You might say that *unknowing proofs* are a broad form of
+You might say that *unknowing proofs* form a broad kind of
 digital stamps.
