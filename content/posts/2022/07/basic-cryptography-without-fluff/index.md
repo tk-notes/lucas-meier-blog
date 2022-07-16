@@ -57,6 +57,27 @@ it forms.
 
 For sigils must match, I call this form of data hiding:
 *similar sigil data hiding* (SSDH).
+Most HTTP traffic is in fact HTTPS,
+which has this kind of data hiding (that 'S' stands for "sigil").
+This form of hiding is ubiquitous, and most common.
+
+An old approach is to hold a sigil as big as your dispatch,
+and doing data hiding by xoring that sigil with your dispatch.
+This approach is known as **individual pad data hiding**.
+A main flaw with this approach is that you must hold a sigil
+as big as your dispatch:
+$$
+(s \oplus d_1) \oplus (s \oplus d_2) = d_1 \oplus d_2
+$$
+This quantity, $d_1 \oplus d_2$ might hold information you don't want public.
+This is why it's known as an *individual* pad: a sigil can only do hiding
+for just an individual dispatch.
+
+Nowadays, you might work with algorithms without this flaw.
+An algorithm in this class is **ChaCha20**, which works with fast
+instructions such as addition, bit shifting, and rotation.
+Data hiding with ChaCha20 works bit by bit, which is why you might
+call it a **trickling data hiding algorithm**.
 
 # Dissimilar Sigil Data Hiding
 
