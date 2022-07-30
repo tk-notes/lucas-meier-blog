@@ -90,9 +90,57 @@ For simplicity, I'll stick with the multi query variants for the rest
 of this post.
 {{</note>}}
 
-## $\text{IND-CPA}$ Security
+This variant of security is also sometimes referred to as $\text{IND-CPA}$.
+This is because the adversary is able to create encapsulations themselves,
+by virtue of having the public case.
+This kind of query is a "chosen plaintext", hence the "chosen plaintext attack (CPA) in the name.
+With symmetric encryption, you need to have a secret key to even
+*encrypt* data, so the $\text{CPA}$ capability is a meaningful distinction.
 
 ## $\text{IND-CCA}$ Security
+
+An even stronger variant of security also allows the adversary to make
+*decapsulation* queries on ciphertexts of their choice.
+We call these *chosen ciphertext attacks* (CCA).
+This models situations where we might know the keys corresponding
+with certain ciphertexts.
+While in practice these leakages could be quite limited, having a more
+expansive model of security covers many more situations,
+and we can construct schemes which satisfy this general model.
+
+We model this with a pair of games, like before:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-CCA}_b$
+}\cr
+\cr
+&\text{seen} \gets \emptyset\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } \text{pk} \cr
+\cr
+&\underline{\mathtt{Challenge}():}\cr
+&\ (k_0, c) \gets \text{Encap}(\text{pk}) \cr
+&\ k_1 \xleftarrow{R} \bold{K}\cr
+&\ \text{seen} \gets \text{seen} \cup \\{c\\}\cr
+&\ \texttt{return } (k_b, c) \cr
+\cr
+&\underline{\mathtt{Decap}(c):}\cr
+&\ \texttt{assert } c \notin \text{seen}\cr
+&\ \texttt{return } \text{Decap}(\text{sk}, c) \cr
+\end{aligned}
+}
+$$
+
+This is the same as the previous $\text{IND}$ game, except that we now
+have the ability to make decapsulation queries.
+In order to make the game not trivially easy to win, we keep track
+of which challenge ciphertexts have been produced, and refuse decapsulation
+queries for that set.
 
 ## Equivalence with Left or Right Security
 
