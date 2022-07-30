@@ -65,7 +65,7 @@ $$
   $\text{IND}_b$
 }\cr
 \cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -95,13 +95,13 @@ This is because the adversary is able to create encapsulations themselves,
 by virtue of having the public case.
 This kind of query is a "chosen plaintext", hence the "chosen plaintext attack (CPA) in the name.
 With symmetric encryption, you need to have a secret key to even
-*encrypt* data, so the $\text{CPA}$ capability is a meaningful distinction.
+_encrypt_ data, so the $\text{CPA}$ capability is a meaningful distinction.
 
 ## $\text{IND-CCA}$ Security
 
 An even stronger variant of security also allows the adversary to make
-*decapsulation* queries on ciphertexts of their choice.
-We call these *chosen ciphertext attacks* (CCA).
+_decapsulation_ queries on ciphertexts of their choice.
+We call these _chosen ciphertext attacks_ (CCA).
 This models situations where we might know the keys corresponding
 with certain ciphertexts.
 While in practice these leakages could be quite limited, having a more
@@ -118,7 +118,7 @@ $$
 }\cr
 \cr
 &\text{seen} \gets \emptyset\cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \\{0, 1\\}^\lambda\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -142,7 +142,194 @@ In order to make the game not trivially easy to win, we keep track
 of which challenge ciphertexts have been produced, and refuse decapsulation
 queries for that set.
 
-## Equivalence with Left or Right Security
+## Equivalence with Other Definitions
+
+{{<note>}}
+You can skip this section.
+It's mainly concerned with resolving a small discrepancy in definitions
+between this post and the broader literature.
+{{</note>}}
+
+In the games we've seen so far, the adversary only sees one of the keys.
+We can also model a situation where the adversary sees both of the keys:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-Both-CCA}_b$
+}\cr
+\cr
+&\text{seen} \gets \emptyset\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } \text{pk} \cr
+\cr
+&\underline{\mathtt{Challenge}():}\cr
+&\ (k_b, c) \gets \text{Encap}(\text{pk}) \cr
+&\ k\_{(1 - b)}  \xleftarrow{R} \bold{K} \cr
+&\ \text{seen} \gets \text{seen} \cup \\{c\\}\cr
+&\ \texttt{return } (k_0, k_1, c) \cr
+\cr
+&\underline{\mathtt{Decap}(c):}\cr
+&\ \texttt{assert } c \notin \text{seen}\cr
+&\ \texttt{return } \text{Decap}(\text{sk}, c) \cr
+\end{aligned}
+}
+$$
+
+One natural question is whether or not this new game is equivalent
+to our previous definitions.
+
+It is.
+
+As a bit of a warmup, let's prove this equivalence.
+
+### $\text{IND-Both-CCA} \leq 2 \cdot \text{IND-CCA}$
+
+The idea of this reduction is that we can replace $k_0$ from the first
+encapsulation with a random key, because of $\text{IND-CCA}$ security,
+thus then allows us to swap $k_0$ with $k_1$, and then walk our way backwards,
+giving us a bound for $\epsilon(\text{IND-Both-CCA}_b)$.
+
+We start by extracting out the encapsulation in $\text{IND-Both-CCA}_b$,
+using $\text{IND-CCA}$:
+
+$$
+\text{IND-Both-CCA}_b =
+\begin{aligned}
+&\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{W}_b$
+}\cr
+\cr
+&\underline{\mathtt{Challenge}():}\cr
+&\ (k_b, c) \gets \texttt{super.Challenge}() \cr
+&\ k\_{(1 - b)}  \xleftarrow{R} \bold{K} \cr
+&\ \text{seen} \gets \text{seen} \cup \\{c\\}\cr
+&\ \texttt{return } (k_0, k_1, c) \cr
+\end{aligned}
+}\cr
+&\otimes 1\\{\texttt{GetPk}, \texttt{Decap}\\}
+\end{aligned}
+\circ
+\text{IND-CCA}_0
+$$
+
+Using this, we can already march some of the way forward, giving us:
+
+$$
+\text{IND-Both-CCA}_b = W_b \circ \text{IND-CCA}_0
+\stackrel{\epsilon_1}{\approx} W_b \circ \text{IND-CCA}_1
+$$
+
+Now, one thing we can note is that:
+$$
+W_0 \circ \text{IND-CCA}_1 = W_1 \circ \text{IND-CCA}_1
+$$
+
+To notice this, first expand out the game:
+
+$$
+W_b \circ \text{IND-CCA}_1 = 
+\begin{aligned}
+\boxed{
+\begin{aligned}
+&\text{seen} \gets \emptyset\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } \text{pk} \cr
+\cr
+&\underline{\mathtt{Challenge}():}\cr
+&\ (\bullet, c) \gets \text{Encap}(\text{pk}) \cr
+&\ k_b \xleftarrow{R} \bold{K}\cr
+&\ k\_{(1 - b)} \xleftarrow{R} \bold{K}\cr
+&\ \text{seen} \gets \text{seen} \cup \\{c\\}\cr
+&\ \texttt{return } (k_0, k_1, c) \cr
+\cr
+&\underline{\mathtt{Decap}(c):}\cr
+&\ \texttt{assert } c \notin \text{seen}\cr
+&\ \texttt{return } \text{Decap}(\text{sk}, c) \cr
+\end{aligned}
+}
+\end{aligned}
+$$
+
+Because both $k_0$ and $k_1$ get sampled at random, it doesn't matter which
+order they have.
+
+We can now align these togethers to get:
+$$
+\begin{aligned}
+\text{IND-Both-CCA}_0 &= W_0 \circ \text{IND-CCA}_0\cr
+ &\stackrel{\epsilon_1}{\approx} W_0 \circ \text{IND-CCA}_1\cr
+ &= W_1 \circ \text{IND-CCA}_1\cr
+ &\stackrel{\epsilon_1}{\approx} W_1 \circ \text{IND-CCA}_0\cr
+ &= \text{IND-Both-CCA}_1\cr
+\cr
+\end{aligned}
+$$
+
+which gives us our result.
+
+$\square$
+
+Now, for the other direction.
+
+### $\text{IND-Both-CCA} \leq \text{IND-CCA}$
+
+The idea of this proof is that we can emulate $\text{IND-CCA}$
+using $\text{IND-Both-CCA}$ by dropping one of the keys.
+The question is: which key do we drop?
+Because we can't distinguish between $k_0$ and $k_1$, it doesn't matter
+which one we choose, essentially.
+
+First, let's define the following wrapper package:
+
+$$
+W_b :=
+\boxed{
+\begin{aligned}
+&\underline{\mathtt{Challenge}():}\cr
+&\ (k_0, k_1, c) \gets \texttt{super.Challenge}() \cr
+&\ \texttt{return } (k_b, c) \cr
+\end{aligned}
+} \otimes 1\\{\texttt{GetPk}, \texttt{Decap}\\}
+$$
+
+This perfectly emulates $\text{IND-CCA}_b$ when composed with
+$\text{IND-Both-CCA}_0$:
+
+$$
+W_b \circ \text{IND-Both-CCA}_0 = \text{IND-CCA}_b
+$$
+
+With $\text{IND-Both-CCA}_1$ on the other hand, the bit is flipped:
+
+$$
+W_b \circ \text{IND-Both-CCA}_0 = \text{IND-CCA}\_{(1 - b)}
+$$
+
+This is enough for us to write:
+
+$$
+\begin{aligned}
+\text{IND-CCA}_0 &= W_0 \circ \text{IND-Both-CCA}_0\cr
+&\stackrel{\epsilon_1}{\approx} W_0 \circ \text{IND-Both-CCA}_1\cr
+&= \text{IND-CCA}_1\cr
+\end{aligned}
+$$
+
+Which gives us the reduction we sought.
+
+$\square$
+
+
+### Real-or-Random is Essential
+
 
 # $\text{IND-CCA}$ via the Fujisaki-Okamoto Transform
 
