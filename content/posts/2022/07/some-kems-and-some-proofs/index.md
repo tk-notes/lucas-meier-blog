@@ -226,6 +226,7 @@ $$
 $$
 
 Now, one thing we can note is that:
+
 $$
 W_0 \circ \text{IND-CCA}_1 = W_1 \circ \text{IND-CCA}_1
 $$
@@ -233,7 +234,7 @@ $$
 To notice this, first expand out the game:
 
 $$
-W_b \circ \text{IND-CCA}_1 = 
+W_b \circ \text{IND-CCA}_1 =
 \begin{aligned}
 \boxed{
 \begin{aligned}
@@ -262,6 +263,7 @@ Because both $k_0$ and $k_1$ get sampled at random, it doesn't matter which
 order they have.
 
 We can now align these togethers to get:
+
 $$
 \begin{aligned}
 \text{IND-Both-CCA}_0 &= W_0 \circ \text{IND-CCA}_0\cr
@@ -327,9 +329,66 @@ Which gives us the reduction we sought.
 
 $\square$
 
-
 ### Real-or-Random is Essential
 
+Both of these definitions turned out to be equivalent, but both
+fit into a kind of "real-or-random" paradigm, in that one of the keys
+is randomly selected, while the other is connected to the ciphertext.
+This is a general kind of paradigm, used for defining the security of other
+schemes as well.
+It's useful to stay within this paradigm, since phrasing all of
+our security definitions in terms of real-or-random makes it easier
+to do reductions.
+
+One alternative paradigm, that gets used for public key encryption,
+is "left-or-right".
+With this approach, instead of having a random output and a real output,
+you instead have two outputs, and you try and distinguish between them.
+
+For the KEM case, this would give the following game:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-LR}_b$
+}\cr
+\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } \text{pk} \cr
+\cr
+&\underline{\mathtt{Challenge}():}\cr
+&\ (k_0, c_0) \gets \text{Encap}(\text{pk}) \cr
+&\ (k_1, c_1) \gets \text{Encap}(\text{pk}) \cr
+&\ \texttt{return } (k_0, k_1, c_b) \cr
+\end{aligned}
+}
+$$
+
+Unfortunately, this definition fails to capture a useful notion.
+The issue is that we have no guarantee that the key is sufficiently
+random, which makes it not usable for encryption later.
+
+As an example, consider the following KEM:
+
+$$
+\begin{aligned}
+&\underline{\text{Encap}(\text{pk}):}\cr
+&\ c \xleftarrow{R} \bold{C} \cr
+&\ \texttt{return } (0, c)\cr
+\cr
+&\underline{\text{Decap}(\text{sk}, c):}\cr
+&\ \texttt{return } 0
+\end{aligned}
+$$
+
+This KEM always returns the same key for encapsulation and decapsulation,
+which makes it completely useless to construct a secure public key
+encryption scheme.
+It does, however, satisfy the $\text{IND-LR}$ definition of security above.
+This is because $(0, 0, c_b)$ contains no information about $b$.
 
 # $\text{IND-CCA}$ via the Fujisaki-Okamoto Transform
 
