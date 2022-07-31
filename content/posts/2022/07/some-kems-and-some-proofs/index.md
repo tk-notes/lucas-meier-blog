@@ -65,7 +65,7 @@ $$
   $\text{IND}_b$
 }\cr
 \cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Gen}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -118,7 +118,7 @@ $$
 }\cr
 \cr
 &\text{seen} \gets \emptyset\cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Gen}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -161,7 +161,7 @@ $$
 }\cr
 \cr
 &\text{seen} \gets \emptyset\cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Gen}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -239,7 +239,7 @@ W_b \circ \text{IND-CCA}_1 =
 \boxed{
 \begin{aligned}
 &\text{seen} \gets \emptyset\cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Gen}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -354,7 +354,7 @@ $$
   $\text{IND-LR}_b$
 }\cr
 \cr
-&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Setup}()\cr
+&(\text{sk}, \text{pk}) \xleftarrow{R} \text{Gen}()\cr
 \cr
 &\underline{\mathtt{GetPk}():}\cr
 &\ \texttt{return } \text{pk} \cr
@@ -390,15 +390,320 @@ encryption scheme.
 It does, however, satisfy the $\text{IND-LR}$ definition of security above.
 This is because $(0, 0, c_b)$ contains no information about $b$.
 
-# $\text{IND-CCA}$ via the Fujisaki-Okamoto Transform
-
 # Constructing KEMs
+
+We've now seen a bit of how KEMs work in theory, but we've yet to actually
+see an example of making one.
+In this section, we go over a few potential constructions of KEMs,
+and show that they're secure, under appropriate assumptions.
 
 ## From RSA
 
+Let's start with [RSA](https://www.wikiwand.com/en/RSA_(cryptosystem)).
+There are thousands of good explanations of RSA, so I'll settle for
+a bad, but short, explanation.
+
+In RSA, your public key consists of a modulus $N$, and a number $e$.
+Your secret key consists of a factorization $p, q$ such that $N = p \cdot q$,
+along with a secret exponent $d$, such that
+$$
+d \cdot e \equiv 1 \mod \varphi(N)
+$$
+
+These parameters give us a trapdoor permutation for the set $\mathbb{Z}/(N)$:
+
+$$
+\begin{aligned}
+F(x) &:= x^e \mod N\cr
+F^{-1}(y) &:= y^d \mod N\cr
+\end{aligned}
+$$
+
+The function $F$ is a permutation, with $F^{-1}$ its inverse.
+Computing the inverse should be hard without knowing the secret exponent
+$d$, or being able to factor $N$.
+
+We make this security notion precise with the following game:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{RSA}_b$
+}\cr
+\cr
+&(d, (N, e)) \xleftarrow{R} \text{Gen}()\cr
+&x \xleftarrow{R} \mathbb{Z}/(N)\cr
+&y \gets x^e \mod N\cr
+\cr
+&\underline{\mathtt{Instance}():}\cr
+&\ \texttt{return } (N, e, y) \cr
+\cr
+&\underline{\mathtt{Guess}(\hat{x}):}\cr
+&\ \texttt{return } b = 0 \land \hat{x} = x\cr
+\end{aligned}
+}
+$$
+
+The adversary makes guesses for the pre-image of the permutation,
+and it should be difficult for them to succeed in their guess.
+If the adversary has a good strategy for guessing, then they'll be able
+to figure out what $b$ is.
+
+We can use RSA to create a KEM.
+The idea is that we want the pre-image $x$ to be our key, and then
+$y := x^e \mod N$ is our ciphertext, hiding the key.
+The recipient can use their secret to unwrap $x$ from this ciphertext.
+Now, because $\mathbb{Z}/(N)$ may not be a very useful key by itself,
+we also make use of a hash function $H : \mathbb{Z}/(N) \to \bold{K}$,
+so that we can derive a more useful key from $x$.
+
+More formally, we define the following KEM:
+
+$$
+\begin{aligned}
+&\underline{\text{Gen}():}\cr
+&\ (d, (N, e)) \gets \text{RSA}.\text{Gen}()\cr
+&\ \texttt{return } ((N, d), (N, e)) \cr
+\cr
+&\underline{\text{Encap}((N, e)):}\cr
+&\ x \xleftarrow{R} \mathbb{Z}/(N)\cr
+&\ y \gets x^e \mod N\cr
+&\ \texttt{return } (H(x), y)\cr
+\cr
+&\underline{\text{Decap}((N, d), y):}\cr
+&\ x \gets y^d \mod N\cr
+&\ \texttt{return } H(x)\cr
+\end{aligned}
+$$
+
+Because the RSA function is a permutation, correctness is satisfied.
+
+As for security, this isn't a trivial matter.
+First, we'll model our hash function $H$ as a *random oracle*, where
+the outputs will be generated perfectly at random, on demand.
+Second, rather than considering normal $\texttt{IND-CCA}$ security,
+instead we'll consider $\texttt{IND-CCA-1}$ security, where the adversary
+can only make a single challenge query.
+Making $Q$ challenge queries instead of just a single one only decreases
+security by a factor of $Q$, as can be shown via a hybrid argument.
+
+### $\text{IND-CCA-1} \leq 2 \cdot \text{RSA}$
+
+First, let's write down the $\text{IND-CCA-1}$ game in this context.
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-CCA-1}_b$
+}\cr
+\cr
+&\text{seen} \gets \emptyset\cr
+&((N, d), (N, e)) \xleftarrow{R} \text{Gen}()\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } (N, e) \cr
+\cr
+&\underline{(1)\ \mathtt{Challenge}():}\cr
+&\ x \xleftarrow{R} \mathbb{Z}/(N)\cr
+&\ y \gets x^e \mod N\cr
+&\ k_0 \gets \texttt{H}(x)\cr
+&\ k_1 \xleftarrow{R} \bold{K}\cr
+&\ \text{seen} \gets \text{seen} \cup \\{y\\}\cr
+&\ \texttt{return } (k_b, y) \cr
+\cr
+&\underline{\mathtt{Decap}(y):}\cr
+&\ \texttt{assert } y \notin \text{seen}\cr
+&\ \texttt{return } \mathtt{H}(y^d \mod N) \cr
+\cr
+&h[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{H}(x)}:\cr
+&\ \texttt{if } x \notin h\cr
+&\quad\ h[x] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[x]\cr
+\end{aligned}
+}
+$$
+
+The $(1)$ notation means that $\texttt{Challenge}$ can only be queried
+a single time.
+We've also replaced the hash function with a lazily initialized table
+of random values.
+This is why we're doing our proof in the "random oracle model", since
+the hash function is being modelled this way.
+
+Next, we follow the same strategy as in Theorem 12.2 of
+[Boneh and Shoup](https://toc.cryptobook.us/).
+
+Rather than having our table $h$ be used for the pre-images $x$, instead
+we'll setup a table $h'$ for the images $y$.
+This will allow us to minimize our use of the secret key $d$ in decapsulation
+queries, which makes it easier to extract out the RSA functionality for our
+package.
+
+Since we only have a single challenge query, we can generate the instance
+before $\texttt{Challenge}$ is called.
+We'll also be able to do a lot of tricks with the decapsulation
+queries, but it's easier to explain those after seeing the new game:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^0_b$
+}\cr
+\cr
+&((N, d), (N, e)) \xleftarrow{R} \text{Gen}()\cr
+&\ \hat{x} \xleftarrow{R} \mathbb{Z}/(N)\cr
+&\ \hat{y} \gets \hat{x}^e \mod N\cr
+&\ k_0 \xleftarrow{R} \bold{K}\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } (N, e) \cr
+\cr
+&\underline{(1)\ \mathtt{Challenge}():}\cr
+&\ k_1 \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } (k_b, \hat{y}) \cr
+\cr
+&h[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}(y):}\cr
+&\ \texttt{assert } y \neq \hat{y}\cr
+&\ \texttt{if } y \notin h\cr
+&\quad\ h[y] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[y] \cr
+\cr
+&\underline{\mathtt{H}(x)}:\cr
+&\ \texttt{if } x = \hat{x}\cr
+&\quad\ \texttt{return } k_0\cr
+&\ y \gets x^e \mod N\cr
+&\ \texttt{if } y \notin h\cr
+&\quad\ h[y] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[y]\cr
+\end{aligned}
+}
+$$
+
+The big trick we've pulled in this game is in our decapsulation function.
+By having a hash table for the images $y$, we avoid the need to make use
+of the secret key $d$ when decapsulating.
+Whereas we'd normally compute $x \gets y^d \mod N$, and then query
+$\texttt{H}(x)$, because our hash function then computes
+$x^e \mod N$ to index into our table, we can avoid all of that,
+and use the table ourselves.
+
+Naturally, we have $\text{IND-CCA-1}_b = \Gamma^0_b$.
+
+From this point on, it's relatively straight sailing.
+
+We start by extracting out the RSA functionality:
+
+$$
+\Gamma^0_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^1_b$
+}\cr
+\cr
+&(N, e, \hat{y}) \gets \texttt{Instance}()\cr
+&\ k_0 \xleftarrow{R} \bold{K}\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } (N, e) \cr
+\cr
+&\underline{(1)\ \mathtt{Challenge}():}\cr
+&\ k_1 \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } (k_b, \hat{y}) \cr
+\cr
+&h[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}(y):}\cr
+&\ \texttt{assert } y \neq \hat{y}\cr
+&\ \texttt{if } y \notin h\cr
+&\quad\ h[y] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[y] \cr
+\cr
+&\underline{\mathtt{H}(x)}:\cr
+&\ \texttt{if } \texttt{Guess}(x)\cr 
+&\quad\ \texttt{return } k_0\cr
+&\ y \gets x^e \mod N\cr
+&\ \texttt{if } y \notin h\cr
+&\quad\ h[y] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[y]\cr
+\end{aligned}
+}
+\circ \text{RSA}_0
+$$
+
+Now we use the $\text{RSA}_0$ game to determine if we need to return $k_0$
+in our hash function.
+Next, note that if we switch to using $\text{RSA}_1$, we get the following game:
+
+$$
+\Gamma^1_b \circ \text{RSA}_1 =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^2_b$
+}\cr
+\cr
+&(N, e, \hat{y}) \gets \texttt{Instance}()\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } (N, e) \cr
+\cr
+&\underline{(1)\ \mathtt{Challenge}():}\cr
+&\ k_0 \xleftarrow{R} \bold{K}\cr
+&\ k_1 \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } (k_b, \hat{y}) \cr
+\cr
+&h[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}(y):}\cr
+&\ \texttt{assert } y \neq \hat{y}\cr
+&\ \texttt{if } y \notin h\cr
+&\quad\ h[y] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[y] \cr
+\cr
+&\underline{\mathtt{H}(x)}:\cr
+&\ y \gets x^e \mod N\cr
+&\ \texttt{if } y \notin h\cr
+&\quad\ h[y] \xleftarrow{R} \bold{K}\cr
+&\ \texttt{return } h[y]\cr
+\end{aligned}
+}
+$$
+
+And in this game, the difference between $k_0$ and $k_1$ is just a matter
+of naming.
+Because of this, $\Gamma^2_0 = \Gamma^2_1$.
+
+We can now tie everything together, to get:
+
+$$
+\begin{aligned}
+\text{IND-CCA-1}_0 &= \Gamma^0_0\cr
+&= \Gamma^1_0 \circ \text{RSA}_0\cr
+&\stackrel{\epsilon_1}{\approx} \Gamma^1_0 \circ \text{RSA}_1\cr
+&= \Gamma^2_0\cr
+&= \Gamma^2_1\cr
+&= \Gamma^1_1 \circ \text{RSA}_1\cr
+&\stackrel{\epsilon_1}{\approx} \Gamma^1_1 \circ \text{RSA}_0\cr
+&= \Gamma^0_1\cr
+&= \text{IND-CCA-1}_1\cr
+\end{aligned}
+$$
+
+And this yields our result.
+
+$\square$
+
 ## From Groups
 
-## From Lattices
+## And Other Methods
 
 # Authenticated KEMs
 
