@@ -1050,6 +1050,314 @@ $F$ to combine both keys and the ciphertexts to produce a final key.
 
 ### Security Proof
 
+It turns out that if $F$ is a split-key PRF, then the security of this
+scheme reduces to that of either one of the KEMs.
+
+Because our combined KEM definition is completely symmetric with respect
+to $A$ or $B$, we prove this, without loss of generality, just by treating
+the case where $A$ is $\text{IND-CCA}$ secure, and show that:
+
+$$
+\text{IND-CCA-1}(A \times_F B) \leq 2 \cdot \text{IND-CCA-1}(A) + 2 \cdot \text{SPLIT-PRF}
+$$
+
+Let's start, as we've done a few times in this post, by explicitly writing
+out the $\text{IND-CCA-1}$ game using our KEM:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{IND-CCA-1}_b$
+}\cr
+\cr
+&\text{seen} \gets \emptyset\cr
+&(\text{sk}_A, \text{pk}_A) \xleftarrow{R} \text{A.Gen}()\cr
+&(\text{sk}_B, \text{pk}_B) \xleftarrow{R} \text{B.Gen}()\cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } (\text{pk}_A, \text{pk}_B) \cr
+\cr
+&\underline{(1)\mathtt{Challenge}():}\cr
+&\ (k_A, c_A) \gets \text{A.Encap}(\text{pk}_A) \cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B) \cr
+&\ k_0 \gets F(k_A, k_B, (c_A, c_B))\cr
+&\ k_1 \xleftarrow{R} \bold{K} \cr
+&\ \text{seen} \gets \text{seen} \cup \\{(c_A, c_B)\\}\cr
+&\ \texttt{return } (k_b, (c_A, c_B)) \cr
+\cr
+&\underline{\mathtt{Decap}((\hat{c}_A, \hat{c}_B)):}\cr
+&\ \texttt{assert } (\hat{c}_A, \hat{c}_B) \notin \text{seen}\cr
+&\ \hat{k}_A \gets \text{A.Decap}(\text{sk}_A, \hat{c}_A)\cr
+&\ \hat{k}_B \gets \text{B.Decap}(\text{sk}_B, \hat{c}_B)\cr
+&\ \texttt{if } \hat{k}_A = \bot \lor \hat{k}_B = \bot\cr
+&\ \quad \texttt{return } \bot\cr
+&\ \texttt{return } F(\hat{k}_A, \hat{k}_B, (\hat{c}_A, \hat{c}_B)) \cr
+\end{aligned}
+}
+$$
+
+Next, we pull the usual trick of pulling out code from $\texttt{Challenge}$,
+since it only gets called a single time.
+We also want to change the decapsulation function to minimize the use
+of $\text{sk}_A$, since we'll be replacing explicit calls to $\text{Decap}$
+with oracle calls to $\text{IND-CCA-1}(A)$.
+
+$$
+\text{IND-CCA-1}_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^0_b$
+}\cr
+\cr
+&(\text{sk}_A, \text{pk}_A) \xleftarrow{R} \text{A.Gen}()\cr
+&(\text{sk}_B, \text{pk}_B) \xleftarrow{R} \text{B.Gen}()\cr
+&\ (k_A, c_A) \gets \text{A.Encap}(\text{pk}_A) \cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B) \cr
+&\ k_0 \gets F(k_A, k_B, (c_A, c_B))\cr
+&\ k_1 \xleftarrow{R} \bold{K} \cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \texttt{return } (\text{pk}_A, \text{pk}_B) \cr
+\cr
+&\underline{(1)\mathtt{Challenge}():}\cr
+&\ \texttt{return } (k_b, (c_A, c_B)) \cr
+\cr
+&d[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}((\hat{c}_A, \hat{c}_B)):}\cr
+&\ \texttt{assert } (\hat{c}_A, \hat{c}_B) \neq (c_A, c_B)\cr
+&\ \hat{k}_B \gets \text{B.Decap}(\text{sk}_B, \hat{c}_B)\cr
+&\ \texttt{if } \hat{k}_B = \bot\cr
+&\ \quad \texttt{return } \bot\cr
+&\ \texttt{if } \hat{c}_A = c_A\cr
+&\ \quad \hat{k}_A \gets k_A\cr
+&\ \texttt{else }\cr
+&\ \quad \hat{k}_A \gets \text{A.Decap}(\text{sk}_A, \hat{c}_A)\cr
+&\ \quad \texttt{if } \hat{k}_A = \bot\cr
+&\ \quad\quad \texttt{return } \bot\cr
+&\ \texttt{if } (\hat{c}_A, \hat{c}_B) \notin d\cr
+&\ \quad d[(\hat{c}_A, \hat{c}_B)] \gets F(\hat{k}_A, \hat{k}_B, (\hat{c}_A, \hat{c}_B))\cr
+&\ \texttt{return } d[(\hat{c}_A, \hat{c}_B)] \cr
+\end{aligned}
+}
+$$
+
+The behavior of decapsulation is the same, we just make a few preparations
+for later.
+
+First, we cache the output of the decapsulation in $d$.
+This is because the PRF oracle we'll use later can't be queried twice
+on the same input, so we'll need to use this table to avoid doing that.
+
+Second, we check whether $\hat{c}_A = c_A$ in order to explictly
+use the hardcoded $k_A$.
+This will make extracting out the $A$ KEM much easier.
+
+Our next step is to extract out this KEM.
+
+$$
+\Gamma^0_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^1_b$
+}\cr
+\cr
+&(\text{sk}_B, \text{pk}_B) \xleftarrow{R} \text{B.Gen}()\cr
+&\ (k_A, c_A) \gets \texttt{super.Challenge}() \cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B) \cr
+&\ k_0 \gets F(k_A, k_B, (c_A, c_B))\cr
+&\ k_1 \xleftarrow{R} \bold{K} \cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \text{pk}_A \gets \texttt{super.GetPk}()\cr
+&\ \texttt{return } (\text{pk}_A, \text{pk}_B) \cr
+\cr
+&\underline{(1)\mathtt{Challenge}():}\cr
+&\ \texttt{return } (k_b, (c_A, c_B)) \cr
+\cr
+&d[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}((\hat{c}_A, \hat{c}_B)):}\cr
+&\ \texttt{assert } (\hat{c}_A, \hat{c}_B) \neq (c_A, c_B)\cr
+&\ \hat{k}_B \gets \text{B.Decap}(\text{sk}_B, \hat{c}_B)\cr
+&\ \texttt{if } \hat{k}_B = \bot\cr
+&\ \quad \texttt{return } \bot\cr
+&\ \texttt{if } \hat{c}_A = c_A\cr
+&\ \quad \hat{k}_A \gets k_A\cr
+&\ \texttt{else }\cr
+&\ \quad \hat{k}_A \gets \texttt{super.Decap}(\hat{c}_A)\cr
+&\ \quad \texttt{if } \hat{k}_A = \bot\cr
+&\ \quad\quad \texttt{return } \bot\cr
+&\ \texttt{if } (\hat{c}_A, \hat{c}_B) \notin d\cr
+&\ \quad d[(\hat{c}_A, \hat{c}_B)] \gets F(\hat{k}_A, \hat{k}_B, (\hat{c}_A, \hat{c}_B))\cr
+&\ \texttt{return } d[(\hat{c}_A, \hat{c}_B)] \cr
+\end{aligned}
+}
+\circ \text{IND-CCA-1}_0(A)
+$$
+
+With this game, we've extracted out the $A$ KEM completely.
+One key thing which enabled us to do this was checking that
+$\hat{c}_A = c_A$ ourselves, to avoid hitting the assertion inside
+of $A$'s $\texttt{Decap}$ oracle.
+
+Naturally, we'll be able to make the jump from $\text{IND-CCA-1}_0(A)$
+to $\text{IND-CCA-1}_1(A)$, but that won't be enough to complete our proof.
+We still need to make use of our PRF assumption.
+
+To that effect, let's write a game which explicitly captures what
+happens after making the switch to an ideal KEM:
+
+$$
+\Gamma^1_b \circ \text{IND-CCA-1}_1(A) =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^2_b$
+}\cr
+\cr
+&(\text{sk}_B, \text{pk}_B) \xleftarrow{R} \text{B.Gen}()\cr
+&\ (\cdot, c_B) \gets \text{A.Encap}(\text{pk}_A) \cr
+&\ k_A \xleftarrow{R} A.\bold{K}\cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B) \cr
+&\ k_0 \gets F(k_A, k_B, (c_A, c_B))\cr
+&\ k_1 \xleftarrow{R} \bold{K} \cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \text{pk}_A \gets \texttt{super.GetPk}()\cr
+&\ \texttt{return } (\text{pk}_A, \text{pk}_B) \cr
+\cr
+&\underline{(1)\mathtt{Challenge}():}\cr
+&\ \texttt{return } (k_b, (c_A, c_B)) \cr
+\cr
+&d[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}((\hat{c}_A, \hat{c}_B)):}\cr
+&\ \texttt{assert } (\hat{c}_A, \hat{c}_B) \neq (c_A, c_B)\cr
+&\ \hat{k}_B \gets \text{B.Decap}(\text{sk}_B, \hat{c}_B)\cr
+&\ \texttt{if } \hat{k}_B = \bot\cr
+&\ \quad \texttt{return } \bot\cr
+&\ \texttt{if } \hat{c}_A = c_A\cr
+&\ \quad\texttt{if } (\hat{c}_A, \hat{c}_B) \notin d\cr
+&\ \quad\quad d[(\hat{c}_A, \hat{c}_B)] \gets F(k_A, \hat{k}_B, (\hat{c}_A, \hat{c}_B))\cr
+&\ \quad\texttt{return } d[(\hat{c}_A, \hat{c}_B)] \cr
+&\ \texttt{else }\cr
+&\ \quad \hat{k}_A \gets \texttt{super.Decap}(\hat{c}_A)\cr
+&\ \quad \texttt{if } \hat{k}_A = \bot\cr
+&\ \quad\quad\texttt{return } \bot \cr
+&\ \quad \texttt{return } F(\hat{k}_A, \hat{k}_B, (\hat{c}_A, \hat{c}_B))\cr
+\end{aligned}
+}
+$$
+
+At the start of the game, we can ignore whatever key we get from $A$'s
+encapsulation, and instead use a random $k_A$.
+
+At the end of the game, in decapsulation, we've shifted things around
+to make how the PRF is queried more clear.
+In one branch, we query the PRF using that initial $k_A$ key,
+and so we want to make sure to cache results.
+In the other branch, we use an unrelated key, and so we don't care.
+
+Our next trick is going to be to replace calls to $F(k_A, \ldots)$
+with oracle queries to the $\text{SPLIT-PRF}$ game.
+
+$$
+\Gamma^2_b =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^3_b$
+}\cr
+\cr
+&(\text{sk}_B, \text{pk}_B) \xleftarrow{R} \text{B.Gen}()\cr
+&\ (\cdot, c_B) \gets \text{A.Encap}(\text{pk}_A) \cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B) \cr
+&\ k_0 \gets \texttt{super.QueryF}(k_B, (c_A, c_B))\cr
+&\ k_1 \xleftarrow{R} \bold{K} \cr
+\cr
+&\underline{\mathtt{GetPk}():}\cr
+&\ \text{pk}_A \gets \texttt{super.GetPk}()\cr
+&\ \texttt{return } (\text{pk}_A, \text{pk}_B) \cr
+\cr
+&\underline{(1)\mathtt{Challenge}():}\cr
+&\ \texttt{return } (k_b, (c_A, c_B)) \cr
+\cr
+&d[\cdot] \gets \bot\cr
+\cr
+&\underline{\mathtt{Decap}((\hat{c}_A, \hat{c}_B)):}\cr
+&\ \texttt{assert } (\hat{c}_A, \hat{c}_B) \neq (c_A, c_B)\cr
+&\ \hat{k}_B \gets \text{B.Decap}(\text{sk}_B, \hat{c}_B)\cr
+&\ \texttt{if } \hat{k}_B = \bot\cr
+&\ \quad \texttt{return } \bot\cr
+&\ \texttt{if } \hat{c}_A = c_A\cr
+&\ \quad\texttt{if } (\hat{c}_A, \hat{c}_B) \notin d\cr
+&\ \quad\quad d[(\hat{c}_A, \hat{c}_B)] \gets \texttt{super.QueryF}(\hat{k}_B, (\hat{c}_A, \hat{c}_B))\cr
+&\ \quad\texttt{return } d[(\hat{c}_A, \hat{c}_B)] \cr
+&\ \texttt{else }\cr
+&\ \quad \hat{k}_A \gets \texttt{super.Decap}(\hat{c}_A)\cr
+&\ \quad \texttt{if } \hat{k}_A = \bot\cr
+&\ \quad\quad\texttt{return } \bot \cr
+&\ \quad \texttt{return } F(\hat{k}_A, \hat{k}_B, (\hat{c}_A, \hat{c}_B))\cr
+\end{aligned}
+} \circ \text{SPLIT-PRF}_0
+$$
+
+One interesting thing is that we keep calls to the actual function $F$,
+we just use the oracle queries for when the key $k_A$ was used before.
+
+Now, the next question is: what happens when our PRF is perfect?
+Well, we get the following situation:
+
+$$
+\Gamma^3_b \circ \text{SPLIT-PRF}_1 =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma^4_b$
+}\cr
+\cr
+&(\text{sk}_B, \text{pk}_B) \xleftarrow{R} \text{B.Gen}()\cr
+&\ (\cdot, c_B) \gets \text{A.Encap}(\text{pk}_A) \cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B) \cr
+&\ k_0 \xleftarrow{R} \bold{K} \cr
+&\ k_1 \xleftarrow{R} \bold{K} \cr
+&\ldots\cr
+\end{aligned}
+}
+$$
+
+The rest of the game doesn't matter.
+The important part is that now there's no difference between $k_0$
+and $k_1$, and so we have $\Gamma^4_0 = \Gamma^4_1$.
+Now, we can do the walk backwards, chaining everything together to get
+our result:
+
+$$
+\begin{aligned}
+\text{IND-CCA-1}_0 &= \Gamma^0_0\cr
+&= \Gamma^1_0 \circ \text{IND-CCA-1}_0(A)\cr
+&\stackrel{\epsilon_1}{\approx} \Gamma^1_0 \circ \text{IND-CCA-1}_1(A)\cr
+&= \Gamma^2_0\cr
+&= \Gamma^3_0 \circ \text{SPLIT-PRF}_0\cr
+&\stackrel{\epsilon_2}{\approx} \Gamma^3_0 \circ \text{SPLIT-PRF}_1\cr
+&= \Gamma^4_0\cr
+&= \Gamma^4_1\cr
+&= \Gamma^3_1 \circ \text{SPLIT-PRF}_1\cr
+&\stackrel{\epsilon_2}{\approx} \Gamma^3_1 \circ \text{SPLIT-PRF}_0\cr
+&= \Gamma^2_1\cr
+&= \Gamma^1_1 \circ \text{IND-CCA-1}_1(A)\cr
+&\stackrel{\epsilon_1}{\approx} \Gamma^1_1 \circ \text{IND-CCA-1}_0(A)\cr
+&= \Gamma^0_1\cr
+&= \text{IND-CCA-1}_1\cr
+\end{aligned}
+$$
+
+$\square$
+
 ## Constructing Split-Key PRFs
 
 # Authenticated KEMs
