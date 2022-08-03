@@ -1360,6 +1360,12 @@ $\square$
 
 ## Constructing Split-Key PRFs
 
+In the KEM combiner paper {{<ref-link "[GHP18]">}}, they present many
+examples of split-key PRFs.
+As an illustration, I'll choose one of the simplest ones, which
+can be proven secure even without random oracles.
+I'd recommend checking out the papers for other more efficient constructions.
+
 # Authenticated KEMs
 
 ## Generic Construction via Signatures
@@ -1369,3 +1375,10 @@ $\square$
 ## Construction from Groups
 
 # Conclusion
+
+# References
+
+{{<ref
+  "[GHP18]"
+  "https://eprint.iacr.org/2018/024"
+  "[[GHP18]] KEM Combiners - Federico Giacon, Felix Heuer, Bertram Poettering">}}
