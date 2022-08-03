@@ -957,6 +957,45 @@ $\square$
 
 ## And Other Methods
 
+# Composing KEMs
+
+## Split-Key PRFs in Theory
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{SPLIT-PRF}_0(\sigma)$
+}\cr
+\cr
+&\ k\_{(1 - \sigma)} \xleftarrow{R} \bold{K}_0\cr
+\cr
+&\underline{\texttt{QueryF}(k\_\sigma, x):}\cr
+&\ \texttt{return } F(k_0, k_1, x)\cr
+\end{aligned}
+}
+\quad
+\quad
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{SPLIT-PRF}_1(\sigma)$
+}\cr
+\cr
+&\ f[\cdot] \gets \bot\cr
+\cr
+&\underline{\texttt{QueryF}(k\_\sigma, x):}\cr
+&\ \texttt{if } x \notin f\cr
+&\quad\ f[x] \xleftarrow{R} \bold{Y}\cr
+&\ \texttt{return } f[x]
+\end{aligned}
+}
+$$
+
+## KEM Combination with PRF
+
+## Constructing Split-Key PRFs
+
 # Authenticated KEMs
 
 ## Generic Construction via Signatures
