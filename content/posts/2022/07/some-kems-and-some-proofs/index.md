@@ -968,9 +968,11 @@ $$
   $\text{SPLIT-PRF}_0(\sigma)$
 }\cr
 \cr
-&\ k\_{(1 - \sigma)} \xleftarrow{R} \bold{K}_0\cr
+&\ k\_{\sigma} \xleftarrow{R} \bold{K}_0\cr
+&\ \text{seen} \gets \emptyset\cr
 \cr
-&\underline{\texttt{QueryF}(k\_\sigma, x):}\cr
+&\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
 &\ \texttt{return } F(k_0, k_1, x)\cr
 \end{aligned}
 }
@@ -982,17 +984,71 @@ $$
   $\text{SPLIT-PRF}_1(\sigma)$
 }\cr
 \cr
-&\ f[\cdot] \gets \bot\cr
+&\ \text{seen} \gets \emptyset\cr
 \cr
-&\underline{\texttt{QueryF}(k\_\sigma, x):}\cr
-&\ \texttt{if } x \notin f\cr
-&\quad\ f[x] \xleftarrow{R} \bold{Y}\cr
-&\ \texttt{return } f[x]
+&\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y \xleftarrow{R} \bold{Y}\cr
+&\ \texttt{return } y
 \end{aligned}
 }
 $$
 
+### Split-Key PRFs are Secure PRFs
+
 ## KEM Combination with PRF
+
+It turns out that split-key PRFs are a great tool for composing KEMs
+together.
+In this section, we formally define the composition of two KEMs using
+such a PRF, and prove that it's $\text{IND-CCA}$ secure, assuming the PRF is split-key secure,
+and one of the underlying KEMs is $\text{IND-CCA}$ secure.
+
+We start with two KEMs, $A$, and $B$.
+The composition will be like the informal idea we saw earlier:
+in order to encapsulate, we use the encapsulation from each KEM,
+and then combine them together as a pair $(c_A, c_B)$.
+When decapsulating, we end up with two keys $k_A$ and $k_B$.
+We'll use a split-key PRF to combine them, including the ciphertexts, to give us:
+
+$$
+k \gets F(k_A, k_B, (c_A, c_B))
+$$
+
+A bit more formally, given two KEMs $A$ and $B$, and a function
+$$
+F : A.\bold{K} \times B.\bold{K} \times (A.\bold{C} \times B.\bold{C}) \to \bold{K}
+$$
+
+we can define the combined KEM $A \times_F B$ as follows:
+
+$$
+\begin{aligned}
+&\underline{\text{Gen}():}\cr
+&\ (\text{sk}_A, \text{pk}_A) \gets \text{A.Gen}()\cr
+&\ (\text{sk}_B, \text{pk}_B) \gets \text{B.Gen}()\cr
+&\ \texttt{return } ((\text{sk}_A, \text{sk}_B), (\text{pk}_A, \text{pk}_B)) \cr
+\cr
+&\underline{\text{Encap}((\text{pk}_A, \text{pk}_B):}\cr
+&\ (k_A, c_A) \gets \text{A.Encap}(\text{pk}_A)\cr
+&\ (k_B, c_B) \gets \text{B.Encap}(\text{pk}_B)\cr
+&\ k \gets F(k_A, k_B, (c_A, c_B))\cr
+&\ \texttt{return } (k, (c_A, c_B))\cr
+\cr
+&\underline{\text{Decap}((\text{sk}_A, \text{sk}_B), (c_A, c_B)):}\cr
+&\ k_A \gets \text{A.Decap}(\text{sk}_A, c_A)\cr
+&\ k_B \gets \text{B.Decap}(\text{sk}_B, c_B)\cr
+&\ k \gets F(k_A, k_B, (c_A, c_B))\cr
+&\ \texttt{return } k\cr
+\end{aligned}
+$$
+
+In terms of encapsulation, this works in the way you'd expect for a product
+construction.
+The only real trick comes from decapsulation, where we use our function
+$F$ to combine both keys and the ciphertexts to produce a final key.
+
+### Security Proof
 
 ## Constructing Split-Key PRFs
 
