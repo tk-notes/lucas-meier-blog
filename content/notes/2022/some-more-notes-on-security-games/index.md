@@ -23,8 +23,8 @@ for some polynomial $\lambda$,
 for all adversaries $\mathscr{A}$, with $\mathscr{A}_f$ being the wrapped
 adversary induced by the morphism of games.
 
-This is the most general relation satisfying $\text{Adv}[G', \mathscr{A}_F]$ negligeable
-$\implies \text{Adv}[G, \mathscr{A}]$ negligeable, which is really the only
+This is the most general relation satisfying $\text{Adv}[G', \mathscr{A}_F]$ negligible
+$\implies \text{Adv}[G, \mathscr{A}]$ negligible, which is really the only
 notion we care about.
 
 Naturally, this composes as well.
@@ -32,7 +32,7 @@ Naturally, this composes as well.
 # The Unwinnable Game
 
 We can define an unwinnable game as one with trivial messages,
-where the advantage is a negligeable function of $\lambda$.
+where the advantage is a negligible function of $\lambda$.
 
 This has the nice property that the statement:
 $A \to 0$, is equivalent to saying the the game $A$ is secure.
@@ -107,7 +107,7 @@ But this should absolutely be true.
 
 A common technique to show $A \diamond B \to 0$ is to show that the execution
 of $A$ and $B$ are the same, except if some event $Z$ happens. This naturally
-creates the conditions to show that the difference in advantages is negligeable,
+creates the conditions to show that the difference in advantages is negligible,
 since the difference probability distributions are bounded by the likelihood of $Z$
 hot happening.
 

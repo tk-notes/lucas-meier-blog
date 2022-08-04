@@ -197,7 +197,7 @@ it will of the form $|P[\text{Win}] - t|$, but we can consider more complicated 
 Such augmented games might be called "Security Games".
 
 We say that a game $G$ has security $\mathfrak{c}$, if for all adversaries $\mathscr{A}$
-of class $\mathfrak{c}$, $\text{Adv}[G, \mathscr{A}]$ is a negligeable function
+of class $\mathfrak{c}$, $\text{Adv}[G, \mathscr{A}]$ is a negligible function
 of some security parameter related to the class. In the usual case, we have
 the class of randomized computable functions with polynomial runtime in $\lambda$.
 This is commonly referred to as "computational security". We also have "statistical
@@ -205,7 +205,7 @@ security", which considers adversaries that are unbounded in their runtime.
 
 {{<note>}}
 At the end of the day, we only really care about whether or not the advantage
-is negligeable, which means, essentially, that it's arbitrarily close to $0$.
+is negligible, which means, essentially, that it's arbitrarily close to $0$.
 {{</note>}}
 
 Morphisms are morphisms of games $G \to G'$, with the additional condition that for
@@ -224,7 +224,7 @@ of the challenger.
 This condition works well with composition, and naturally includes
 the identity morphism we've seen previously. The polynomial factor
 loosens the restrictions, while still making it
-so that if $\text{Adv}[G', \mathscr{A'}]$ is negligeable, then
+so that if $\text{Adv}[G', \mathscr{A'}]$ is negligible, then
 so is $\text{Adv}[G, \mathscr{A}]$ is as well.
 
 We call such a morphism a "reduction".
@@ -248,8 +248,8 @@ what the advantage of the adversary for the original game is, the advantage
 for this trivial game remains $0$. Because of this, in general we need
 to impose the restriction of advantage growth to define reductions.
 
-The reason we allow for the negligeable factor is to allow for games with
-negligeable differences to be considered isomorphic.
+The reason we allow for the negligible factor is to allow for games with
+negligible differences to be considered isomorphic.
 
 Let's call the category of security games and their reductions $\text{SecGame}$
 
@@ -292,8 +292,8 @@ $\text{Adv}\_\times = \min(\text{Adv}, \text{Adv}')$. This is well defined, beca
 have a distribution over $C\_{n + 1} \times C'\_{n + 1}$, resulting
 in individual distributions for each part, where we can use the individual advantages.
 
-This makes it so that if the adversary has a negligeable advantage
-in one of the games, then they have a negligeable advantage in this game as well.
+This makes it so that if the adversary has a negligible advantage
+in one of the games, then they have a negligible advantage in this game as well.
 
 I suspect, but have yet to prove, that there's a symmetric monoidal structure
 on this category, using the tensor product of games, and the trivial game as unit.

@@ -556,7 +556,7 @@ Capturing what it means to have "the same behavior" is tricky. One way
 to do this is to lean on the notion of advantage we've just defined.
 
 We say that two games $A, B$ are *equal*, denoted $A = B$, when
-for any unbounded adversary, we have:
+for any unbounded adversary $\mathcal{A}$, we have:
 
 $$
 \epsilon(\mathcal{A} \circ ?_b(A, B)) = 0
@@ -614,7 +614,7 @@ game.
 
 Finally, we say that two games are *indistinguishable* when
 for every efficient adversary $\mathcal{A}$, there exists an $\epsilon$,
-which is a negligeable function of $\lambda$,
+which is a negligible function of $\lambda$,
 such that these games
 are $\epsilon$-indistinguishable.
 
@@ -656,9 +656,9 @@ Taking our notion of security at face value, to prove
 that a scheme is secure, we'd prove that two games $G_0, G_1$
 are indistinguishable. To do that, we'd need to show
 that for every adversary $\mathcal{A}$, we have
-$\epsilon(\mathcal{A} \circ G_b) \leq \epsilon$, for some negligeable $\epsilon$.
+$\epsilon(\mathcal{A} \circ G_b) \leq \epsilon$, for some negligible $\epsilon$.
 
-Proving that every adversary has a negligeable advantage is
+Proving that every adversary has a negligible advantage is
 essentially impossible for anything but the simplest of schemes.
 In fact, in many cases, such a proof would immediately
 lead you to conclude that $P \neq \text{NP}$, which a lot
@@ -686,11 +686,11 @@ $$
 $$
 
 Now, $f$ is usually some very simple function like $f(x, y) = 2 \cdot x + y$, or something like that. It should be the case
-that if the arguments to $f$ are negligeable, then so will
+that if the arguments to $f$ are negligible, then so will
 its output be.
 
 This equation has the nice property that if the right side
-is negligeable, then so is the left side. In other words,
+is negligible, then so is the left side. In other words,
 if all the games on the right are secure, then so is the game
 on the left. Conversely, if the game on the left is broken,
 then one of the games on the right is too.
@@ -784,7 +784,7 @@ in order to build an encryption scheme secure under chosen plaintext attack.
 
 ### PRFs
 
-A PRF $F : \mathcal{K} \times \mathcal{X} \to \mathcal{Y}$ is function
+A PRF $F : \mathcal{K} \times \mathcal{X} \to \mathcal{Y}$ is a function
 from $\mathcal{X} \to \mathcal{Y}$ which also takes in a key. The idea
 is that if you don't know the key, you shouldn't be able to tell this
 function apart from a random function. We capture this notion of

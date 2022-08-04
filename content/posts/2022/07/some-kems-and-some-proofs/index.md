@@ -1366,6 +1366,14 @@ As an illustration, I'll choose one of the simplest ones, which
 can be proven secure even without random oracles.
 I'd recommend checking out the papers for other more efficient constructions.
 
+One simple construction involves combining two PRFs $F_0$ and $F_1$ together:
+
+$$
+F(k_0, k_1, x) := F_0(k_0, x) \oplus F_1(k_1, x)
+$$
+
+This PRF is split-key.
+
 # Authenticated KEMs
 
 ## Generic Construction via Signatures

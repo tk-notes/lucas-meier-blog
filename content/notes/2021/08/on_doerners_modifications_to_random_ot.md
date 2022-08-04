@@ -139,7 +139,7 @@ q \stackrel{?}{=} t + x * \Delta
 $$
 
 This check will pass even if $X_j$ is polychrome. This can't
-happen with the original check (except with negligeable probability),
+happen with the original check (except with negligible probability),
 because when you have $(X_j * \Delta) \cdot \chi_j$, the operations
 don't commute, unless you have $X_j$ monochrome, in which case you can
 rewrite the expression as $x_j \cdot \Delta \cdot \chi_j$.
