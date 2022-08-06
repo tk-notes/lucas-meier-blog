@@ -968,7 +968,7 @@ $$
   $\text{SPLIT-PRF}_b(\sigma)$
 }\cr
 \cr
-&\ k\_{\sigma} \xleftarrow{R} \bold{K}_0\cr
+&\ k\_{\sigma} \xleftarrow{R} \bold{K}_\sigma\cr
 &\ \text{seen} \gets \emptyset\cr
 \cr
 &\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
@@ -1431,6 +1431,8 @@ As an illustration, I'll choose one of the simplest ones, which
 can be proven secure even without random oracles.
 I'd recommend checking out the papers for other more efficient constructions.
 
+### Xoring Two PRFs
+
 One simple construction involves combining two PRFs $F_0$ and $F_1$ together:
 
 $$
@@ -1445,10 +1447,125 @@ Without loss of generality, we can simply prove that it's split
 key for the first key, $k_0$, since the function is symmetric.
 
 $$
-
+\text{SPLIT-PRF}(0) \leq \text{PRF}(F_0)
 $$
 
+The high level proof idea is that what happens with $F_1$ can't effect
+the outcome, because $F_0$ being a PRF is enough to guarantee that the
+output is random.
+In our split-key game, we'll easily be able to 
+
+First, explicitly write the split-key game:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{SPLIT-PRF}_0$
+}\cr
+\cr
+&\ k\_0 \xleftarrow{R} \bold{K}_0\cr
+&\ \text{seen} \gets \emptyset\cr
+\cr
+&\underline{\texttt{QueryF}(k_1, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y \gets F(k_0, x) \oplus F(k_1, x)\cr
+&\ \texttt{return } y
+\end{aligned}
+}
+$$
+
+Next, extract out $F_0$:
+
+$$
+\text{SPLIT-PRF}_0 =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma$
+}\cr
+\cr
+&\underline{\texttt{QueryF}(k_1, x):}\cr
+&\ y \gets \texttt{super.QueryF}(x) \oplus F(k_1, x)\cr
+&\ \texttt{return } y
+\end{aligned}
+}
+\circ
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{PRF}_0$
+}\cr
+\cr
+&\ k \xleftarrow{R} \bold{K}_0\cr
+&\ \text{seen} \gets \emptyset\cr
+\cr
+&\underline{\texttt{QueryF}(k_1, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y \gets F(k_0, x) \cr
+&\ \texttt{return } y
+\end{aligned}
+}
+$$
+
+Next, notice that if we switch to $\text{PRF}_1$, then the output
+of $\Gamma$ becomes completely random:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma$
+}\cr
+\cr
+&\underline{\texttt{QueryF}(k_1, x):}\cr
+&\ y \gets \texttt{super.QueryF}(x) \oplus F(k_1, x)\cr
+&\ \texttt{return } y
+\end{aligned}
+}
+\circ
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{PRF}_0$
+}\cr
+\cr
+&\ k \xleftarrow{R} \bold{K}_0\cr
+&\ \text{seen} \gets \emptyset\cr
+\cr
+&\underline{\texttt{QueryF}(k_1, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y \gets F(k_0, x) \cr
+&\ \texttt{return } y
+\end{aligned}
+} =
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{SPLIT-PRF}_1$
+}\cr
+\cr
+&\text{seen} \gets \emptyset\cr
+\cr
+&\underline{\texttt{QueryF}(k_1, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y \xleftarrow{R} \bold{Y}\cr
+&\ \texttt{return } y
+\end{aligned}
+}
+$$
+
+To summarize, we have:
+
+$$
+\text{SPLIT-PRF}_0 = \Gamma \circ \text{PRF}_0 \stackrel{\epsilon_1}{\approx} \Gamma \circ \text{PRF}_1 = \text{SPLIT-PRF}_1
+$$
+
+which concludes our proof.
+
 $\square$
+
+### Other Methods
 
 # Authenticated KEMs
 
