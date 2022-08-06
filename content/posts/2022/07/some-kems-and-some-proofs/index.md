@@ -965,7 +965,7 @@ $$
 \boxed{
 \begin{aligned}
 &\colorbox{#dbeafe}{\large
-  $\text{SPLIT-PRF}_0(\sigma)$
+  $\text{SPLIT-PRF}_b(\sigma)$
 }\cr
 \cr
 &\ k\_{\sigma} \xleftarrow{R} \bold{K}_0\cr
@@ -973,28 +973,93 @@ $$
 \cr
 &\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
 &\ \texttt{assert } x \notin \text{seen}\cr
-&\ \texttt{return } F(k_0, k_1, x)\cr
-\end{aligned}
-}
-\quad
-\quad
-\boxed{
-\begin{aligned}
-&\colorbox{#dbeafe}{\large
-  $\text{SPLIT-PRF}_1(\sigma)$
-}\cr
-\cr
-&\ \text{seen} \gets \emptyset\cr
-\cr
-&\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
-&\ \texttt{assert } x \notin \text{seen}\cr
-&\ y \xleftarrow{R} \bold{Y}\cr
-&\ \texttt{return } y
+&\ y_0 \gets F(k_0, k_1, x)\cr
+&\ y_1 \xleftarrow{R} \bold{Y}\cr
+&\ \texttt{return } y_b
 \end{aligned}
 }
 $$
 
 ### Split-Key PRFs are Secure PRFs
+
+With a split-key PRF, we model security in a situation where the adversary
+can control one of the keys.
+When looking at the security of a PRF, the adversary doesn't control
+the key at all.
+One interesting fact is that a split-key PRF is necessarily a secure
+PRF, considering $(k_0, k_1)$ as a single "key".
+
+$$
+\text{PRF} \leq \text{SPLIT-PRF}(\sigma)
+$$
+
+Let's recall the PRF game (in this context), briefly:
+
+$$
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{PRF}_b$
+}\cr
+\cr
+&\ k_0 \xleftarrow{R} \bold{K}_0\cr
+&\ k_1 \xleftarrow{R} \bold{K}_0\cr
+&\ \text{seen} \gets \emptyset\cr
+\cr
+&\underline{\texttt{QueryF}(x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y_0 \gets F(k_0, k_1, x)\cr
+&\ y_1 \xleftarrow{R} \bold{Y}\cr
+&\ \texttt{return } y_b
+\end{aligned}
+}
+$$
+
+From here you just need to extract out the split-key game:
+
+$$
+\text{PRF}_b = 
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\Gamma$
+}\cr
+\cr
+&\ k\_{(1 - \sigma)} \xleftarrow{R} \bold{K}\_{(1 - \sigma)}\cr
+\cr
+&\underline{\texttt{QueryF}(x):}\cr
+&\ \texttt{return } \texttt{super.QueryF}(k\_{(1 - \sigma)}, x)
+\end{aligned}
+}
+\circ
+\boxed{
+\begin{aligned}
+&\colorbox{#dbeafe}{\large
+  $\text{SPLIT-PRF}_b(\sigma)$
+}\cr
+\cr
+&\ k\_{\sigma} \xleftarrow{R} \bold{K}_0\cr
+&\ \text{seen} \gets \emptyset\cr
+\cr
+&\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
+&\ \texttt{assert } x \notin \text{seen}\cr
+&\ y_0 \gets F(k_0, k_1, x)\cr
+&\ y_1 \xleftarrow{R} \bold{Y}\cr
+&\ \texttt{return } y_b
+\end{aligned}
+}
+$$
+
+This gives us:
+
+$$
+\text{PRF}_0 = \Gamma \circ \text{SPLIT-PRF}_0(\sigma) \stackrel{\epsilon_1}{\approx} \Gamma \circ \text{SPLIT-PRF}_1(\sigma) = \text{PRF}_1
+$$
+
+concluding our proof.
+
+$\square$
+
 
 ## KEM Combination with PRF
 
@@ -1372,7 +1437,18 @@ $$
 F(k_0, k_1, x) := F_0(k_0, x) \oplus F_1(k_1, x)
 $$
 
-This PRF is split-key.
+This PRF is split-key because even if you can influence one of the keys,
+the other side looks completely random, and thus so is the final result.
+Let's prove this a bit more formally.
+
+Without loss of generality, we can simply prove that it's split
+key for the first key, $k_0$, since the function is symmetric.
+
+$$
+
+$$
+
+$\square$
 
 # Authenticated KEMs
 
