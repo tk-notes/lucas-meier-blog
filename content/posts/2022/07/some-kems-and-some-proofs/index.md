@@ -1567,14 +1567,6 @@ $\square$
 
 ### Other Methods
 
-# Authenticated KEMs
-
-## Generic Construction via Signatures
-
-# Deniable Authenticated KEMs
-
-## Construction from Groups
-
 # Conclusion
 
 # References
