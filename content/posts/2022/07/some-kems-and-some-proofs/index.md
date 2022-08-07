@@ -9,7 +9,54 @@ tags:
   - "KEMs"
 ---
 
+In this post, I'd like to provide a technical introduction to
+key encapsulation mechanisms (KEMs), with a focus on proving the
+security of various constructions.
+
+<!--more-->
+
+A key encapsulation mechanism is kind of like a public key encryption
+scheme, tailored to the specific use-case of sending a key to the other
+party.
+This is very useful to establish a shared key between two parties.
+One of them runs the KEM, getting a shared key, and a ciphertext,
+and then sends that ciphertext to the other person.
+That person can unwrap the ciphertext to recover the shared key.
+From that point on, the parties can use that shared key to communicate
+privately.
+
+You can also think of KEMs as a generalization of key exchanges,
+which don't have to be symmetric.
+In fact, you can use a key exchange to construct a KEM, as we'll
+see later.
+
+In this post, we'll see:
+
+- How to define KEMs.
+- How to capture the security of KEMs with games.
+- How these notions of security compare with other variations.
+- How to construct a secure KEM from RSA.
+- How to construct a secure KEM using Elliptic Curves.
+
+There are other important topics around KEMs that I'd also like to touch
+upon in a future post, but this sample is already quite a hefty serving
+if you include all of the proofs.
+
+# Background
+
+For a high level overview of KEMs, I'd recommend
+[Neil Madden's post on the subject](https://neilmadden.blog/2021/01/22/hybrid-encryption-and-the-kem-dem-paradigm/).
+
+This post is more focused on the technical side of things, and on provable
+security.
+I'll be using [state separable proofs](https://eprint.iacr.org/2018/306)
+pervasively throughout this post, so I'd recommend
+reading [my post on the subject](/posts/2022/05/state-separable-proofs-for-the-curious-cryptographer/) if you'd
+like to get up to speed.
+
 # Defining KEMs
+
+To begin, let's formally define what a KEM is.
 
 A key encapsulation mechanism (KEM), is a scheme similar to public key encryption.
 This scheme consists of three algorithms:
@@ -45,6 +92,13 @@ $$
 &k_S \stackrel{?}{=} k_R
 \end{aligned}
 $$
+
+No matter what key pair comes out of $\text{Gen}$, it should always
+be the case that encapsulating and then decapsulating yield
+the same key.
+Otherwise, your KEM wouldn't be very useful for establishing
+a shared key between two parties, or for public key encryption,
+which are two of the main use-cases for KEMs.
 
 ## $\text{IND}$ Security
 
@@ -399,13 +453,14 @@ and show that they're secure, under appropriate assumptions.
 
 ## From RSA
 
-Let's start with [RSA](https://www.wikiwand.com/en/RSA_(cryptosystem)).
+Let's start with [RSA](<https://www.wikiwand.com/en/RSA_(cryptosystem)>).
 There are thousands of good explanations of RSA, so I'll settle for
 a bad, but short, explanation.
 
 In RSA, your public key consists of a modulus $N$, and a number $e$.
 Your secret key consists of a factorization $p, q$ such that $N = p \cdot q$,
 along with a secret exponent $d$, such that
+
 $$
 d \cdot e \equiv 1 \mod \varphi(N)
 $$
@@ -480,7 +535,7 @@ $$
 Because the RSA function is a permutation, correctness is satisfied.
 
 As for security, this isn't a trivial matter.
-First, we'll model our hash function $H$ as a *random oracle*, where
+First, we'll model our hash function $H$ as a _random oracle_, where
 the outputs will be generated perfectly at random, on demand.
 Second, rather than considering normal $\texttt{IND-CCA}$ security,
 instead we'll consider $\texttt{IND-CCA-1}$ security, where the adversary
@@ -627,7 +682,7 @@ $$
 &\ \texttt{return } h[y] \cr
 \cr
 &\underline{\mathtt{H}(x)}:\cr
-&\ \texttt{if } \texttt{Guess}(x)\cr 
+&\ \texttt{if } \texttt{Guess}(x)\cr
 &\quad\ \texttt{return } k_0\cr
 &\ y \gets x^e \mod N\cr
 &\ \texttt{if } y \notin h\cr
@@ -957,6 +1012,22 @@ $\square$
 
 ## And Other Methods
 
+Another method that's going to be increasingly important is using
+_lattices_ to construct KEMs.
+Both of the schemes I've mentioned in this post, using RSA,
+and using elliptic curves, will be broken by future quantum computers.
+
+Both of the schemes I've mentioned in this post, using RSA,
+and using elliptic curves, will be broken by future quantum computers.
+This is why NIST started [a competition](https://csrc.nist.gov/projects/post-quantum-cryptography) in order to standardize
+KEMs secure against quantum computers.
+
+Many of the candidates were based on lattices, including the finalist,
+[Kyber](https://pq-crystals.org/kyber/index.shtml).
+
+Other candidates used different primitives, like isogenies, or
+random codes.
+
 # Composing KEMs
 
 ## Split-Key PRFs in Theory
@@ -1018,7 +1089,7 @@ $$
 From here you just need to extract out the split-key game:
 
 $$
-\text{PRF}_b = 
+\text{PRF}_b =
 \boxed{
 \begin{aligned}
 &\colorbox{#dbeafe}{\large
@@ -1060,7 +1131,6 @@ concluding our proof.
 
 $\square$
 
-
 ## KEM Combination with PRF
 
 It turns out that split-key PRFs are a great tool for composing KEMs
@@ -1081,6 +1151,7 @@ k \gets F(k_A, k_B, (c_A, c_B))
 $$
 
 A bit more formally, given two KEMs $A$ and $B$, and a function
+
 $$
 F : A.\bold{K} \times B.\bold{K} \times (A.\bold{C} \times B.\bold{C}) \to \bold{K}
 $$
@@ -1453,7 +1524,7 @@ $$
 The high level proof idea is that what happens with $F_1$ can't effect
 the outcome, because $F_0$ being a PRF is enough to guarantee that the
 output is random.
-In our split-key game, we'll easily be able to 
+In our split-key game, we'll easily be able to
 
 First, explicitly write the split-key game:
 
@@ -1569,9 +1640,41 @@ $\square$
 
 # Conclusion
 
+While there weren't that many topics covered in thist post, I felt
+that stopping it here made for a hefty post already, especially
+with the focus on proofs.
+I think state-separable proofs are quite fun to write, and hopefully
+they were enjoyable to read as well.
+A secret about this post is that KEMs are really just an excuse
+to write more state-separable proofs, since that's really what motivated
+me to write about the topic.
+
+There's still a lot more interesting things to say about KEMs though.
+One notion I didn't touch on at all here is that of _authenticated_
+KEMs, where you also want to authenticate the sender in some way.
+Neil Madden wrote [a post](https://neilmadden.blog/2021/02/16/when-a-kem-is-not-enough/) on this topic as well,
+and you might want to check out {{<ref-link "ABHKLR20">}},
+which analyzes the HPKE standard for authenticated KEMs, outlining
+various notions of security for this construction.
+
+Another thing that would be neat to go over is the notion of
+_deniable_ authenticated KEMs, wherein it's possible to forge ciphertexts
+which claim to have been sent by another person to yourself.
+This makes it so that KEM ciphertexts can't be used as evidence
+of communication between two parties.
+
+This also butts heads against the notion of _insider security_,
+which Yolan Romailler [brought to my attention on twitter](https://twitter.com/AnomalRoil/status/1556022245109235712).
+See also [his blog post](https://romailler.ch/2021/08/18/crypto-why-ephemeral-keys/) touching on ephemeral keys and insider
+security in key exchanges.
+
 # References
 
 {{<ref
+  "[ABHKLR20]"
+  "https://eprint.iacr.org/2018/024"
+  "[ABHKLR20] Analysing the HPKE standard - Joël Alwen, Bruno Blanchet, Eduard Hauck, Eike Kiltz, Benjamin Lipp, Doreen Riepel">}}
+{{<ref
   "[GHP18]"
   "https://eprint.iacr.org/2018/024"
-  "[[GHP18]] KEM Combiners - Federico Giacon, Felix Heuer, Bertram Poettering">}}
+  "[GHP18] KEM Combiners - Federico Giacon, Felix Heuer, Bertram Poettering">}}
