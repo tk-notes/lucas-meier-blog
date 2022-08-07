@@ -1030,7 +1030,62 @@ random codes.
 
 # Composing KEMs
 
+Talking about the post-quantum KEMs segues nicely into this next topic.
+Right now, we have very well tested and trusted KEMs, which aren't
+secure against quantum computers.
+We also have a new KEM which should be secure against quantum computers,
+but given its novelty, you may not trust it that much yet.
+
+Because of this, many people are trying to deploy both schemes together
+in a *hybrid* fashion.
+This means that you can get post-quantum security if the new KEM stands
+the test of time, but you also don't sacrifice classical security
+if the new KEM you include happens to be flawed.
+
+To achieve this, what you want is a way to *combine* KEMs,
+mixing together KEMs $A$ and $B$ to create a new KEM, which should
+be security as long as at least one of the two ingredients is.
+If $A$ is broken, that's fine as long as $B$ is secure, and vice versa.
+
+This construction is called a *KEM combiner*, and it can combine two
+KEMs in this way, without having to inspect how the KEMs work internally
+at all.
+The paper {{<ref-link "[GHP18]">}} goes over this notion of combiners,
+and presents a very elegant construction.
+
+The basic idea is that to encapsulate, you call each of the individual
+KEMs first, giving you $(k_A, c_A)$ and $(k_B, c_B)$.
+Next, $(c_A, c_B)$ becomes your ciphertext.
+Now, you need some way to combine all of this information to derive
+a single key $k$.
+One idea would be to simply xor the two keys, giving you $k \gets k_A \oplus k_B$.
+Unfortunately, [this is not IND-CCA secure](https://twitter.com/cronokirby/status/1554092874538668032), because the resulting key is malleable.
+The idea in this paper is instead to use a kind of pseudo-random function (PRF) to derive the result:
+
+$$
+F(k_A, k_B, (c_A, c_B))
+$$
+
+This is a special kind of PRF called a *split-key* PRF.
+
 ## Split-Key PRFs in Theory
+
+More formally, a split-key PRF is a function:
+
+$$
+F : \bold{K}_0 \times \bold{K}_1 \times \bold{X} \to \bold{Y}
+$$
+
+We have two types for keys, $\bold{K}_0$ and $\bold{K}_1$, as well
+as an input type $\bold{X}$, and an output type $\bold{Y}$.
+The intuition for this function is that it should behave like
+a random function $\bold{X} \to \bold{Y}$ as long as the adversary
+doesn't know *either* of the keys.
+Even if the adversary controls one of the keys, and can even query
+the function $F$ on different values for this key, they still shouldn't
+be able to distinguish this function from a random one.
+
+We formalize this with a game:
 
 $$
 \boxed{
@@ -1038,8 +1093,7 @@ $$
 &\colorbox{#dbeafe}{\large
   $\text{SPLIT-PRF}_b(\sigma)$
 }\cr
-\cr
-&\ k\_{\sigma} \xleftarrow{R} \bold{K}_\sigma\cr
+&\ k\_{\sigma} \xleftarrow{R} \bold{K}_0\cr
 &\ \text{seen} \gets \emptyset\cr
 \cr
 &\underline{\texttt{QueryF}(k\_{(1 - \sigma)}, x):}\cr
@@ -1051,7 +1105,18 @@ $$
 }
 $$
 
+One subtlety is that we don't allow the adversary to query the
+same input point twice, even with different keys.
+A stronger security notion would be to allow queries to the same input
+with a different key, but we won't need that for proving the security
+of our KEM combination scheme.
+
 ### Split-Key PRFs are Secure PRFs
+
+{{<note>}}
+If you're convinced of this just from reading the section header,
+feel free to skip this section.
+{{</note>}}
 
 With a split-key PRF, we model security in a situation where the adversary
 can control one of the keys.
@@ -1074,7 +1139,7 @@ $$
 }\cr
 \cr
 &\ k_0 \xleftarrow{R} \bold{K}_0\cr
-&\ k_1 \xleftarrow{R} \bold{K}_0\cr
+&\ k_1 \xleftarrow{R} \bold{K}_1\cr
 &\ \text{seen} \gets \emptyset\cr
 \cr
 &\underline{\texttt{QueryF}(x):}\cr
@@ -1133,7 +1198,7 @@ $\square$
 
 ## KEM Combination with PRF
 
-It turns out that split-key PRFs are a great tool for composing KEMs
+It turns out that split-key PRFs precisely capture what we need tocomposing KEMs
 together.
 In this section, we formally define the composition of two KEMs using
 such a PRF, and prove that it's $\text{IND-CCA}$ secure, assuming the PRF is split-key secure,
@@ -1637,6 +1702,18 @@ which concludes our proof.
 $\square$
 
 ### Other Methods
+
+The kem combiner paper {{<ref-link "GHP18">}} also provides various
+other methods for creating split-key PRFs.
+
+One method is to do $F(k_A, c_A) \oplus F(k_B, c_B)$, including only
+one of the ciphertexts.
+
+Another method, which requires the random oracle model, is to do:
+$H(k_A \oplus k_B, c_A, c_B)$.
+
+And this is just a small sample; I really recommend checking out the paper
+if you want to know more; it's a very well written paper!
 
 # Conclusion
 
