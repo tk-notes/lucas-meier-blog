@@ -25,4 +25,8 @@
   @apply first-letter:font-bold first-letter:text-4xl first-letter:float-left;
 }
 
+.highlight code {
+  @apply text-current;
+}
+
 /* purgecss end ignore */
