@@ -90,7 +90,7 @@ libraries $\mathcal{L}_0$ and $\mathcal{L}_1$:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\mathcal{L}_{b}$
 }\cr
 \cr

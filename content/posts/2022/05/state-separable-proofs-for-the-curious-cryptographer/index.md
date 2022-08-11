@@ -226,7 +226,7 @@ to *functions*. As an example, consider this package:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\mathcal{L}_F$
 }\cr
 \cr
@@ -251,7 +251,7 @@ also *import* functions. For example:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\mathcal{L}_G$
 }\cr
 \cr
@@ -306,7 +306,7 @@ With this convention, we can explicitly describe their composition:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\mathcal{L}_G \circ \mathcal{L}_F$
 }\cr
 \cr
@@ -370,7 +370,7 @@ As an example, we have:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $A$
 }\cr
 \cr
@@ -383,7 +383,7 @@ $$
 \otimes
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $B$
 }\cr
 \cr
@@ -396,7 +396,7 @@ $$
 \equiv
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $A \otimes B$
 }\cr
 \cr
@@ -522,7 +522,7 @@ For example, consider these two games:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $G_0$
 }\cr
 \cr
@@ -535,7 +535,7 @@ $$
 \quad \quad
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $G_1$
 }\cr
 \cr
@@ -793,7 +793,7 @@ security through a pair of games:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{PRF}_0$
 }\cr
 \cr
@@ -806,7 +806,7 @@ $$
 \quad \quad
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{PRF}_1$
 }\cr
 \cr
@@ -863,7 +863,7 @@ Thus, $\text{IND-CPA}$ security is defined by a pair of games:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CPA}_b$
 }\cr
 \cr
@@ -958,7 +958,7 @@ $$
 \text{IND-CPA}_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^0_b$
 }\cr
 \cr
@@ -1015,7 +1015,7 @@ $$
 \Gamma^0_0 \circ \text{PRF}_1 =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^1$
 }\cr
 \cr
@@ -1042,7 +1042,7 @@ where $\Gamma^2$ is defined as:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^2$
 }\cr
 \cr
@@ -1081,7 +1081,7 @@ We can then add in a random table again, to get:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^3$
 }\cr
 \cr
@@ -1162,7 +1162,7 @@ variant of the game only allows one query to be made:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CPA-1}_b$
 }\cr
 \cr
@@ -1330,7 +1330,7 @@ Now, let's recall our specific case. We have the following game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CPA}_b$
 }\cr
 \cr
@@ -1356,7 +1356,7 @@ The next step is to define $H_0, \ldots H_Q$:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{H}_i$
 }\cr
 \cr
@@ -1387,7 +1387,7 @@ between choosing $m_0$ and choosing $m_1$.
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{R}_i$
 }\cr
 \cr
@@ -1545,7 +1545,7 @@ or not they can guess correctly. Putting this into a package, we have:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{CDH}_b$
 }\cr
 \cr
@@ -1604,7 +1604,7 @@ Given a guessing scheme, we have the associated guessing game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{Guess}_b$
 }\cr
 \cr
@@ -1696,7 +1696,7 @@ like this:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CPA}_b$
 }\cr
 \cr
@@ -1749,7 +1749,7 @@ $$
 \text{IND-CPA-1}_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^0_b$
 }\cr
 \cr
@@ -1794,7 +1794,7 @@ $$
 \Gamma^0_b \circ \text{CDH}_1 =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^1_b$
 }\cr
 \cr
@@ -1829,7 +1829,7 @@ $$
 \Gamma^1_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^2$
 }\cr
 \cr

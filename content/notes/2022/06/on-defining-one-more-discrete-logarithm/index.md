@@ -21,7 +21,7 @@ First, the classic notion:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
 $\text{OMDL-Adaptive}_b$
 }\cr
 \cr
@@ -52,7 +52,7 @@ with the $\texttt{DLog}$ being the only change:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
 $\text{OMDL-Dynamic}_b$
 }\cr
 &\ldots
@@ -72,7 +72,7 @@ for:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
 $\text{OMDL-Static}_b$
 }\cr
 &\ldots

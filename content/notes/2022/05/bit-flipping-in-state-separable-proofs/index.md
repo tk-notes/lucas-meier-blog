@@ -41,7 +41,7 @@ For left-or-right, we have the following pair of games:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{LR}_{b}$
 }\cr
 \cr
@@ -68,7 +68,7 @@ and for real-or-random, we have:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{RR}_{b}$
 }\cr
 \cr
@@ -113,7 +113,7 @@ the interface for $\text{RR}_b$ over $\text{LR}_b$:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
 S
 }\cr
 \cr
@@ -236,7 +236,7 @@ $H_b$ such that $H_b \circ G_0 = \text{LL}_b$, as follows:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
 H$_b$
 }\cr
 \cr

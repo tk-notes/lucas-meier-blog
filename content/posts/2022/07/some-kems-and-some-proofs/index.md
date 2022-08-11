@@ -115,7 +115,7 @@ We formalize this as a pair of games, in the state separable style:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND}_b$
 }\cr
 \cr
@@ -167,7 +167,7 @@ We model this with a pair of games, like before:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CCA}_b$
 }\cr
 \cr
@@ -210,7 +210,7 @@ We can also model a situation where the adversary sees both of the keys:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-Both-CCA}_b$
 }\cr
 \cr
@@ -255,7 +255,7 @@ $$
 \begin{aligned}
 &\boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{W}_b$
 }\cr
 \cr
@@ -404,7 +404,7 @@ For the KEM case, this would give the following game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-LR}_b$
 }\cr
 \cr
@@ -483,7 +483,7 @@ We make this security notion precise with the following game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{RSA}_b$
 }\cr
 \cr
@@ -550,7 +550,7 @@ First, let's write down the $\text{IND-CCA-1}$ game in this context.
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CCA-1}_b$
 }\cr
 \cr
@@ -606,7 +606,7 @@ queries, but it's easier to explain those after seeing the new game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^0_b$
 }\cr
 \cr
@@ -659,7 +659,7 @@ $$
 \Gamma^0_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^1_b$
 }\cr
 \cr
@@ -701,7 +701,7 @@ $$
 \Gamma^1_b \circ \text{RSA}_1 =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^2_b$
 }\cr
 \cr
@@ -811,7 +811,7 @@ We capture this notion through a guessing game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{ICDH}_b$
 }\cr
 \cr
@@ -844,7 +844,7 @@ in this context:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CCA-1}_b$
 }\cr
 \cr
@@ -894,7 +894,7 @@ $$
 \text{IND-CCA-1}_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^0_b$
 }\cr
 \cr
@@ -946,7 +946,7 @@ $$
 \Gamma^0_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^1_b$
 }\cr
 \cr
@@ -1090,7 +1090,7 @@ We formalize this with a game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{SPLIT-PRF}_b(\sigma)$
 }\cr
 &\ k\_{\sigma} \xleftarrow{R} \bold{K}_0\cr
@@ -1134,7 +1134,7 @@ Let's recall the PRF game (in this context), briefly:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{PRF}_b$
 }\cr
 \cr
@@ -1157,7 +1157,7 @@ $$
 \text{PRF}_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma$
 }\cr
 \cr
@@ -1170,7 +1170,7 @@ $$
 \circ
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{SPLIT-PRF}_b(\sigma)$
 }\cr
 \cr
@@ -1268,7 +1268,7 @@ out the $\text{IND-CCA-1}$ game using our KEM:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{IND-CCA-1}_b$
 }\cr
 \cr
@@ -1308,7 +1308,7 @@ $$
 \text{IND-CCA-1}_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^0_b$
 }\cr
 \cr
@@ -1362,7 +1362,7 @@ $$
 \Gamma^0_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^1_b$
 }\cr
 \cr
@@ -1416,7 +1416,7 @@ $$
 \Gamma^1_b \circ \text{IND-CCA-1}_1(A) =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^2_b$
 }\cr
 \cr
@@ -1470,7 +1470,7 @@ $$
 \Gamma^2_b =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^3_b$
 }\cr
 \cr
@@ -1517,7 +1517,7 @@ $$
 \Gamma^3_b \circ \text{SPLIT-PRF}_1 =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma^4_b$
 }\cr
 \cr
@@ -1596,7 +1596,7 @@ First, explicitly write the split-key game:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{SPLIT-PRF}_0$
 }\cr
 \cr
@@ -1617,7 +1617,7 @@ $$
 \text{SPLIT-PRF}_0 =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma$
 }\cr
 \cr
@@ -1629,7 +1629,7 @@ $$
 \circ
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{PRF}_0$
 }\cr
 \cr
@@ -1650,7 +1650,7 @@ of $\Gamma$ becomes completely random:
 $$
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\Gamma$
 }\cr
 \cr
@@ -1662,7 +1662,7 @@ $$
 \circ
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{PRF}_0$
 }\cr
 \cr
@@ -1677,7 +1677,7 @@ $$
 } =
 \boxed{
 \begin{aligned}
-&\colorbox{#dbeafe}{\large
+&\colorbox{#FBCFE8}{\large
   $\text{SPLIT-PRF}_1$
 }\cr
 \cr
