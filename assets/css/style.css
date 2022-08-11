@@ -1396,6 +1396,11 @@ video {
   margin-bottom: 0.5rem;
 }
 
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
 .mb-4 {
   margin-bottom: 1rem;
 }
@@ -1640,7 +1645,23 @@ video {
 }
 
 .highlight code {
-  color: currentColor;
+  --tw-text-opacity: 1;
+  color: rgb(30 41 59 / var(--tw-text-opacity));
+}
+
+.highlight {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border-width: 2px;
+  border-color: currentColor;
+  --tw-shadow: -2px 2px currentcolor;
+  --tw-shadow-colored: -2px 2px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.highlight pre {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
 }
 
 /* purgecss end ignore */

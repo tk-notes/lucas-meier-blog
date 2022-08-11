@@ -26,7 +26,16 @@
 }
 
 .highlight code {
-  @apply text-current;
+  @apply text-slate-800;
+}
+
+.highlight {
+  @apply border-current border-2 shadow-hard-sm my-4;
+}
+
+.highlight pre {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
 }
 
 /* purgecss end ignore */
