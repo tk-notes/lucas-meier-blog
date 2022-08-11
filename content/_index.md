@@ -3,29 +3,37 @@ title: About
 katex: true
 ---
 
-I'm Lúcás: currently a first-year MSc student
+I'm Lúcás: currently a final year MSc student in Computer Science
 at [EPFL](https://www.epfl.ch/en/).
 
 This is my personal website, where I write blog posts regularly, and keep a tab on
 all the projects I've worked on.
 
-My main interest is in Cryptography, particularly in engineering robust implementations.
-I've done work on protecting implementations against timing attacks, as well as
-implementing MPC protocols.
+My main interest is cryptography.
+I've done both applied work as well as more theoretical research.
+In particular, I like thinking about multiparty computation (MPC),
+zero-knowledge proofs, as well as engineering concerns like constant-time
+arithmetic and performance optimizations.
+I enjoy applying cutting edge techniques to real-world problems.
+There's a virtuous cycle between the needs of users and pushing the frontier
+of research, and I like being in that loop.
+
 
 I've also been programming since 2017 or so, and I try to have a somewhat public profile on the things I do.
-Topics I've enjoyed here include Functional Programming, Web Programming, Distributed Programming, and Programming Languages.
-I've programmed in a plethora of languages, from **C**, to **Haskell**, **Rust**, **Go**, **Scala**, **Java**, **Python**,
-etc. having written small to large-ish projects in each of them.
+Topics I've enjoyed here include functional programming, distributed systems, and programming languages.
+I've programmed in a plethora of languages, but I mainly work in Rust,
+Go, and Python.
 
-I also like Math quite a bit, so that's a recurring topic in my posts as well. Interests there
-include **Algebra** and **Category Theory**.
+I also like math quite a bit, so that's a recurring topic in my posts as well. Interests there
+include algebra and category theory.
 
 # [Posts](/posts)
 
-I try and write a blog post every week or so, usually on either technical topics, or about some
-topic in Math. The posts often stem from ongoing work on whatever projects I'm working on at some
-point in time.
+I try and write blog posts on a recurring basis, hopefully at least once
+a month.
+I've covered various topics, from technical topics, to project updates,
+to guides and tutorials, but the main things on my plate at the moment
+are related to cryptography.
 
 If you want to stay up to date, I'd recommend checking out the [RSS feed](/posts/index.xml).
 
@@ -36,7 +44,8 @@ weekend-projects, to games, to libraries, to programming languages.
 My [Github](https://github.com/cronokirby) provides an even more complete overview.
 
 
-## [Notes](/notes)
+# [Notes](/notes)
 
-I sometimes put up rough notes for things I'm studying, or working on here.
-
+I use this to write up share rough ideas with people.
+Many of these never get polished into full blog posts, but they might
+still be interesting to people.

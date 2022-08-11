@@ -4,64 +4,8 @@
 
 /* purgecss start ignore */
 
-.content p {
-  @apply my-2;
-  text-align: justify;
-}
-.content p code {
-  @apply bg-gray-200;
-  @apply rounded;
-}
-
-.content ul {
-  list-style-type: disc;
-  list-style-position: inside;
-}
-
-.content ol {
-  list-style-type: decimal;
-  list-style-position: inside;
-}
-
-.note p code {
-  background-color: #cde9f9;
-  @apply rounded;
-}
-
-.content h1 {
-  @apply text-3xl;
-  @apply font-bold;
-}
-
-.content h2 {
-  @apply text-2xl;
-  @apply font-bold;
-}
-
-.content h3 {
-  @apply text-xl;
-  @apply font-bold;
-}
-
-.content p a {
-  @apply text-blue-700;
-}
-
-.content a:hover,
-a:visited:hover {
-  @apply text-blue-500;
-}
-
-.highlight pre {
-  @apply shadow-inner;
-  @apply rounded-md;
-  @apply my-2;
-  background-color: #faf9f4;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  padding-top: 0.4rem;
-  padding-bottom: 0.4rem;
-  overflow: auto;
+.hard-shadow {
+  box-shadow: -0.25rem 0.25rem #0F172A;
 }
 
 .noselect {
@@ -76,5 +20,9 @@ a:visited:hover {
 
 /* VERY IMPORTANT: fractions are borked otherwise in katex */
 *, ::after, ::before { border-color: #000 }
+
+.capitalize-start > p:first-of-type {
+  @apply first-letter:font-bold first-letter:text-4xl first-letter:float-left;
+}
 
 /* purgecss end ignore */

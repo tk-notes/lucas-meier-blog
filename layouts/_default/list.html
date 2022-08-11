@@ -1,36 +1,37 @@
 {{ define "main" }}
 <main
-  class="lg:container mx-4 sm:mx-auto md:w-7/12 font-serif sm:w-3/4 lg:w-6/12 xl:w-5/12"
+  class="lg:container mx-4 sm:mx-auto md:w-7/12 sm:w-3/4 lg:w-6/12 xl:w-5/12 text-slate-900"
 >
-  <ul class="space-y-8">
+  <ul class="space-y-6">
     {{ range .Pages.ByPublishDate.Reverse }}
-    <li>
+    <li class="border border-2 border-current p-2 shadow-hard">
       <ul class="flex items-center justify-between">
-        <li>{{ .Date.Format "January 02, 2006" }}</li>
-        <li class="font-bold">
-          {{ .ReadingTime }} <span class="text-sm font-normal">{{ if eq .ReadingTime 1 }}minute{{ else }}minutes{{ end }}</span>
+        <li>{{ .Date.Format "2006年01月02日" }}</li>
+        <li>
+          {{ .ReadingTime }} 分
         </li>
       </ul>
 
       <div class="content">
-        <a href="{{.RelPermalink}}" class="text-2xl font-bold">{{ .Title }}</a>
-        <div class="text-sm text-justify">
+        <a href="{{.RelPermalink}} "class="hover:text-pink-600 text-2xl font-bold">{{ .Title }}</a>
+        <div class="prose-sm prose-slate">
           <p>{{ .Summary }}</p>
         </div>
       </div>
-      <ul class="flex flex-wrap items-center space-x-2 mb-2">
+      <ul class="flex flex-wrap items-center space-x-2 my-2">
         {{if .Params.Tags }}
           {{ range .Params.Tags | sort }}
           <li>
             <a
               href="/tags/{{. | urlize}}/"
-              class="rounded bg-gray-200 hover:bg-blue-100 hover:text-blue-500 p-1 shadow-inner font-mono font-bold text-xs"
+              class="shadow-hard-sm border-current border-2 text-xs p-1 hover:text-pink-600"
               >{{.}}</a
             >
           </li>
           {{ end }}
         {{ end }}
       </ul>
+
     </li>
     {{ end }}
   </ul>
