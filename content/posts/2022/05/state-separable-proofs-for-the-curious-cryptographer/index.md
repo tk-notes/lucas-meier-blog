@@ -1218,7 +1218,7 @@ with $\text{out}(G_0) = \text{out}(G_1)$,
 which represent our "single query" games. We have
 another pair of games, $M_0$ and $M_1$,
 with $\text{out}(M_0) = \text{out}(M_1)$, which
-represent our "multi query" games. We then have a series of hybrid games
+represent our "multi-query" games. We then have a series of hybrid games
 $H_0, \ldots, H_Q$, satisfying $\text{out}(H_i) = \text{out}(M_b)$.
 Finally, we have a series of "shims" $R_0, \ldots, R_{Q - 1}$,
 with $\text{in}(R_i) = \text{out}(G_b)$ and $\text{out}(R_i) = \text{out}(M_b)$.

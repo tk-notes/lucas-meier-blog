@@ -1,6 +1,6 @@
 ---
 title: "Some KEMs and Some Proofs"
-date: 2022-07-29T18:01:33+02:00
+date: 2022-08-13T12:22:56+02:00
 draft: true
 katex: true
 tags:
@@ -15,22 +15,22 @@ security of various constructions.
 
 <!--more-->
 
-A key encapsulation mechanism is kind of like a public key encryption
-scheme, tailored to the specific use-case of sending a key to the other
+A key encapsulation mechanism is like a public key encryption
+scheme, tailored to the specific use case of sending a key to the other
 party.
-This is very useful to establish a shared key between two parties.
-One of them runs the KEM, getting a shared key, and a ciphertext,
+This can be used to establish shared key between two parties.
+One of them runs the KEM, getting a shared key and a ciphertext,
 and then sends that ciphertext to the other person.
 That person can unwrap the ciphertext to recover the shared key.
 From that point on, the parties can use that shared key to communicate
 privately.
 
-You can also think of KEMs as a generalization of key exchanges,
+In this way, you can think of KEMs as a generalization of key exchanges,
 which don't have to be symmetric.
 In fact, you can use a key exchange to construct a KEM, as we'll
 see later.
 
-In this post, we'll see:
+In this post, we'll go over:
 
 - How to define KEMs.
 - How to capture the security of KEMs with games.
@@ -39,8 +39,8 @@ In this post, we'll see:
 - How to construct a secure KEM using Elliptic Curves.
 
 There are other important topics around KEMs that I'd also like to touch
-upon in a future post, but this sample is already quite a hefty serving
-if you include all of the proofs.
+upon, but this sample is already quite a hefty serving
+if you include all of the proofs; those will have to wait for a future post.
 
 # Background
 
@@ -69,18 +69,18 @@ $$
 \end{aligned}
 $$
 
-The first algorithm, $\text{Gen}$ creates new keypair, consisting
+The first algorithm, $\text{Gen}$, creates a new key pair, consisting
 of a private key, and its corresponding public key.
 
 The second algorithm, $\text{Encap}$, takes in a public key,
-for the recipient, and results in a symmetric key, and an encapsulation,
-or ciphertext.
+for the recipient, and returns a symmetric key and an encapsulation
+(also called a ciphertext).
 
 With $\text{Decap}$, a recipient can use their private key to extract
-this symmetric key from the ciphertext.
+a symmetric key from the ciphertext.
 
 This scheme also needs to satisfy some notion of correctness.
-Intuitively, decapsulating should yield the same key that was encapsulated.
+Intuitively, decapsulating should return the same key that was encapsulated.
 
 More formally, the following procedure must always succeed:
 
@@ -93,16 +93,15 @@ $$
 \end{aligned}
 $$
 
-No matter what key pair comes out of $\text{Gen}$, it should always
-be the case that encapsulating and then decapsulating yield
-the same key.
-Otherwise, your KEM wouldn't be very useful for establishing
+No matter what key pair comes out of $\text{Gen}$, encapsulating
+and then decapsulating must return the same key.
+If this didn't hold, your KEM wouldn't be very useful for establishing
 a shared key between two parties, or for public key encryption,
-which are two of the main use-cases for KEMs.
+which are two of the main use cases for KEMs.
 
 ## $\text{IND}$ Security
 
-Naturally, having a scheme that's correct is easy if you don't care about
+Naturally, having a correct scheme is easy if you don't care about
 security.
 The usual notion of security is similar to that of public key encryption.
 The basic idea is that you shouldn't be able to tell whether or not
@@ -132,23 +131,27 @@ $$
 }
 $$
 
-In one version of the game, we get the key related to the encapsulation,
+In one version of the game, we get the key inside the encapsulation,
 and in the other version of the game, we get a completely random key.
 An adversary should not be able to distinguish between the two games.
+
+This means that the adversary can't learn any information about the
+key from the ciphertext.
 
 {{<note>}}
 In this variant, you can query the challenge multiple times.
 This is equivalent to only being able to query once, although the security
 gets worse as a linear function of the number of queries you do.
-For simplicity, I'll stick with the multi query variants for the rest
+For simplicity, I'll stick with the multi-query variants for the rest
 of this post.
 {{</note>}}
 
-This variant of security is also sometimes referred to as $\text{IND-CPA}$.
+This variant of security can also be referred to as $\text{IND-CPA}$.
 This is because the adversary is able to create encapsulations themselves,
-by virtue of having the public case.
-This kind of query is a "chosen plaintext", hence the "chosen plaintext attack (CPA) in the name.
-With symmetric encryption, you need to have a secret key to even
+because they know the public key.
+This kind of query is a *chosen plaintext*, hence the *chosen plaintext attack* (CPA) in the name.
+
+With symmetric encryption, on the other hand, you need to have a secret key to even
 _encrypt_ data, so the $\text{CPA}$ capability is a meaningful distinction.
 
 ## $\text{IND-CCA}$ Security
@@ -156,8 +159,7 @@ _encrypt_ data, so the $\text{CPA}$ capability is a meaningful distinction.
 An even stronger variant of security also allows the adversary to make
 _decapsulation_ queries on ciphertexts of their choice.
 We call these _chosen ciphertext attacks_ (CCA).
-This models situations where we might know the keys corresponding
-with certain ciphertexts.
+This models situations where we might know the keys inside certain ciphertexts.
 While in practice these leakages could be quite limited, having a more
 expansive model of security covers many more situations,
 and we can construct schemes which satisfy this general model.
@@ -195,6 +197,8 @@ have the ability to make decapsulation queries.
 In order to make the game not trivially easy to win, we keep track
 of which challenge ciphertexts have been produced, and refuse decapsulation
 queries for that set.
+Otherwise, you could ask for the decapsulation for a ciphertext you saw
+earlier, and compare the result with the key you received before.
 
 ## Equivalence with Other Definitions
 
@@ -233,6 +237,10 @@ $$
 }
 $$
 
+Instead of giving them one of the keys like before, we give them both,
+but we swap their order.
+The adversary has to tell which key is which.
+
 One natural question is whether or not this new game is equivalent
 to our previous definitions.
 
@@ -243,8 +251,8 @@ As a bit of a warmup, let's prove this equivalence.
 ### $\text{IND-Both-CCA} \leq 2 \cdot \text{IND-CCA}$
 
 The idea of this reduction is that we can replace $k_0$ from the first
-encapsulation with a random key, because of $\text{IND-CCA}$ security,
-thus then allows us to swap $k_0$ with $k_1$, and then walk our way backwards,
+encapsulation with a random key, because of $\text{IND-CCA}$ security.
+This then allows us to swap $k_0$ with $k_1$, and then walk our way backwards,
 giving us a bound for $\epsilon(\text{IND-Both-CCA}_b)$.
 
 We start by extracting out the encapsulation in $\text{IND-Both-CCA}_b$,
@@ -366,7 +374,7 @@ $$
 With $\text{IND-Both-CCA}_1$ on the other hand, the bit is flipped:
 
 $$
-W_b \circ \text{IND-Both-CCA}_0 = \text{IND-CCA}\_{(1 - b)}
+W_b \circ \text{IND-Both-CCA}_1 = \text{IND-CCA}\_{(1 - b)}
 $$
 
 This is enough for us to write:
@@ -385,11 +393,10 @@ $\square$
 
 ### Real-or-Random is Essential
 
-Both of these definitions turned out to be equivalent, but both
-fit into a kind of "real-or-random" paradigm, in that one of the keys
-is randomly selected, while the other is connected to the ciphertext.
-This is a general kind of paradigm, used for defining the security of other
-schemes as well.
+These definitions turned out to be equivalent, but both
+fit into a kind of "real-or-random" paradigm: one of the keys
+is randomly selected, while the other is related to the ciphertext.
+This is a general kind of paradigm, which can be used to define the security of other schemes as well.
 It's useful to stay within this paradigm, since phrasing all of
 our security definitions in terms of real-or-random makes it easier
 to do reductions.
@@ -506,12 +513,15 @@ If the adversary has a good strategy for guessing, then they'll be able
 to figure out what $b$ is.
 
 We can use RSA to create a KEM.
-The idea is that we want the pre-image $x$ to be our key, and then
+The pre-image $x$ will be our key, and then
 $y := x^e \mod N$ is our ciphertext, hiding the key.
 The recipient can use their secret to unwrap $x$ from this ciphertext.
 Now, because $\mathbb{Z}/(N)$ may not be a very useful key by itself,
 we also make use of a hash function $H : \mathbb{Z}/(N) \to \bold{K}$,
 so that we can derive a more useful key from $x$.
+
+For example, if we wanted to use our key for encryption with AES,
+or ChaCha20, we'd want to use a hash function from integers to 256 bit keys.
 
 More formally, we define the following KEM:
 
@@ -537,11 +547,12 @@ Because the RSA function is a permutation, correctness is satisfied.
 As for security, this isn't a trivial matter.
 First, we'll model our hash function $H$ as a _random oracle_, where
 the outputs will be generated perfectly at random, on demand.
-Second, rather than considering normal $\texttt{IND-CCA}$ security,
-instead we'll consider $\texttt{IND-CCA-1}$ security, where the adversary
+Second, rather than considering normal $\text{IND-CCA}$ security,
+instead we'll consider $\text{IND-CCA-1}$ security, where the adversary
 can only make a single challenge query.
 Making $Q$ challenge queries instead of just a single one only decreases
 security by a factor of $Q$, as can be shown via a hybrid argument.
+([My post on state-separable proofs](/posts/2022/05/state-separable-proofs-for-the-curious-cryptographer/) contains a proof of this in the general case).
 
 ### $\text{IND-CCA-1} \leq 2 \cdot \text{RSA}$
 
@@ -765,11 +776,15 @@ This is a group $\mathbb{G}$ of prime order $q$, generated by $G$,
 and with an associated field of scalars $\mathbb{F}_q$.
 
 A key pair for the KEM will be a scalar $a$, for the private key,
-and a point $A := a \cdot G$, for the public key.
+and a point ${A := a \cdot G}$, for the public key.
 In order to encapsulate a key, we generate a random scalar $b$,
-set $B := b \cdot G$ as our encapsulation, and $H(b \cdot A)$ as the key.
+set ${B := b \cdot G}$ as our encapsulation, and $H(b \cdot A)$ as the key.
 The receiver can set $H(a \cdot B)$ as their key, arriving at the same
-result because of commutativity.
+result because of commutativity:
+
+$$
+a \cdot B = a \cdot b \cdot G = b \cdot a \cdot G = b \cdot A
+$$
 
 More formally, given a cryptographic group $\mathbb{G}$,
 and a hash function $H : \mathbb{G}^2 \to \bold{K}$, we define the KEM as follows:
@@ -836,7 +851,7 @@ This notion suffices to prove $\text{IND-CCA}$ security of the KEM:
 
 ### $\text{IND-CCA-1} \leq 2 \cdot \text{ICDH}_b$
 
-We'll be working in the random oracle model, for our hash function.
+We'll model our hash function as a random oracle, like with RSA.
 
 Let's start by explicitly writing down the $\text{IND-CCA-1}$ game
 in this context:
@@ -937,10 +952,10 @@ $$
 Basically, we maintain the invariant that $a \cdot \hat{B} = \hat{C} \implies h[\hat{B}, \hat{C}] = h'[\hat{B}]$.
 this allows us to make decapsulation queries without making use of the secret
 key.
+This will make extracting out the $\text{ICDH}$ game much easier.
+This extraction is also made easier in that the query $a \cdot \hat{B} = \hat{C}$ is precisely the kind of query we can do in this game.
 
-Notice that the query $a \cdot \hat{B} = \hat{C}$ is the kind of query
-we can do in the $\text{ICDH}$ game.
-The next step is to extract out this game:
+The next step is to extract out $\text{ICDH}$:
 
 $$
 \Gamma^0_b =
@@ -994,7 +1009,7 @@ $$
 \Gamma^1\_0 \circ \text{ICDH}\_1 = \Gamma^1\_1 \circ \text{ICDH}\_1
 $$
 
-This is enough to allow us to make our full walk, and tie everything together:
+This is enough to make our full walk, and tie everything together:
 
 $$
 \begin{aligned}
@@ -1014,8 +1029,6 @@ $\square$
 
 Another method that's going to be increasingly important is using
 _lattices_ to construct KEMs.
-Both of the schemes I've mentioned in this post, using RSA,
-and using elliptic curves, will be broken by future quantum computers.
 
 Both of the schemes I've mentioned in this post, using RSA,
 and using elliptic curves, will be broken by future quantum computers.
@@ -1044,7 +1057,7 @@ if the new KEM you include happens to be flawed.
 
 To achieve this, what you want is a way to *combine* KEMs,
 mixing together KEMs $A$ and $B$ to create a new KEM, which should
-be security as long as at least one of the two ingredients is.
+be secure as long as at least one of the two ingredients is.
 If $A$ is broken, that's fine as long as $B$ is secure, and vice versa.
 
 This construction is called a *KEM combiner*, and it can combine two
@@ -1053,13 +1066,14 @@ at all.
 The paper {{<ref-link "[GHP18]">}} goes over this notion of combiners,
 and presents a very elegant construction.
 
-The basic idea is that to encapsulate, you call each of the individual
+To encapsulate, you call each of the individual
 KEMs first, giving you $(k_A, c_A)$ and $(k_B, c_B)$.
 Next, $(c_A, c_B)$ becomes your ciphertext.
 Now, you need some way to combine all of this information to derive
 a single key $k$.
 One idea would be to simply xor the two keys, giving you $k \gets k_A \oplus k_B$.
 Unfortunately, [this is not IND-CCA secure](https://twitter.com/cronokirby/status/1554092874538668032), because the resulting key is malleable.
+
 The idea in this paper is instead to use a kind of pseudo-random function (PRF) to derive the result:
 
 $$
@@ -1081,7 +1095,7 @@ as an input type $\bold{X}$, and an output type $\bold{Y}$.
 The intuition for this function is that it should behave like
 a random function $\bold{X} \to \bold{Y}$ as long as the adversary
 doesn't know *either* of the keys.
-Even if the adversary controls one of the keys, and can even query
+Even if the adversary controls one of the keys, and can query
 the function $F$ on different values for this key, they still shouldn't
 be able to distinguish this function from a random one.
 
@@ -1198,8 +1212,8 @@ $\square$
 
 ## KEM Combination with PRF
 
-It turns out that split-key PRFs precisely capture what we need tocomposing KEMs
-together.
+It turns out that split-key PRFs precisely capture what we need
+to compose KEMs together.
 In this section, we formally define the composition of two KEMs using
 such a PRF, and prove that it's $\text{IND-CCA}$ secure, assuming the PRF is split-key secure,
 and one of the underlying KEMs is $\text{IND-CCA}$ secure.
@@ -1586,7 +1600,7 @@ $$
 \text{SPLIT-PRF}(0) \leq \text{PRF}(F_0)
 $$
 
-The high level proof idea is that what happens with $F_1$ can't effect
+The high level proof idea is that what happens with $F_1$ can't affect
 the outcome, because $F_0$ being a PRF is enough to guarantee that the
 output is random.
 In our split-key game, we'll easily be able to
@@ -1663,15 +1677,14 @@ $$
 \boxed{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\text{PRF}_0$
+  $\text{PRF}_1$
 }\cr
 \cr
-&\ k \xleftarrow{R} \bold{K}_0\cr
 &\ \text{seen} \gets \emptyset\cr
 \cr
 &\underline{\texttt{QueryF}(k_1, x):}\cr
 &\ \texttt{assert } x \notin \text{seen}\cr
-&\ y \gets F(k_0, x) \cr
+&\ y \xleftarrow{R} \bold{Y}\cr
 &\ \texttt{return } y
 \end{aligned}
 } =
@@ -1690,6 +1703,10 @@ $$
 \end{aligned}
 }
 $$
+
+This is because xoring any value with a (uniformly) random value
+returns another random value.
+Thus, xoring $F(k_1, x)$ with a random $y$ gives us a random result.
 
 To summarize, we have:
 
@@ -1710,7 +1727,7 @@ One method is to do $F(k_A, c_A) \oplus F(k_B, c_B)$, including only
 one of the ciphertexts.
 
 Another method, which requires the random oracle model, is to do:
-$H(k_A \oplus k_B, c_A, c_B)$.
+${H(k_A \oplus k_B, c_A, c_B)}$.
 
 And this is just a small sample; I really recommend checking out the paper
 if you want to know more; it's a very well written paper!
@@ -1723,7 +1740,7 @@ with the focus on proofs.
 I think state-separable proofs are quite fun to write, and hopefully
 they were enjoyable to read as well.
 A secret about this post is that KEMs are really just an excuse
-to write more state-separable proofs, since that's really what motivated
+to write more state-separable proofs, since that's what motivated
 me to write about the topic.
 
 There's still a lot more interesting things to say about KEMs though.

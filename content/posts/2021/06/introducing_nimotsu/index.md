@@ -69,15 +69,15 @@ some of the primitives involved.
 So, what primitives does this program use? Let's have a closer
 look at how the protocol for encrypting data works.
 
-A nimotsu keypair is just an
-[x25519](https://datatracker.ietf.org/doc/html/rfc7748) keypair.
+A nimotsu key pair is just an
+[x25519](https://datatracker.ietf.org/doc/html/rfc7748) key pair.
 You generate a public key, that you share with others, and a secret key,
 that you keep to yourself:
 
 {{<img "1.png">}}
 
 When someone wants to send you a file, they first generate a new
-keypair, and send you the public part. We call this keypair "ephemeral",
+key pair, and send you the public part. We call this key pair "ephemeral",
 because it only gets used this one time. Using your public key,
 and the secret key they've just generated, they can use the
 x25519 function to derived a shared secret. On your side, you can combine
@@ -382,7 +382,7 @@ $P = s \cdot G$. It is widely believed that recovering $s$ from $P$
 is exceedingly difficult. (This problem is the infamous
 ECDLP (Elliptic Curve Discrete Logarithm Problem)).
 
-Two keypair holders with $(s_1, P_1 = s_1 \cdot G)$ and
+Two key pair holders with $(s_1, P_1 = s_1 \cdot G)$ and
 $(s_2, P_2 = s_2 \cdot G)$ can calculate a shared secret, only
 using each other's public key. The first person calculates
 $$
