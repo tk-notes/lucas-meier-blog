@@ -57,3 +57,8 @@ tying them to the same input by using commitments.
 
 If the commitment amounts to just hashing the inputs, this might still be advantageous if more complex sampling is needed, for example if you need
 to sample trits or a sampling without repetition from a subset, etc.
+
+# Addendum
+
+This also works if you actually send the messages $M_i$ rather than commitments,
+which might be interesting in certain cases, like MPC in the head.
