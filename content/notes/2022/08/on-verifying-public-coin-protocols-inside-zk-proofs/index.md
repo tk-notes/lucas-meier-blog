@@ -32,7 +32,7 @@ Then, you you use your second layer ZK proof for the relation:
 
 $$
 \begin{aligned}
-\\{&(x, e_0, \ldots, e_N | w, M_0, \ldots, M_N, r_0, \ldots, r_N) :\cr
+\\{&(x, C_0, \ldots, C_N, e_0, \ldots, e_N | w, M_0, \ldots, M_N, r_0, \ldots, r_N) :\cr
  &\Sigma.\text{Verify}(x, M_0, \ldots, M_N, e_0, \ldots, e_N) \land\cr
 &\forall i.\ \text{Decom}(C_i, M_i, r_i)\\}
 \end{aligned}
