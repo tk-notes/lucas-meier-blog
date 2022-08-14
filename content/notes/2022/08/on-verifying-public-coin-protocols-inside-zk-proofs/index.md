@@ -1,5 +1,5 @@
 ---
-title: "On Verifying Sigma Protocols inside ZK Proofs"
+title: "On Verifying Public Coin Protocols inside ZK Proofs"
 date: 2022-08-14T20:14:21+02:00
 type: note
 note-tags:
