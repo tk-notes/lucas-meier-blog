@@ -241,15 +241,266 @@ function, so that the proof is "bound" to this specific message.
 
 # Generalization: Maurer Proofs
 
+Maurer proofs {{<ref-link "Mau09">}} can be seen as a *vast* generalization
+of Schnorr proofs.
+
+Given a group homomorphism $\varphi : \mathbb{A} \to \mathbb{B}$, they allow
+you to prove knowledge of $a \in \mathbb{A}$ such that $\varphi(a) = B$,
+without revealing the secret $a$.
+
+{{<note>}}
+More specifically, you don't learn anything more about $a$ then you could
+have learned from the public value $B$.
+{{</note>}}
+
+As a recall, given two groups $\mathbb{A}$ and $\mathbb{B}$, a homomorphism
+$\varphi$ is a function from $\mathbb{A}$ to $\mathbb{B}$ such that for
+all $a, a' \in \mathbb{A}$, we have:
+$$
+\varphi(a + a') = \varphi(a) + \varphi(a')
+$$
+
+Schnorr proofs are a specific case of these proofs, with the homomorphism:
+$$
+\begin{aligned}
+\varphi &: (\mathbb{F}_q, +) \to \mathbb{G}\cr
+\varphi(x) &:= x \cdot G\cr
+\end{aligned}
+$$
+
+The protocol is very similar to Schnorr proofs as well:
+
+$$
+\boxed{
+\begin{aligned}
+&\mathcal{P} \text{ knows } a \in \mathbb{A}&\quad&\mathcal{V} \text{ knows } B \in \mathbb{B} \cr
+\cr
+&k \xleftarrow{R} \mathbb{A}\cr
+&K \gets \varphi(k)\cr
+&&\xrightarrow{K}\cr
+&&&c \xleftarrow{R} \mathcal{C}\cr
+&&\xleftarrow{c}\cr
+&s \gets k + c \cdot a\cr
+&&\xrightarrow{s}\cr
+&&&\varphi(s) \stackrel{?}{=} K + c \cdot B\cr
+\end{aligned}
+}
+$$
+
+The protocol proceeds in a familar way.
+The prover generates a random nonce $k$, sends their commitment $\varphi(k)$,
+the verifier responds with a challenge $c$, and the prover
+concludes with their response $s$.
+
+The set $\mathcal{C}$ denotes the *challenge space*.
+The way we define this set depends on the homomorphism $\varphi$.
+We'll see what conditions we need this set to satisfy once we get
+to proving extraction for this protocol.
+
+#### Completeness
+
+Completeness holds because $\varphi$ is a homomorphism:
+
+$$
+\varphi(s) = \varphi(k + c \cdot a) = \varphi(k) + c \cdot \varphi(a) = K + c \cdot B
+$$
+
+#### Honest Verifier Zero-Knowledge
+
+The simulator is also pretty simple to define.
+
+Given a challenge $c$, we know that $K$ and $s$ must satisfy:
+
+$$
+\varphi(s) = K + c \cdot B
+$$
+
+The idea behind our simulator, like with Schnorr proofs, is
+to generate a random $s$, and then define $K$ as a function of $s$, $B$, and $c$:
+
+$$
+K \gets \varphi(s) - c \cdot B
+$$
+
+Since $s$ is random, this makes $K$ as random as in the real protocol,
+and so our simulator works.
+
 ## Extraction
 
-### Extraction for Groups of Known Order
+Extraction is a bit trickier, because we need to choose our challenge space
+$\mathcal{C}$.
+This is simple when we know the order of the group $\mathbb{B}$,
+but we can also find challenge spaces which work even if the order
+of the group is unknown.
+
+Our extract has access to two transcripts $(K, c, s)$ and $(K, c', s')$,
+with $c \neq c'$.
+These transcripts are valid, and so satisfy:
+
+$$
+\begin{aligned}
+\varphi(s) &= K + c \cdot B\cr
+\varphi(s') &= K + c' \cdot B\cr
+\end{aligned}
+$$
+
+If we subtract the equations, we get:
+
+$$
+\varphi(s) - \varphi(s') = (c - c') \cdot B
+$$
+
+Since $\varphi(s)$ is a homomorphism, we can write:
+
+$$
+\varphi(s - s') = (c - c') \cdot B
+$$
+
+Now, if we knew the order of $\mathbb{B}$, say $q$, then we could
+invert $c - c'$ mod $q$, giving us:
+
+$$
+\frac{1}{(c - c')} \cdot \varphi(s - s') = B
+$$
+
+and then use the fact that $\varphi(s - s')$ is a homomorphism, giving us:
+
+$$
+\varphi \left(\frac{s - s'}{c - c'}\right) = B
+$$
+
+And we could then use this value as our extractor.
+
+But it turns out that you can make the extraction work even if you don't
+know the order.
+
+To get around this, we need to assume the existence of an "anchor value"
+$u \in \mathbb{A}$, such that there exists $l$ with:
+
+$$
+\varphi(u) = l \cdot B
+$$
+
+We also require that $\gcd(l, (c - c')) = 1$ for all $c \neq c' \in \mathcal{C}$.
+This entails that there exists coefficients $\alpha, \beta \in \mathbb{Z}$
+such that:
+
+$$
+\alpha \cdot l + \beta (c - c') = 1
+$$
+
+We can then use this to define our extracted value $\hat{x}$:
+
+$$
+\hat{x} := \alpha \cdot u + \beta \cdot (s - s')
+$$
+
+To see why this works, remember that $\varphi(s - s') = (c - c') \cdot B$,
+which means that:
+
+$$
+\begin{aligned}
+\varphi(\hat{x}) &=\cr
+\varphi(\alpha \cdot u + \beta \cdot (s - s')) &=\cr
+\alpha \cdot \varphi(u) + \beta \cdot \varphi(s - s') &=\cr
+\alpha \cdot l \cdot B + \beta \cdot \varphi(c - c') \cdot B &=\cr
+(\alpha \cdot l + \beta \cdot \varphi(c - c')) \cdot B &=\cr 1 \cdot B &= B\cr
+\end{aligned}
+$$
+
+We also need the set $\mathcal{C}$ to be large enough, i.e. $|\mathcal{C}| \geq 2^\lambda$, with $\lambda$ our security parameter.
+
+## Examples of Extraction
+
+In summary, we need a large set $\mathcal{C}$ such that for any $c \neq c' \in \mathcal{C}$, there exists an anchor value $u$ and exponent $l$ such that:
+
+$$
+\varphi(u) = l \cdot B
+$$
+
+and $\gcd(l, c - c') = 1$.
+
+Let's see a few examples of how this works.
+
+### Extraction for Groups of Known Prime Order
+
+If you know the order of a group $\mathbb{B}$,
+and this group has prime order $q$, then you can easily create this set.
+
+The element $0 \in \mathbb{A}$ can act as our anchor value, since $q \cdot B = 0 = \varphi(0)$, no matter what value $B$ has.
+
+Furthermore, if we take $\mathcal{C} = \mathbb{F}_q$, then the difference
+between any two elements in $\mathbb{F}_q$ will be coprime with $q$,
+since $q$ is a prime number, and the difference will be $< q$.
+
+In fact, instead of using the order of the group, it suffices to use
+the exponent.
+This is a value $e$ such that $e \cdot B = 0$ for any value $B \in \mathbb{B}$.
+When taking the product of several groups, this will be smaller than
+the order, which is nice.
 
 ### Extraction for RSA
 
+{{<note>}}
+In this section, and when mentioning RSA later, I will switch to the **inferior**
+multiplicative notation, because I fear that the world is not yet ready
+for additive notation RSA.
+{{</note>}}
+
+Let's say that you want to do this for an RSA group $(\mathbb{Z}/(N), \cdot)$.
+The issue is that you don't know the order of this group.
+
+The homomorphism in this case is:
+
+$$
+\varphi(x) := x^e
+$$
+
+(done modulo $N$)
+
+You also know a public value $y$, claimed to equal $x^e$ for some secret $x$.
+
+This homomorphism naturally guides our choice of anchor.
+We need to find a $u$ such that $\varphi(u) = y^l$.
+Unraveling $\varphi$, we need $u^e = y^l$.
+
+Well, one simple way to satisfy this is to take $l = e$ and $u = y$, giving
+us the equation:
+
+$$
+y^e = y^e
+$$
+
+Now, we need to find a set $\mathcal{C}$ where the difference with any
+two elements is coprime with $e$.
+This is quite simple if $e$ is a prime number, which is usually the case:
+we can simply take $\mathcal{C} = \mathbb{Z}/(e)$.
+All (non-negative) numbers $< e$ will have difference which is coprime
+with $e$, since $e$ is prime.
+
+Now, if $e$ is a small prime number, then we'll need to repeat our
+protocol several times for soundness.
+For example, if $e$ is $3$, then we'd need to repeat our protocol
+$128 / 3$ times, for $128$ bit security.
+
+## Summary
+
+In summary, given a group homomorphism $\varphi : \mathbb{A} \to \mathbb{B}$,
+Maurer proofs are a sigma protocol for proving knowledge of a secret $a \in \mathbb{A}$ such that $\varphi(a) = B$, for a public $B$.
+
+The only assumption we need to make about the groups is that 
+we can construct a set $\mathcal{C}$ such that there exists
+an exponent $l \in \mathbb{Z}$, with $\gcd(l, (c - c')) = 1$ for all $c \neq c' \in \mathcal{C}$, and an anchor $u \in \mathbb{A}$ satisfying:
+
+$$
+\varphi(u) = l \cdot B
+$$
+
 # Some Applications
 
-## Schnorr as a Special Case
+## Schnorr Proofs
+
+## Guillou-Quisquater Proofs
 
 ## Parallel Schnorr
 
@@ -262,3 +513,10 @@ function, so that the proof is "bound" to this specific message.
 ## TWW Polynomial Commitment Scheme
 
 # Conclusion
+
+# References
+
+{{<ref
+  "Mau09"
+  "https://crypto.ethz.ch/publications/files/Maurer09.pdf"
+  "[Mau09] Unifying Zero-Knowledge Proofs of Knowledge - Ueli Maurer">}}
