@@ -1,7 +1,7 @@
 ---
 title: "Some KEMs and Some Proofs"
-date: 2022-08-13T12:22:56+02:00
-draft: true
+date: 2022-08-14T08:00:00+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -149,7 +149,7 @@ of this post.
 This variant of security can also be referred to as $\text{IND-CPA}$.
 This is because the adversary is able to create encapsulations themselves,
 because they know the public key.
-This kind of query is a *chosen plaintext*, hence the *chosen plaintext attack* (CPA) in the name.
+This kind of query is a _chosen plaintext_, hence the _chosen plaintext attack_ (CPA) in the name.
 
 With symmetric encryption, on the other hand, you need to have a secret key to even
 _encrypt_ data, so the $\text{CPA}$ capability is a meaningful distinction.
@@ -1050,17 +1050,17 @@ We also have a new KEM which should be secure against quantum computers,
 but given its novelty, you may not trust it that much yet.
 
 Because of this, many people are trying to deploy both schemes together
-in a *hybrid* fashion.
+in a _hybrid_ fashion.
 This means that you can get post-quantum security if the new KEM stands
 the test of time, but you also don't sacrifice classical security
 if the new KEM you include happens to be flawed.
 
-To achieve this, what you want is a way to *combine* KEMs,
+To achieve this, what you want is a way to _combine_ KEMs,
 mixing together KEMs $A$ and $B$ to create a new KEM, which should
 be secure as long as at least one of the two ingredients is.
 If $A$ is broken, that's fine as long as $B$ is secure, and vice versa.
 
-This construction is called a *KEM combiner*, and it can combine two
+This construction is called a _KEM combiner_, and it can combine two
 KEMs in this way, without having to inspect how the KEMs work internally
 at all.
 The paper {{<ref-link "[GHP18]">}} goes over this notion of combiners,
@@ -1080,7 +1080,7 @@ $$
 F(k_A, k_B, (c_A, c_B))
 $$
 
-This is a special kind of PRF called a *split-key* PRF.
+This is a special kind of PRF called a _split-key_ PRF.
 
 ## Split-Key PRFs in Theory
 
@@ -1094,7 +1094,7 @@ We have two types for keys, $\bold{K}_0$ and $\bold{K}_1$, as well
 as an input type $\bold{X}$, and an output type $\bold{Y}$.
 The intuition for this function is that it should behave like
 a random function $\bold{X} \to \bold{Y}$ as long as the adversary
-doesn't know *either* of the keys.
+doesn't know _either_ of the keys.
 Even if the adversary controls one of the keys, and can query
 the function $F$ on different values for this key, they still shouldn't
 be able to distinguish this function from a random one.
