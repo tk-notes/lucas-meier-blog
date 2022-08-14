@@ -10,7 +10,7 @@
   "scripts": {
     "start": "concurrently npm:watch:*",
     "watch:tw": "tailwindcss -i ./assets/css/main.css -o ./assets/css/style.css --watch",
-    "watch:hugo": "hugo server",
+    "watch:hugo": "hugo server -D",
     "build": "tailwindcss -i ./assets/css/main.css -o ./assets/css/style.css && hugo --minify"
   }
 }
