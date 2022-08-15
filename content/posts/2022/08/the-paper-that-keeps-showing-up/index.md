@@ -1,6 +1,6 @@
 ---
 title: "The Paper that Keeps Showing Up"
-date: 2022-08-21T08:00:00+02:00
+date: 2022-08-T1408:00:00+02:00
 draft: false
 katex: true
 tags:
