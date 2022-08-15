@@ -19,6 +19,7 @@ it showed up for attribute-based credentials in a course about Privacy-Enhancing
 it showed up in an advanced Cryptography course for two homeworks, *and*
 on the final exam!
 
+
 Everywhere I go, I see this paper, and no one even seems to be aware of the
 fact that they're using it!
 
