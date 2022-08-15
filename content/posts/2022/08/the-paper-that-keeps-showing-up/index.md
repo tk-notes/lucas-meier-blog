@@ -11,13 +11,44 @@ tags:
 Let's talk about one of my favorite cryptography papers.
 <!--more-->
 
-{{<todo>}}
-Introduce the places it's shown up
-{{</todo>}}
+This is the paper that keeps showing up.
+It's almost comical at this point.
+It's shown up 5 times in my last semester at EPFL, across 3 different courses.
+It showed up as part of the paper my colleague and I reviewed for a seminar,
+it showed up for attribute-based credentials in a course about Privacy-Enhancing-Technologies,
+it showed up in an advanced Cryptography course for two homeworks, *and*
+on the final exam!
 
-{{<todo>}}
-Generalization of schnorr signatures
-{{</todo>}}
+Everywhere I go, I see this paper, and no one even seems to be aware of the
+fact that they're using it!
+
+What is this wonderful gem, you might ask?
+
+Well, it's none other than "Unifying Zero-Knowledge Proofs of Knowledge",
+by Ueli Maurer {{<ref-link "Mau09">}}:
+
+{{<img "1.png">}}
+
+This paper is a short one, presenting a very interesting result.
+Maurer generalizes the humble Schnorr signature / proof, which lets you
+prove knowledge of a scalar $x$ such that $x \cdot G = X$, without
+revealing that scalar.
+The paper generalizes this scheme to work for **any group homomorphism**!
+
+{{<note>}}
+This is a function $\varphi$ such that:
+
+$$
+\varphi(a + b) = \varphi(a) + \varphi(b)
+$$
+{{</note>}}
+
+This captures a very wide swathe of functionality, from the aforementioned
+Schnorr signatures, to Pedersen commitments, to attribute-based credentials,
+to polynomial commitment schemes.
+We'll be seeing how to construct all of these examples, and more,
+in the rest of this post,
+so let's dive right into it!
 
 # Warmup: Schnorr Proofs
 
@@ -783,9 +814,23 @@ because we need to send a group element and a scalar element as our first
 message (for the output of $\varphi$), and then we need to send our response,
 which consists of one scalar for each coefficient in our polynomial.
 
-This is why I call this *the world's worst polynomial commitment scheme*.
+These disadvantages are why I call this *the world's worst polynomial commitment scheme*.
 
 # Conclusion
+
+Hopefully I could impart to you some of the awe I've come to have for Maurer's
+paper.
+It's really a very neat gem with a surprising number of use cases.
+It's quite the shame that more people aren't aware of it!
+
+We've seen how to use it for oblivious PRF proofs, for attribute-based credentials,
+for polynomial commitments, and of course, for the humble Schnorr signature.
+
+I think you'll be able to find many more use-cases which I haven't mentioned
+in this post, such as final exams in cryptography courses :).
+
+The paper itself is a pretty easy read, so you might want to check that out
+as well, along with the other references.
 
 # References
 
