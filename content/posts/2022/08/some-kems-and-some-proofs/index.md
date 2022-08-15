@@ -1766,7 +1766,7 @@ security in key exchanges.
 
 {{<ref
   "[ABHKLR20]"
-  "https://eprint.iacr.org/2018/024"
+  "https://eprint.iacr.org/2020/1499"
   "[ABHKLR20] Analysing the HPKE standard - Joël Alwen, Bruno Blanchet, Eduard Hauck, Eike Kiltz, Benjamin Lipp, Doreen Riepel">}}
 {{<ref
   "[GHP18]"

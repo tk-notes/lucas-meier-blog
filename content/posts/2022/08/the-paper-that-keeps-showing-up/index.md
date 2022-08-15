@@ -498,25 +498,310 @@ $$
 
 # Some Applications
 
+We've now seen what Maurer proofs are, and how general they are.
+While they sure are neat, presented like this they may still be a bit
+uninteresting.
+When I first read the paper, I thought it was cool, but nothing to write home about.
+What really made it one of my favorite papers was accidentally stumbling
+into a bunch of applications that people weren't even aware were specific
+instances of Maurer proofs.
+
+In this section, we'll be going over quite a few of these applications.
+
 ## Schnorr Proofs
+
+I've mentioned this one a few times already, but it's worth seeing again.
+
+With a Schnorr proof, you want to show that you know a secret $x$ such that
+$x \cdot G = X$, with $X$ public.
+
+We can capture this with a convenient notation for relations:
+
+$$
+\\{(G, X ; x)\ |\ x \cdot G = X\\}
+$$
+
+The elements to the left of the $;$ are public, those to the right are private,
+and the statement after the $|$ is the relation which needs to hold.
+
+We can write this as a Maurer relation:
+
+$$
+\\{(\varphi, X ; x)\ |\ \varphi(x) = X\\}
+$$
+
+With $\varphi(x) := x \cdot G$, which is homomorphic.
+
+The challenge set $\mathcal{C}$ can be chosen to be $\mathbb{F}_q$,
+as explained earlier.
 
 ## Guillou-Quisquater Proofs
 
+The Guillou-Quisquater protocol {{<ref-link "GQ88">}} is similar to Schnorr
+proofs, but instead works over an RSA group.
+
+Given an RSA modulus $N$, and public exponent $e$ (which we assume to be prime),
+you can define the following relation:
+
+$$
+\\{(N, e, y ; x) \ |\ x^e \equiv y \mod N \\}
+$$
+
+But, this is really just an instance of a Maurer relation, with the homomorphism:
+
+$$
+\begin{aligned}
+&\varphi : (\mathbb{Z}/(N), \cdot) \to (\mathbb{Z}/(N), \cdot)\cr
+&\varphi(x) := x^e \mod N
+\end{aligned}
+$$
+
+We also need to pick our challenge set $\mathcal{C}$.
+If $e$ is a prime number, then we can simply take $\mathbb{Z}/(e)$,
+as we saw earlier.
+
+We might need several parallel repetitions of the protocol if $e$ is small though.
+
 ## Parallel Schnorr
+
+One useful extension of Schnorr proofs is when you want to prove multiple
+instances in parallel:
+
+$$
+\\{(G, A, B; a, b)\ |\ a \cdot G = A \land b \cdot G = B \\}
+$$
+
+Interestingly enough, this is *also* an instance of a Maurer relation,
+with the homomorphism:
+
+$$
+\begin{aligned}
+&\varphi : \mathbb{F}^2_q \to \mathbb{G}^2\cr
+&\varphi(a, b) := (a \cdot G, b \cdot G)
+\end{aligned}
+$$
+
+For our challenge set, we can simply use $\mathbb{F}_q$,
+since $\text{lcm}(q, q) = q$.
+
+In general, taking products of group homomorphisms is an *extremely*
+useful way to create Maurer relations.
 
 ## Pedersen Commitment Proofs
 
+A Pedersen commitment requires two independent generators $G, H \in \mathbb{G}$,
+and forms the commitment to $x$ as:
+
+$$
+x \cdot G + r \cdot H
+$$
+
+for some blinding factor $r \in \mathbb{F}_q$.
+
+One useful relation is proving that a value $X = x \cdot G$, with $x$
+hidden by a commitment $C$:
+
+$$
+\\{(G, H, X, C; x, r)\ |\ x \cdot G = X \land x \cdot G + r \cdot H = C \\}
+$$
+
+As you might guess, this is in fact a Maurer relation, for the homomorphism:
+
+$$
+\begin{aligned}
+&\varphi : \mathbb{F}_q^2 \to \mathbb{G}^2 \cr
+&\varphi(x, r) := (x \cdot G, x \cdot G + r \cdot H)
+\end{aligned}
+$$
+
+Our challenge set can be $\mathbb{F}_q$ once again.
+
+We can also have an arbitrary homomorphism, and not just $x \cdot G$,
+which is thanks to the flexibility of Maurer proofs.
+
 ## Oblivious PRFs
+
+Another interesting example comes from the Privacy Pass paper {{<ref-link "DGSTV18">}}.
+
+In essence, a server knows a secret key $k$ that allows them to calculate
+a prf via:
+
+$$
+P \mapsto k \cdot P
+$$
+
+If you present $(P, Q)$ such that $Q = k \cdot P$, then the server is convinced
+that it calculated that pair for you, since only it knows $k$, and inverting
+the discrete logarithm is hard.
+In this paper, they use this to create redeemable tokens as an alternative
+to completing captchas.
+
+They also want these tokens to be unlinkable, so they describe a protocol
+which allows getting such a pair $(P, Q)$ without revealing it to the server.
+
+The idea is to send $P' := r \cdot P$, have the server reply with $k \cdot P'$,
+which you can then unblind to get $Q := r^{-1} \cdot k \cdot P' = k \cdot P$.
+
+One subtlety is that you need to make sure that the server actually
+used the same $k$ here that they've been using for other people.
+
+One way to do this is for the server to publish $K := k \cdot G$ in advance,
+and then provide a proof for the relation:
+
+$$
+\\{(G, P', Q' ; k )\ |\ k \cdot G = K \land k \cdot P' = Q' \\}
+$$
+
+And, if you can believe it, this is an instance of a Maurer relation, with
+the homomorphism:
+
+$$
+\varphi(k) := (k \cdot G, k \cdot P')
+$$
 
 ## Attribute-Based Credentials
 
+Attribute-based credentials are an amazing piece of technology which
+I won't have time to explain here.
+I will only a little bit of the Pointcheval-Sanders scheme {{<ref-link "PS15">}}
+here anyways.
+
+Their scheme uses two proofs.
+
+The first is for the relation:
+
+$$
+\\{(G, C, Y_1, \ldots, Y_n; t, a_1, \ldots, a_n) \ |\ C = t \cdot G + \sum_i a_i \cdot Y_i \\}
+$$
+
+This is, as you might have come to expect by now, an instance of a Maurer
+relation, with the homomorphism:
+
+$$
+\varphi(t, a_1, \ldots, a_n) := t \cdot G + \sum_i a_i \cdot Y_i
+$$
+
+The second proof they use is for the substantially more complicated relation:
+
+$$
+\begin{aligned}
+&\\{(\sigma_1, \sigma_2, \tilde{G}, \tilde{X}, \tilde{Y}_1, \ldots, \tilde{Y}_n ; t, a_1, \ldots, a_n) \ | \ \cr
+&e(\sigma_2, \tilde{G}) - e(\sigma_1, \tilde{X}) = t \cdot e(\sigma_1, \tilde{G}) + \sum_i a_i \cdot e(\sigma_1, \tilde{Y}_i)\cr
+&\\}
+\end{aligned}
+$$
+
+(Here $e$ denotes a pairing $\mathbb{G}_1 \times \mathbb{G}_2 \to \mathbb{G}_T$)
+
+I had to implement this for a class, and the first time I saw this,
+I was a bit taken aback.
+
+That is, until I realized that this was an instance of a Maurer relation.
+
+Indeed, all of the pairing stuff is really fluff, because those just become
+public values.
+If we squint a bit, we have:
+
+$$
+\blacksquare = t \cdot \blacksquare  + \sum_i a_i \cdot \blacksquare
+$$
+
+But this part on the right is just a homomorphism of $t$ and $a_i$, which
+we can write as:
+
+$$
+\varphi(t, a_1, \ldots, a_n) := t \cdot e(\sigma_1, \tilde{G}) + \sum_i a_i \cdot e(\sigma_1, \tilde{Y}_i)
+$$
+
+The output of this group is an element in $\mathbb{G}_T$, so it suffices
+to take integers less than the smallest prime factor in the order of $\mathbb{G}_T$ as our challenge set.
+
 ## TWW Polynomial Commitment Scheme
+
+Finally, let's conclude our examples with a polynomial commitment scheme,
+which doesn't require any fancing pairings or trusted setups.
+
+A polynomial $p$ of degree $d$ consists of $d + 1$ coefficients:
+
+$$
+p_0 + p_1 \cdot X + \ldots + p_{d} \cdot X^{d}
+$$
+
+Rather than an element of $\mathbb{F}\_q[X]\_{\leq d}$, we can see this polynomial as a vector ${\bold{p} \in \mathbb{F}_q^{d + 1}}$.
+
+If we have $d + 2$ independent generators $H, G_0, \ldots, G_d$, we can
+create a commitment scheme in the same way as for Pedersen commitments:
+
+$$
+\text{Com}(p, r) := r \cdot H + \sum_i p_i \cdot G_i
+$$
+
+One neat property of this scheme is that it's homomorphic with respect
+to its inputs $p$ and $r$.
+
+This is all fine and dandy, but not very useful unless we can create opening
+proofs.
+
+This is a proof that:
+
+$$
+\\{(y, x, C; p, r)\ |\ \text{Com}(p, r) = C \land p(x) = y\\}
+$$
+
+In other words, the polynomial behind the commitment evaluates to $y$
+at the point $x$.
+
+Now, the $\text{Com}(p, r)$ part is homomorphic, but what about the $p(x) = y$
+part?
+
+Well, one way to write $p(x)$ is as:
+
+$$
+\sum_i p_i \cdot x^i
+$$
+
+From here, it's clear that $p(x) + q(x) = (p + q)(x)$:
+
+$$
+(\sum_i p_i \cdot x^i) + (\sum_i q_i \cdot x^i) = \sum_i (p_i + q_i) \cdot x^i
+$$
+
+Because of this, our opening proof is merely an instance of a Maurer relation!
+
+The homomorphism we use is:
+
+$$
+\varphi(p, r) := (r \cdot H + \sum_i p_i \cdot G_i, \sum_i p_i \cdot x^i)
+$$
+
+And we can use $\mathbb{F}_q$ as our challenge set, once again.
+
+The disadvantage of this scheme is that opening proofs are quite large.
+
+The communication complexity is $|\mathbb{G}| + (d + 2) \cdot |\mathbb{F}_q|$,
+because we need to send a group element and a scalar element as our first
+message (for the output of $\varphi$), and then we need to send our response,
+which consists of one scalar for each coefficient in our polynomial.
+
+This is why I call this *the world's worst polynomial commitment scheme*.
 
 # Conclusion
 
 # References
 
 {{<ref
+  "DGSTV18"
+  "https://www.petsymposium.org/2018/files/papers/issue3/popets-2018-0026.pdf"
+  "[DGSTV18] Privacy Pass: Bypassing Internet Challenges Anonymously - Alex Davidson, Ian Goldberg, Nick Sullivan, George Tankersly, Filippo Valsorda">}}
+{{<ref
+  "GQ88"
+  "https://link.springer.com/content/pdf/10.1007/0-387-34799-2_16.pdf"
+  "[GQ88] A Paradoxical Identity-Based Signature Scheme Resulting from Zero-Knowledge - Louis C. Guillou, Jean-Jacques Quisquater">}}
+{{<ref
   "Mau09"
   "https://crypto.ethz.ch/publications/files/Maurer09.pdf"
   "[Mau09] Unifying Zero-Knowledge Proofs of Knowledge - Ueli Maurer">}}
+{{<ref
+  "PS15"
+  "https://eprint.iacr.org/2015/525.pdf"
+  "[PS15] Short Randomizable Signatures - David Pointcheval, Olivier Sanders">}}
