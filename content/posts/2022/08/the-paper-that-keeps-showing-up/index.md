@@ -1,6 +1,6 @@
 ---
 title: "The Paper that Keeps Showing Up"
-date: 2022-08-14T08:00:01+02:00
+date: 2022-08-14T08:00:00+02:00
 draft: true
 katex: true
 tags:
@@ -18,6 +18,7 @@ It showed up as part of the paper my colleague and I reviewed for a seminar,
 it showed up for attribute-based credentials in a course about Privacy-Enhancing-Technologies,
 it showed up in an advanced Cryptography course for two homeworks, *and*
 on the final exam!
+
 
 Everywhere I go, I see this paper, and no one even seems to be aware of the
 fact that they're using it!
