@@ -135,34 +135,34 @@ the public value $X$.
 Capturing the notion of "not learning any information" is tricky.
 To do this, we use a *simulator* $\mathcal{S}$.
 This simulator $\mathcal{S}$ takes as input the public input $X$,
-and the challenge $e$, and then creates values $K$ and $s$ which should
+and the challenge $c$, and then creates values $K$ and $s$ which should
 have the same distribution of the actual messages sent by the prover in
 the real protocol.
 
 The intuition here is that because the verifier can't distinguish between
 the messages from a real protocol, and the messages created by the simulator,
 then they learn nothing that they didn't know before, since they already
-had access to both $X$ and $e$.
+had access to both $X$ and $c$.
 It's important that the verifier behave honestly, and choose their challenge
-$e$ at random, and not change the way they choose $e$ based on $K$.
-Because this challenge $e$ is independent from $K$, you could generate
+$c$ at random, and not change the way they choose $c$ based on $K$.
+Because this challenge $c$ is independent from $K$, you could generate
 it before even seeing $K$, which means that the messages that you see
 after that, including $K$, could be coming from a simulator instead, without
 the verifier realizing it.
-On the other hand, if the verifier misbehaves, and chooses $e$ differently
+On the other hand, if the verifier misbehaves, and chooses $c$ differently
 depending on $K$, then our simulation strategy has to work a bit differently.
 
 In this case, the simulator is pretty simple.
 We know that the commitment $K$ and response $s$ must satisfy:
 $$
-s \cdot G = K + e \cdot X
+s \cdot G = K + c \cdot X
 $$
 
-Our simulator $\mathcal{S}$ needs to return $(K, s)$ as a function of $(X, e)$.
+Our simulator $\mathcal{S}$ needs to return $(K, s)$ as a function of $(X, c)$.
 One way to do this is to simply choose $s$ at random, and then set:
 
 $$
-K \gets s \cdot G - e \cdot X
+K \gets s \cdot G - c \cdot X
 $$
 
 Because $s$ is random, the value $K$ ends up also being a random group element,
@@ -182,8 +182,8 @@ We don't want the prover to be able to convince the verifier unless they
 *actually* know an $x$ such that $x \cdot G = X$.
 
 Our strategy to show this will be to use an *extractor*.
-The idea is that if we have two transcripts $(K, e, s)$ and $(K, e', s')$,
-with $e \neq e'$,
+The idea is that if we have two transcripts $(K, c, s)$ and $(K, c', s')$,
+with $c \neq c'$,
 which share the same first message, then our extractor $\mathcal{E}$ will be able
 to produce a value $\hat{x}$ satisfying ${\hat{x} \cdot G = X}$.
 
@@ -192,9 +192,9 @@ This means that the prover must have known such a value.
 The intuition here is that you treat the prover as a machine with the value embedded
 inside of it, somehow.
 Then, you can get these two transcripts by *rewinding* this machine.
-After sending the first challenge $e$ and getting the response $s$,
+After sending the first challenge $c$ and getting the response $s$,
 you rewind the machine back to the point where it sent $K$, and now you
-send it a new challenge $e'$, and get a new response $s'$.
+send it a new challenge $c'$, and get a new response $s'$.
 
 Intuitively, if the value $x$ is embedded inside of the machine, 
 then rewinding doesn't change this fact.
@@ -217,31 +217,31 @@ can of worms best left unopened for now.
 
 With that aside, let's actually create this extractor, shall we?
 
-Given our two transcripts $(K, e, s)$ and $(K, e', s')$ we know that they
+Given our two transcripts $(K, c, s)$ and $(K, c', s')$ we know that they
 must satisfy:
 
 $$
 \begin{aligned}
-&s \cdot G = K + e \cdot X\cr
-&s' \cdot G = K + e' \cdot X\cr
+&s \cdot G = K + c \cdot X\cr
+&s' \cdot G = K + c' \cdot X\cr
 \end{aligned}
 $$
 
 If we subtract the two equations, we get:
 
 $$
-(s - s') \cdot G = (e - e') \cdot X
+(s - s') \cdot G = (c - c') \cdot X
 $$
 
-Finally, since $e \neq e'$, we can divide by $(e - e')$ to get:
+Finally, since $c \neq c'$, we can divide by $(c - c')$ to get:
 
 $$
-\frac{(s - s')}{(e - e')} \cdot G = X
+\frac{(s - s')}{(c - c')} \cdot G = X
 $$
 
 We now see that if our extractor sets:
 $$
-\hat{x} \gets (s - s') / (e - e')
+\hat{x} \gets (s - s') / (c - c')
 $$
 
 then they've managed to find a value $\hat{x}$ such that $\hat{x} \cdot G = X$,
