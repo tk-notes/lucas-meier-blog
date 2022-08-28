@@ -299,12 +299,12 @@ $$
 Schnorr proofs are a specific case of these proofs, with the homomorphism:
 $$
 \begin{aligned}
-\varphi &: (\mathbb{F}_q, +) \to \mathbb{G}\cr
-\varphi(x) &:= x \cdot G\cr
+\psi &: (\mathbb{F}_q, +) \to \mathbb{G}\cr
+\psi(x) &:= x \cdot G\cr
 \end{aligned}
 $$
 
-The protocol is very similar to Schnorr proofs as well:
+The protocol for the general case of $\varphi : \mathbb{A} \to \mathbb{B}$ is very similar to Schnorr proofs as well:
 
 $$
 \boxed{
