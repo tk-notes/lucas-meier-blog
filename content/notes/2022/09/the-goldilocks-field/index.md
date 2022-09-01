@@ -37,3 +37,12 @@ $$
 \omega = \texttt{0x185629dcda58878c}
 $$
 
+## Addendum
+
+Shotouts to [@mjos_crypto](https://twitter.com/mjos_crypto) for finding a smaller root of unity:
+
+$$
+\omega = 20033703337
+$$
+
+([https://twitter.com/mjos_crypto/status/1565438293717786625](https://twitter.com/mjos_crypto/status/1565438293717786625))
