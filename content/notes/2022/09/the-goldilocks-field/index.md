@@ -37,6 +37,16 @@ $$
 \omega = \texttt{0x185629dcda58878c}
 $$
 
+## Extensions
+
+$x^2 + 7$ is an irreducible polynomial of degree 2 in $\mathbb{F}_p[x]$
+
+$x^3 + 3$ is an irreducible polynomial of degree 3 in $\mathbb{F}_p[x]$
+
+We can use these to define $\text{GF}(p^2)$ and $\text{GF}(p^3)$,
+respectively, giving us fields of size $\text{128}$ and $\text{192}$ bits.
+
+
 ## Addendum
 
 Shotouts to [@mjos_crypto](https://twitter.com/mjos_crypto) for finding a smaller root of unity:
