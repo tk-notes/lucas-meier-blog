@@ -125,6 +125,7 @@ $$
 \begin{aligned}
 &\\{(P_{i, j}, P_{i, j - 1}, \bold{R}; \bold{r})\ |\\cr
 &\quad \forall i \in [n - 1].\ \bold{r}_1 \cdot \bold{R}_i = \bold{R}_{i + 1}\cr
+&\quad \forall i \in [n].\ \bold{r}_i \cdot G = \bold{R}_{i}\cr
 &\quad \forall i \in [n].\ \bold{r}_i \cdot P_{i, j - 1} = P_{i, j}\cr
 &\\}\cr
 \end{aligned}
