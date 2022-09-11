@@ -22,7 +22,7 @@ This is what I'll try to describe in this note.
 
 # A Stateful Hasher
 
-The state will simply be a key $k \in \{0, 1\}^{2\lambda}$, or whatever the size of keys for your keyed hash function is. For $\lambda$ bits of security, you do need a key of size $2 \lambda$ because of collisions.
+The state will simply be a key $k \in \\{0, 1\\}^{2\lambda}$, or whatever the size of keys for your keyed hash function is. For $\lambda$ bits of security, you do need a key of size $2 \lambda$ because of collisions.
 
 The state will be initialized from the context $\text{ctx}$, by setting $k \gets \text{KDF}(\text{ctx})$.
 
