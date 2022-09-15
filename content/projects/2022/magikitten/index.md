@@ -1,5 +1,5 @@
 ---
-title: "Meow"
+title: "Magikitten"
 date: 2022-09-15
 type: project
 tech:
