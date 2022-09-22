@@ -46,7 +46,54 @@ now let's just focus on these two.
 
 ## Boundary Constraints
 
+This kind of constraint asserts that a register
+takes on a certain value at some point in time.
+This is useful for asserting that the correct
+input was used, or that the computation produced
+a certain output, among other things.
+
+Concretely, a boundary constraint is a tuple
+$(i, j, \alpha)$, which represents the assertion:
+$$
+f_i[j] = \alpha
+$$
+In other words, the $i$-th register is equal
+to $\alpha$ at time $j$.
+
 ## Transition Constraints
+
+This kind of constraint is about the *evolution*
+of the trace.
+It asserts that two subsequent time steps of the
+computation satisfy a certain relation.
+One way this can be used is to check that a certain
+program is being used to move the state forward.
+
+Concretely, a transition constraint is
+a polynomial $P$ over $2w$ variables.
+This represents the assertion:
+$$
+\forall j \in [T - 1].\ P(f_1[j], \ldots, f_w[j], f_1[j + 1], \ldots, f_w[j + 1]) = 0
+$$
+In other words, at each time step, a certain relation
+holds between the current state, and the next state.
+
+In the common case that each state is a function
+of the previous state, we can use a simple relation,
+which checks that $s_{j + 1} = f(s_j)$.
+
+That said, the transition constraints are actually
+more general. For example, we could instead
+check that $s_{j} = f(s_{j + 1})$, in effect
+running the computation "backwards".
+
+This bidirectionality is very useful.
+For example, if we want to calculate the square root
+of some number, we can do that outside of the trace,
+and then assert that $s_{i + 1}^2 = s_i$,
+which is simpler to check than $\sqrt{s_i} = s_{i + 1}$.
+
+## Why both are necessary
 
 # Arithmetized Traces
 
