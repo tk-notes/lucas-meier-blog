@@ -8,9 +8,43 @@ tags:
   - "ZK Proofs"
 ---
 
-Recently.
+I've been playing around with [STARKs](https://eprint.iacr.org/2018/046) lately,
+meandering my way towards a toy implementation.
+One of the things I struggled with initially was the way STARKs structure
+their arithmetization: the way computation is laid out to make it easier
+to prove things about.
+
+While a bit hard to grasp at first, there was a definite moment
+where my understanding clicked into place, and I finally "got" what
+the arithmetization was all about, and how it worked.
+
+Hopefully I can share a bit of this insight with you through this post.
 
 # What is Arithmetization?
+
+First, what is *arithmetization* anyways?
+
+For any proving system, you need some way to represent your computation.
+The way most computers end up representing computation is with
+some kind of assembly language, which describes stateful operations
+over registers and memory, at least with most architectures we use today.
+These operations are usually defined over bits.
+
+Most SNARKs, on the other hand, would rather work with operations
+over large *fields*.
+There are many reasons for this, but the basic reason is that it's
+much easier to create succinct proofs using fields and polynomials,
+because of the nice error-correcting properties they have.
+
+The basic way to express computation using fields would be as
+an *arithmetic circuit*.
+You can think of this as a big expression graph, where the basic
+operations are addition and multiplication.
+
+While this circuit is enough to express any computation, the unstructured
+nature of a raw circuit makes it difficult to implement SNARKs directly.
+Instead, one usually choose a more structure format, like R1CS,
+Plonkish arithmetization, etc.
 
 # Execution Traces and Constraints
 
@@ -317,3 +351,10 @@ like having a selector with a regular pattern of occurrence,
 rather than being able to occurr arbitrarily like with PLONK.
 
 # Conclusion
+
+I think the best resource for really diving deep into how STARKs
+work is the [ethSTARK paper](https://eprint.iacr.org/2021/582),
+and is probably what solidified my own knowledge the most.
+
+Otherwise, there are plenty of more introductory material on STARKs.
+In particular, I like the [STARK Anatomy](https://neptune.cash/learn/stark-anatomy/) series of posts by Alan Szepieniec.
