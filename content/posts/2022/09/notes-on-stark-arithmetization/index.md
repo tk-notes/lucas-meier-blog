@@ -291,6 +291,29 @@ It's better to have many constraints of low degree than a single constraint
 of large degree.
 In practice, all of the constraints get coalesced during the protocol.
 
-# A Comparison with (Turbo)-Plonk
+# A Comparison with (Turbo)-PLONK
+
+Let's compare this, briefly, with [(Turbo)-PLONK](https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf),
+which I am admittedly less well-versed in.
+
+If you read the document linked above, you'll notice that the idea
+of an execution trace is also present.
+
+One main difference is that PLONK has the notion of *selectors*
+which aren't, by themselves, present in the AIR arithmetization.
+
+Next, rather than having quotient polynomials which indicate where
+a constraint should hold, PLONK instead uses wiring constraints.
+These allow for computation with less repeated structure, because you
+can have arbitrary gaps in your wiring, whereas AIR really needs
+a regular constraint, in order to have a simple quotient.
+
+Another difference is the use of selectors, which lets PLONK merge
+several constraints into a single one, by using the selectors
+to indicate which constraint is "active".
+
+AIR instead opts to use quotient polynomials here, which is essentially
+like having a selector with a regular pattern of occurrence,
+rather than being able to occurr arbitrarily like with PLONK.
 
 # Conclusion
