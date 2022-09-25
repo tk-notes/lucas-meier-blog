@@ -1,7 +1,7 @@
 ---
 title: "Notes on STARK Arithmetization"
-date: 2022-09-22T08:51:31+00:00
-draft: true
+date: 2022-09-25T11:36:07+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -10,11 +10,14 @@ tags:
 
 I've been playing around with [STARKs](https://eprint.iacr.org/2018/046) lately,
 meandering my way towards a toy implementation.
-One of the things I struggled with initially was the way STARKs structure
-their arithmetization: the way computation is laid out to make it easier
-to prove things about.
+<!--more-->
 
-While a bit hard to grasp at first, there was a definite moment
+One thing I struggled with at first was understanding how arithmetization
+worked with STARKs.
+This arithmetization describes how computation is structured, in order
+to make it easier to prove things about that computation.
+
+While a bit hard to grasp at first, there was a clear moment
 where my understanding clicked into place, and I finally "got" what
 the arithmetization was all about, and how it worked.
 
@@ -25,7 +28,7 @@ Hopefully I can share a bit of this insight with you through this post.
 First, what is *arithmetization* anyways?
 
 For any proving system, you need some way to represent your computation.
-The way most computers end up representing computation is with
+The way most computers end up representing a program is in
 some kind of assembly language, which describes stateful operations
 over registers and memory, at least with most architectures we use today.
 These operations are usually defined over bits.
@@ -34,16 +37,16 @@ Most SNARKs, on the other hand, would rather work with operations
 over large *fields*.
 There are many reasons for this, but the basic reason is that it's
 much easier to create succinct proofs using fields and polynomials,
-because of the nice error-correcting properties they have.
+because of the nice error correcting properties they have.
 
 The basic way to express computation using fields would be as
 an *arithmetic circuit*.
 You can think of this as a big expression graph, where the basic
 operations are addition and multiplication.
 
-While this circuit is enough to express any computation, the unstructured
-nature of a raw circuit makes it difficult to implement SNARKs directly.
-Instead, one usually choose a more structure format, like R1CS,
+While this is enough to express any computation, the unstructured
+nature of a raw circuit makes it more difficult to implement SNARKs.
+Instead, one usually choose a more structured format, like R1CS,
 Plonkish arithmetization, etc.
 
 # Execution Traces and Constraints
@@ -51,7 +54,7 @@ Plonkish arithmetization, etc.
 The kind of arithmetization used in STARKs is called an
 *Algebraic Intermediate Representation* (AIR).
 The starting point for an AIR is an *execution trace*.
-Conceptually, this represents the evolution
+This represents the evolution
 of some computation through time.
 
 More concretely, an exection trace is a matrix
@@ -76,8 +79,8 @@ was performed correctly.
 These constraints come in two basic forms:
 - Boundary Constraints.
 - Transition Constraints.
-Later in this post we'll see how to generalize
-this to a broader kind of constraint, but for
+Later in this post we'll see how to abstract these
+into a more general kind of constraint, but for
 now let's just focus on these two.
 
 ## Boundary Constraints
@@ -102,8 +105,8 @@ This kind of constraint is about the *evolution*
 of the trace.
 It asserts that two subsequent time steps of the
 computation satisfy a certain relation.
-One way this can be used is to check that a certain
-program is being used to move the state forward.
+One way this can be used is to check that the execution trace
+stems from iterating a function many times in a row.
 
 Concretely, a transition constraint is
 a polynomial $P$ over $2w$ variables.
@@ -132,11 +135,11 @@ which is simpler to check than $\sqrt{s_i} = s_{i + 1}$.
 ## Why both are necessary
 
 The interplay between both kinds of constraints is what makes an AIR powerful.
-Having just one of the constraints would make a anemic constraint system.
+Having just one of the constraints would make an anemic constraint system.
 
 If you only had transition constraints, but no boundary constraints,
 then it would be very difficult to enforce that the the computation
-have a certain input or output.
+has a certain input or output.
 You'd be able to control the relation between adjacent points in time,
 but not specific values.
 
@@ -154,7 +157,7 @@ In some sense, our current understanding of an AIR is complete.
 You can use just the constraints we've defined so far, and capture any
 program.
 
-That said, you can in fact create more general constraints, which allows
+That said, you can in fact create more general constraints, which allow
 expressing complicated computation with fewer constraints.
 One thing you can do is to have a periodic constraint,
 allowing you to claim that every 4th row in some column takes on a particular
@@ -213,7 +216,7 @@ If the polynomial on the left is $0$ at $\omega^0$, then the constraint
 holds, and $(X - \omega^0)$ will divide it, since all the roots in this
 quotient are also present in the constraint polynomial.
 
-The way we check constraint like this in STARKs is by checking that:
+The way we check constraints like this in STARKs is by checking that:
 $$
 \frac{C(X)}{Q(X)}
 $$
@@ -255,7 +258,7 @@ useful.
 This means that $\omega^0, \ldots, \omega^{T - 1}$ are all of the values
 such that $\omega^T = 1$.
 In other words, the polynomial $X^T - 1$ has as roots exactly these powers
-of omega!
+of $\omega$!
 
 This allows us to write our transition constraint thusly:
 
@@ -288,7 +291,7 @@ want the constraint to happen.
 
 # What Costs You?
 
-We've discussed the different kinds of constraints you can hav
+We've discussed the different kinds of constraints you can have
 in a generalized AIR, but only briefly mentioned what makes some
 constraints more expensive than others.
 
@@ -298,9 +301,9 @@ Here's the basic rundown:
 - The constraint polynomial needs to have low degree.
 
 It's important that the quotient polynomial have a short description,
-because the verifiers needs to be able to evaluate it quickly.
+because the verifier needs to be able to evaluate it quickly.
 Something like $(X^T - 1)$ is fine, because you can evaluate $X^T$
-at a point in $\lg T$ steps.
+at a point in $\lg T$ steps. (Using the classic square and multiply trick, for example).
 On the other hand, if the polynomial were described as
 $(X - \omega^0)(X - \omega^1)\ldots$,
 then that would be problematic, since the verifier would need to
@@ -351,6 +354,9 @@ like having a selector with a regular pattern of occurrence,
 rather than being able to occurr arbitrarily like with PLONK.
 
 # Conclusion
+
+Hopefully this post was useful; in any case, here are a few other resources
+you can check out.
 
 I think the best resource for really diving deep into how STARKs
 work is the [ethSTARK paper](https://eprint.iacr.org/2021/582),
