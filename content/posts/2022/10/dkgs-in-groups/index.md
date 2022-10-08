@@ -184,13 +184,40 @@ Writing this out, we get the following protocol:
 **Round 2:**
 
 4. $\bullet$ Each $P_i$ waits to receive $C_j$ from each other $P_j$.
-5. $\star$ Each $P_i$ sends $X_i$ to all other parties.
+5. Each $P_i$ sets $\pi_i \gets \text{Prove}(\varphi, X_i; x_i)$,
+where:
+$$
+\varphi(x) := x \cdot G
+$$
+6. $\star$ Each $P_i$ sends $(X_i, \pi_i)$ to all other parties.
 
 **Round 3:**
 
-6. $\bullet$ Each $P_i$ waits to receive $X_j$ from each other $P_j$.
-7. $\blacktriangle$ Each $P_i$ asserts that $H(X_j) = C_j$.
-8. Each $P_i$ sets $X \gets \sum_{P_i \in \mathcal{P}} X_i$.
+7. $\bullet$ Each $P_i$ waits to receive $(X_j, \pi_j)$ from each other $P_j$.
+8. $\blacktriangle$ Each $P_i$ asserts that $H(X_j) = C_j$ and that $\text{Verify}(\varphi, \pi_j, X_j)$.
+9. Each $P_i$ sets $X \gets \sum_{P_i \in \mathcal{P}} X_i$.
+10. $\square$ Each $P_i$ returns $(x_i, X)$.
+
+{{<note>}}
+At step 3, I mentioned that you need to *broadcast* a message.
+By this I mean that you need a mechanism to enforce that the same
+message is sent to all parties, even if the sender is malicious.
+
+One way of accomplishing this is to have each party send all
+of the $C_j$ they received in round 2, letting the other parties
+check that they received the same commitments.
+{{</note>}}
+
+And so, this is a simple protocol for doing distributed key generation
+with linear shares.
+What's neat with linear sharing is that as soon as each person
+generates a random value $x_i$, they already have a sharing
+$x := \sum_i x_i$, and so the hard part is just sharing $X_i$ in a safe way,
+so that you can learn $X$.
+
+The disadvantage of this kind of sharing is that you need *all*
+of the shares in order to get the secret.
+This is what we'll remedy next.
 
 # Threshold Key Generation
 
