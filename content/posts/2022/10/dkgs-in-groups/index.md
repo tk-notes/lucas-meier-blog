@@ -221,9 +221,132 @@ This is what we'll remedy next.
 
 # Threshold Key Generation
 
+We'd like a way to share a secret in such a way that just a subset
+of the shares is enough to reconstruct the secret.
+For example, with $n$ shares, we might want to be able to use
+just $t < n$ shares to recreate the secret.
+
+The most common way to do this is via polynomials.
+The basic property we use is that given a polynomial $f$ with
+$t$ coefficients, it suffices to evaluate that polynomial at $t$
+points to learn the coefficients.
+
+This reconstruction starts with a special polynomial:
+
+$$
+L_{j,S}(X) := \prod_{i \in S, i \neq j} \frac{(X - i)}{(j - i)}
+$$
+
+This polynomial is such that $L_j(x) = 0$ for all $x \in [t]$
+*except* $j$.
+For $j$, we have $L_j(j) = 1$.
+As an example, for the elements $\\{0, 1, 2, 3\\}$, we'd have $L_1(X)$:
+
+{{<img "1.svg" >}}
+
+We can then reconstruct our polynomial by linear combination, given
+enough points:
+
+$$
+f(X) = \sum_{i \in S} f(i) \cdot L_{i, S}(X)
+$$
+
+Very often, we don't care about the polynomial, but rather it's value
+at $0$, which is often used as our secret.
+This is because $f(0)$ is just the first coefficient (depending on how you count), so it's easy to extend a secret value into a whole polynomial,
+by simply adding extra random coefficients.
+
+In case you just care about a particular value, the equation above becomes:
+
+$$
+f(0) = \sum_{i \in S} f(i) \cdot L_{i, S}(0)
+$$
+
+The value $L_{i, S}(0)$ is usually written as $\lambda_i$ (with $S$ implicit),
+and is known as a Lagrange coefficient.
+
+What's interesting is that if each person has a value $f(i)$, then
+they can create a linear share of $f(0)$ *locally*, by multiplying
+their share $f(i)$ with $\lambda_i$.
+This is convenient, because then the rest of a protocol making use
+of the shares only has to work with linear values.
+
+So, to recap, for sharing a secret $x$ among $n$ participants, such
+that any $t$ of them can reconstruct it, you first generate a polynomial
+$f$ at random, such that $f(0) = x$, and then the shares become
+$f(1), \ldots, f(n)$.
+
+Given $t$ shares, you can create linear shares by multiplying with $\lambda_i$,
+using the set of participants $S$.
+
 ## With a Trusted Dealer
 
+We want to distribute these shares without people actually learning the
+polynomial, of course.
+
+The simplest way to do this would be to trust someone to generate
+this polynomial, send the shares $f(1), \ldots, f(n)$,
+along with $X = f(0) \cdot G$, and then forget the secret.
+
+There are two natural flaws in this approach, one being that
+you need to trust the dealer to forget the secret, and the other
+being that the dealer might generate shares which don't actually
+correspond to polynomial evaluations, and thus don't let the participants
+reconstruct the secret.
+
 # Without a Dealer
+
+A graver flaw in using a dealer is that it's just not fun.
+
+Let's remedy this with a protocol, like we did previously with just
+linear shares.
+
+Instead of having a single person act as a dealer, each person
+acts as a dealer.
+To do this, we use the same trick with linear shares.
+If each person generates a polynomial $f_i$ locally, then there's
+an *implicit* polynomial $f$ shared linearly among them, defined
+as $f = \sum_i f_i$.
+
+Another neat property is that polynomial evaluation is homomorphic,
+i.e.
+$$
+f(i) + g(i) = (f + g)(i)
+$$
+
+This immediately gives us a semi-honest protocol for threshold
+key generation:
+
+1. Each $P_i$ generates a random polynomial $f_i$ of degree $t$.
+2. $\star$ Each $P_i$ sends $X_i \gets f_i(0) \cdot G$ to every other party.
+3. $\textcolor{red}{\star}$ Each $P_i$ *privately* sends $x_i^j \gets f_i(j)$ to every other $P_j$.
+4. $\bullet$ Each $P_i$ waits to receive $X_j$ and $x_j^i$ from every other $P_j$.
+5. Each $P_i$ sets $X \gets \sum_i X_i$, and $x_i \gets \sum_j x_j^i$.
+6. $\square$ Each $P_i$ returns $(x_i, X)$.
+
+The idea follows the sketch from before.
+After generating $f_i$ locally, there's an implicit polynomial $f$
+shared linearly.
+Each person needs to learn $f(i)$, and $f(0) \cdot G$ is the public key.
+Since $f = \sum_j f_j$, it suffices to let each person
+act as a dealer, sending $f_j(i)$ and $f_j(0) \cdot G$, which
+can then be summed locally.
+
+Of course, this only works if parties follow the protocol.
+If parties are malicious, we run into the same two issues we had with
+our original naive key generation protocol.
+Namely, a party can choose their inputs after seeing those of other parties,
+and a party can send a value $X_i$ without knowing its discrete logarithm.
+
+Furthermore, we also run into a new issue, namely that the shares
+$x_i^j$ may not actually correspond to evaluations of a polynomial
+with the right degree, which is bad.
+
+We'll fix the first two with commitments and zero-knowledge proofs,
+as before.
+For the new issue, we have a bit more flexibility in how we tackle it.
+
+# First Version
 
 # Second Version
 
