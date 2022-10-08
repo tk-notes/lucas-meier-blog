@@ -59,6 +59,8 @@ If we have a trusted third party, then they can be the "dealer",
 and the distribute the shares $x_1, \ldots, x_n$, while informing
 the group of the public key $X := x \cdot G$.
 
+{{<img "2.svg">}}
+
 What's interesting is how to *remove* this dealer, so that a group
 of people can set up a key without needing to trust a third party.
 
@@ -75,6 +77,8 @@ This protocol shouldn't let a party learn the other shares either.
 Ideally, even if participants deviate from the protocol, they shouldn't
 be able to learn private information or bias the result either,
 but we'll get to security later.
+
+{{<img "3.svg">}}
 
 For now, let's just look at the basic principle behind how you'd
 make this work.
