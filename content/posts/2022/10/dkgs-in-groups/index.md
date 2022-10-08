@@ -405,6 +405,12 @@ One extra optimization is that we aggregate our verification of our
 share, checking the final share $x_i$ against the polynomial $f$, rather
 than each part $x_j^i$ against $f_j$.
 
+One disadvantage of the aggregation is that it prevents us from identifying
+that a specific person gave us a bad share.
+If our final share is bad, we don't know which person is at fault.
+You could also do an individual check, which makes attributing blame
+a lot easier.
+
 Otherwise, we follow the sketch from above.
 
 This is the most common kind of distributed key generation, at least
@@ -412,4 +418,52 @@ when it comes to threshold sharings of scalars.
 
 # Second Version
 
+Another idea is that instead of sending $f_{i, k} \cdot G$, you instead
+send $F_i^j := f_i(j) \cdot G$, for each other $j$.
+
+Then, you'll be able to check your share $x_i^j$ via:
+$$
+x_i^j \cdot G = F_i^j
+$$
+
+Now, you do still want to check that the $F_i^j$ actually come from
+evaluating some polynomial $f_i$.
+
+This can be done with a Maurer proof, using:
+
+$$
+\varphi(f) := [f(j) \cdot G | j \in [0, \ldots, n]]
+$$
+
+you also want to check that they know the secret $f(0)$,
+so we include $j = 0$ in this list of elements as well.
+
+Now, notice that since polynomial evaluation is homomorphic,
+then so will $\varphi$ be.
+
+A sketch of the resulting protocol is then that you first
+generate $f_i$, then calculate $F_i^j \gets f_i(j) \cdot G$.
+You then send a commitment $H(F_i^0, \ldots, F_i^n)$.
+After seeing everyone else's commitment, you reveal $F_i^j$,
+along with your proof $\pi_i$, and then privately send
+$f_i(j)$ to everybody else.
+You verify everyone else's proof, and then sum up your private shares
+and the $F_j^0$ values to get the public key.
+
+This protocol is usually worse than the other protocol we saw, but
+might be better for large thresholds, and where you also want
+to know $x_j \cdot G$, for each person's share $x_j$.
+This last value is useful if you want identifiable aborts in subsequent
+protocols using the shares.
+
 # Conclusion
+
+This was just a brief note on distributed key generation, and hopefully
+of some use.
+Another good post on DKGs is ["Walking Through Distributed Key Generation"](https://thork.net/posts/2022_4_21_dkg/), although unfortunately
+it uses multiplicative group notation, but this is an affront worth
+tolerating to read the nice introduction to the subject.
+
+In most situations the first protocol I showed is what you'll end up using,
+but I thought including the second protocol was fun, just to show that
+there is some flexibility in how these things are designed.
