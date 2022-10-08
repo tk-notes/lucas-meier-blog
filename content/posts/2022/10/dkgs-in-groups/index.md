@@ -1,7 +1,7 @@
 ---
 title: "DKGs in Groups"
 date: 2022-10-07
-draft: false
+draft: true
 katex: true
 tags:
   - "Cryptography"
@@ -172,6 +172,25 @@ $X_i \gets x_i \cdot G$, and then send $H(X_i)$ to everyone else.
 They then wait to receive these commitments before sending out $X_i$.
 They then check that the received shares match the commitments, and then
 sum them together.
+
+Writing this out, we get the following protocol:
+
+**Round 1:**
+
+1. Each $P_i$ generates $x_i \xleftarrow{R} \mathbb{F}_q$, and sets $X_i \gets x_i \cdot G$.
+2. Each $P_i$ sets $C_i \gets H(X_i)$.
+3. $\star$ Each $P_i$ *broadcasts* $C_i$ to all other parties.
+
+**Round 2:**
+
+4. $\bullet$ Each $P_i$ waits to receive $C_j$ from each other $P_j$.
+5. $\star$ Each $P_i$ sends $X_i$ to all other parties.
+
+**Round 3:**
+
+6. $\bullet$ Each $P_i$ waits to receive $X_j$ from each other $P_j$.
+7. $\blacktriangle$ Each $P_i$ asserts that $H(X_j) = C_j$.
+8. Each $P_i$ sets $X \gets \sum_{P_i \in \mathcal{P}} X_i$.
 
 # Threshold Key Generation
 
