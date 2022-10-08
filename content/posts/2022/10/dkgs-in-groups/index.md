@@ -348,6 +348,68 @@ For the new issue, we have a bit more flexibility in how we tackle it.
 
 # First Version
 
+The first approach to ensuring that the shares are correct
+is to reveal the polynomial, but hidden behind a group element.
+
+In essence, if you knew the coefficients of the polynomial, you would
+be able to check that your share was correct, via:
+$$
+x_i^j \stackrel{?}{=} \sum_k f_{i, k} j^k
+$$
+
+where $f_{i, k}$ is the $k$-th coefficient of $f_{i}$.
+
+Now, revealing $f_{i, k}$ is obviously bad.
+But, revealing $f_{i, k} \cdot G$ would be ok.
+And if we knew $F_{i, k} = f_{i, k} \cdot G$, we could still check our
+equation:
+$$
+x_i^j \cdot G \stackrel{?}{=} \sum_k j^k \cdot F_{i, k}
+$$
+
+Thus, our strategy here will be to reveal these $F_{i, k}$ values,
+allowing others to check that our share was correctly distributed.
+
+Naturally, we also need commitments, along with a zero-knowledge
+proof for $F_{i, 0}$.
+
+In more detail, we would have:
+
+**Round 1:**
+
+1. Each $P_i$ generates a random polynomial $f_i$ of degree $t - 1$.
+2. Each $P_i$ sets $F_{i, k} \gets f_{i, k} \cdot G$ for $k \in [0 \ldots t - 1]$.
+3. $\star$ Each $P_i$ sets $C_i \gets H(F_{i, 0})$, and then broadcasts $C_i$.
+
+**Round 2:**
+
+4. $\bullet$ Each $P_i$ waits to receive $C_j$ from every $P_j$.
+5. Each $P_i$ sets $\pi_i \gets \text{Prove}(\varphi, F_{i, 0}; f_{i, 0})$,
+where:
+$$
+\varphi(x) := x \cdot G
+$$
+6. $\star$ Each $P_i$ sends $F_{i, k}$ and $\pi_i$ to every other $P_j$.
+7. $\textcolor{red}{\star}$ Each $P_i$ privately sends $f_i(j)$ to every other $P_j$.
+
+**Round 3:**
+
+8. $\bullet$ Each $P_i$ waits to receive $F_{j, k}$ and $\pi_j$ from every other $P_j$.
+9. $\blacktriangle$ Each $P_i$ asserts that $\text{Verify}(\varphi, \pi_j, F_{j, 0})$.
+10. $\bullet$ Each $P_i$ waits to receive $x_j^i$ from every other $P_j$.
+11. Each $P_i$ sets $x_i \gets \sum_j x_j^i$ and $X \gets \sum_j F_{j, 0}$.
+12. Each $P_i$ asserts that $x_i = \sum_k i^k \cdot \sum_j F_{j, k}$.
+13. $\square$ Each $P_i$ returns $(x_i, X)$.
+
+One extra optimization is that we aggregate our verification of our
+share, checking the final share $x_i$ against the polynomial $f$, rather
+than each part $x_j^i$ against $f_j$.
+
+Otherwise, we follow the sketch from above.
+
+This is the most common kind of distributed key generation, at least
+when it comes to threshold sharings of scalars.
+
 # Second Version
 
 # Conclusion
