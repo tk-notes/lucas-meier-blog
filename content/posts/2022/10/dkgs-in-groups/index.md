@@ -1,7 +1,7 @@
 ---
 title: "DKGs in Groups"
-date: 2022-10-07
-draft: true
+date: 2022-10-09T11:36:06+02:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
