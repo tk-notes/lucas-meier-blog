@@ -45,12 +45,50 @@ but I doubt you'll be convinced by just the few things I've said so far,
 so in the rest of this post I'll be elaborating and explaining this
 perspective in more detail.
 
-# Cryptography is about Security
+# Cryptography is about Security?
 
-The most common perspective.
+Let's start by examining the most common perspective that presentations
+of theoretical cryptography share.
+I don't actually have any statistics for this, but it is common
+across various theoretical tomes like Goldreich's [series of books](https://www.wisdom.weizmann.ac.il/~oded/foc.html),
+[Boneh & Shoup](https://toc.cryptobook.us/), etc.
 
-Cryptography is about security.
+This modern perspective is about trying to define what
+it means for various cryptographic schemes to be secure.
+You want to have encryption schemes producing ciphertexts
+that are hard to decrypt, signature schemes
+producing signatures that are hard to forge, and so on.
 
+The goal of theoretical cryptography, is then about:
+- how to characterize the desirable properties of cryptographic schemes,
+- how to define what it means for those properties to hold.
+
+I think we've developed good tools for the former,
+namely the notion of security games, in particular,
+in the form of state-separable proofs.
+
+It's the latter that this blog post is about.
+Given a security game describing the properties
+a scheme should have, you can then define what it means
+for that scheme to be *secure*.
+This property tries to guarantee that the properties
+of the scheme will hold.
+
+This definition arises in a very natural way.
+
+First, you characterize what properties a scheme should have by defining
+a *game*, that an *adversary* (some arbitrary algorithm / computer / whatever)
+can interact with.
+The scheme's properties should be such that the game should hopefully
+not be winnable.
+
+For example, a game for signatures could involve an adversary
+trying to forge a signature on some message,
+winning if they succeed:
+a good signature scheme should not allow an adversary to win!
+
+The first definition of secure that arises from this is something like:
+"a game is secure if no adversary can win".
 You define what it means to be secure from first principles.
 
 Negligible.
@@ -63,7 +101,7 @@ The issue is that most problems can only be assumed to be hard.
 
 In fact, people may disagree about what assumptions are safe.
 
-# Cryptography is about Reductions
+# Cryptography is about Reductions!
 
 Because security is most often relative to assumptions, although not always,
 maybe focus on reductions.
