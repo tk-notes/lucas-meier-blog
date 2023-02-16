@@ -1,5 +1,5 @@
 ---
-title: "Cryptography with Security"
+title: "Cryptography without Security"
 date: 2023-02-16T10:45:16+01:00
 draft: true
 katex: true
@@ -8,15 +8,42 @@ tags:
   - "Foundations"
 ---
 
-Theoretical cryptography has as goal to define what security is.
+The typical presentation of theoretical cryptography has one central goal:
+defining what it means for cryptographic objects to be "secure".
+I think this goal is misguided.
 
-I don't think security matters.
+<!--more-->
 
-Rather, security should be deferred as much as possible.
+In theoretical cryptography, you usually start by defining what
+"security" should mean, then you go about trying to prove that
+various constructions are secure.
+Sometimes, you can succeed perfectly, like with the one-time pad,
+and other times, you need to rely on assumptions, like with every
+other encryption scheme.
+Most often you then argue that more complicated schemes
+are *secure*, by reducing their security to that of other
+schemes, or basic assumptions.
 
-I'll try to explain why.
+I don't think this focus on *security* is very useful.
 
-Let's look at some perspectives about what theoretical cryptography is for.
+My perspective is that theoretical cryptography should instead
+focus on *reductions*, in fact, we should even embrace
+the use of many cryptographic models, in order to prove
+both positive and negative results about reductions.
+
+This reduction-centric perspective defers thinking about
+"security" as much as necessary.
+In any given model of cryptography, you'll have assumptions
+about what things are secure, and then your web of reductions
+will let you draw implications from that.
+In that way, the reduction perspective subsumes the security
+perspective, since we have more information,
+and can even consider competing models of what security should mean.
+
+The above paragraphs basically summarize the point I'm trying to make,
+but I doubt you'll be convinced by just the few things I've said so far,
+so in the rest of this post I'll be elaborating and explaining this
+perspective in more detail.
 
 # Cryptography is about Security
 
