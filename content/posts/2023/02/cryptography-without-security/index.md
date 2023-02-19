@@ -186,14 +186,48 @@ it turns out.
 
 # Cryptography is about Reductions!
 
-Because security is most often relative to assumptions, although not always,
-maybe focus on reductions.
+Now that we've crossed from the land of objective facts to that
+of my personal opinion, I guess I should share my perspective
+on what placing more focus on reduction should look like.
 
-Since reductions are so common, make their syntax easier.
+First, for applied cryptography it's still important to have some
+some assumptions you can take to be "secure", but otherwise this is something
+you don't fret about too much, instead focusing on reducing
+the security of schemes to that of simple, and, if possible,
+existing assumptions.
 
-You can even take the perspective that equality matters first and foremost.
+Since reductions are so common, you really should develop better
+syntax for talking about them.
+Very often, a reduction will be written down in a paper as:
+"We show that for all efficient adversaries $\mathscr{A}$ against
+$H_b$, there exists a an efficient adversary $\mathscr{B}$ against $G_b$
+such that $\text{Advantage}[\mathscr{A}, H_B] \leq f(\text{Advantage}[\mathscr{B}, G_b])$".
+Of course, assuming that the advantage of an efficient $\mathscr{B}$
+is negligible, i.e. secure, implies the same for $\mathscr{A}$ against
+$H_b$, provided $f(\langle \texttt{negligible} \rangle) = \langle \texttt{negligible} \rangle$.
 
-I think the reduction perspective is liberating in two ways.
+One way I like writing this is instead:
+"We show that $H_b \leq f(G_b)$".
+
+From this perspective, cryptography is (usually) about
+proving statements of this form.
+You build some cryptographic scheme to accomplish some task,
+then show that it reduces to some well-known assumption,
+or even to another scheme people have constructed before.
+You slowly build up a web of reductions this way.
+This web exists regardless of what assumptions you make.
+Even if something is not secure, reductions to that assumption
+still remain valid,
+even if they're not useful anymore.
+
+I think this web of reductions is interesting to study and develop
+on its own merits, although one should still have some eye
+towards what assumptions are worth reducing to,
+since applications do actually care about whether or not
+these are secure.
+
+I think there are two somewhat different philosophies
+as to why this reduction-centric approach is a good direction to take.
 
 # Some Like Precise Advantages
 
