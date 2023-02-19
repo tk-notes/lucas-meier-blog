@@ -231,14 +231,58 @@ as to why this reduction-centric approach is a good direction to take.
 
 # Some Like Precise Advantages
 
-Reductions allow for precise counting.
+The first philosophy is that the focus on reduction is good
+because it allows a more precise accounting of the security of
+various constructions.
 
-You can take a chain of reduction, then count backwards to a desired security level.
+Instead of the asymptotic approach to security we developed in the "classical"
+view, instead you focus on the concrete security of a given assumption.
+For example, you might assume that an adversary requires
+$2^{128}$ units of "work" in order to be guaranteed to win a given
+security game.
+This is also called having "128 bits of security", roughly speaking.
+There's a natural tradeoff between the probability of success,
+and the amount of work done.
+In the example mentioned above,
+one might imagine adversaries that do $2^{127}$ units of work
+for a $1/2$ probability of success,
+or $2^{64}$ work for $2^{-64}$ success, etc.
 
-This concrete notion of security is what's used more often in practice.
+In this perspective, you want to make sure that you keep
+track of the exact parameters of a reduction.
+For example, a reduction of the form $H_b \leq 2 G_b$
+means that one bit of security is lost.
+If we want $H_b$ to have 128 bits of security, then $G_b$
+needs to have *129* bits, because of the factor of $2$.
 
-You can also extend the theory with a notion of resource usage,
-for a better accounting of effort.
+Sometimes, reductions might have somewhat bad factors in front
+of the reduction, like $H_b \leq Q^2 \cdot G_b$, with $Q$ being
+the number of "queries" to some relevant scheme.
+For example, the number of times a given encryption key is used.
+In this case, security can actually degrade somewhat rapidly
+if many queries are allowed.
+A system designer particularly enamoured with the number 128 might 
+specify an explicit bound on the number of possible
+times a key is used to encrypt messages,
+such that as long this bound isn't reached, you still reach
+this magical 128 bits of security.
+For example, allowing $2^{16}$ uses only, before generating a new key,
+would mean that you need 160 bits of security in the original
+assumption now.
+
+To really embrace this approach you'd also want a way to account
+for the amount of work the reduction itself does.
+Each reduction would then account for the "loss" in security,
+as well as the amount of work performed.
+This kind of framework would then allow precise fine-tuning of the
+security level required in the various assumptions in order
+to guarantee a specific security level in the final scheme.
+
+A puritan version of this framework isn't all that common,
+but a looser version of this idea is still a common way
+parameter choices are thought about for applications.
+For example, guidelines about when symmetric keys need
+to be changed are based on a framework like this one.
 
 # Some Like Meta-Cryptography
 
