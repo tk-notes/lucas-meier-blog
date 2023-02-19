@@ -284,29 +284,72 @@ parameter choices are thought about for applications.
 For example, guidelines about when symmetric keys need
 to be changed are based on a framework like this one.
 
+Now, I will admit that my presentation of this kind of concrete
+security framework is perhaps not entirely accurate, in part
+because it's not my main philosophical reason for
+preferring a reduction-centric view of cryptography.
+
 # Some Like Meta-Cryptography
 
-My perspective is more that of meta-cryptography, which is about considering
-different cryptographic models at the same time.
+Instead, my perspective is more so that of a recent appreciation
+for what might be called "meta-cryptography".
 
-There's no one set of correct assumptions.
+In this perspective, you don't really commit to one single "model"
+of what cryptography is.
+Instead, you consider cryptography to be about the study of *all*
+of these models, and how they relate to one another.
 
-The focus on reductions allows abstracting away the cryptographic model
-you happen to be using.
+These models can differ in very simply ways, such as which problems
+they assume to be secure, but can also differ in more fundamental
+ways, like allowing for unbounded adversaries, or not allowing
+reductions to rewind adversaries, and other things like that.
 
-Think random oracle, generic group, cryptographic models of different varieties
-are useful.
+In this perspective, you naturally have to take a reduction-centric
+view, since focusing on reductions allows considering a wide variety
+of models which differ only in the assumptions they make.
+This perspective goes beyond the "web of reductions" mentioned earlier,
+in that not only do you look at this web in one model, 
+but you might also look at webs in alternate models,
+and try and relate them together.
 
-I'll have more to write about the advantages of not
-sticking to a concrete model, but for now it makes it easier to
-prove impossibility results, and other meta-theorems.
+This might sound esoteric, but is actually somewhat common.
+For example, many schemes are analyzed in things like the "random oracle model",
+or the "generic group model".
+This can be seen as specific cryptographic models in which certain
+objects are modeled in an idealized manner.
+In this case, hash functions are modeled as random functions,
+and groups are modeled as perfectly opaque abstractions, respectively.
+One way of looking at what's going on here is that you define
+a stronger model, in which all the reductions in the standard model
+hold, but some new reductions become possible because of the idealized
+assumption.
+The utility here is that a reduction being possible in the stronger
+model provides some indication that it might be possible
+in the standard model, but more importantly,
+that if a reduction *is impossible* in the stronger model,
+then it also must be impossible in the standard model.
+
+For example, if a reduction doesn't even hold in the generic group model,
+then it has no hope of being possible with real groups.
+
+Note that this kind of model-shifting perspective doesn't really
+get explored if one is focused too much on "security".
+Once you step into an alternate model "security" goes out the window,
+because you're now longer even pretending to model the real world.
+Nonetheless, modelling hypothetical and idealized worlds
+is useful for understanding the real one.
+My point here is that even if one's goal is to develop
+a concrete notion of security, one can understand a lot more about
+cryptography by simply studying reductions in various models,
+and the connections between these models.
+
+Also, I find this perspective fun.
 
 # Conclusion
 
 To summarize:
-- Theoretical cryptography cares about security
-- Security depends mainly on assumptions
-- Reductions are thus more important
-- Reductions are worth studying even under shifting assumptions
-- For concrete security
-- But also for meta-cryptography
+- Theoretical cryptography is often framed about being about formally defining and modelling what it means to be "secure".
+- This notion of security, in practice, will basically always depend on what you're willing to assume.
+- I would argue that this makes *reductions* the central notion of theoretical cryptography, rather than security itself.
+- There's utility in studying reductions on their own merit because they allow for better accounting of concrete security loss and the resource usage of adversaries.
+- My personal view is that studying "meta-cryptography", and embracing many cryptographic models is a very enlightening perspective towards understanding cryptography, even if one only cares about "security" in the standard model.
