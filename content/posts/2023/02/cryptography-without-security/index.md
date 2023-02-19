@@ -88,18 +88,101 @@ winning if they succeed:
 a good signature scheme should not allow an adversary to win!
 
 The first definition of secure that arises from this is something like:
-"a game is secure if no adversary can win".
-You define what it means to be secure from first principles.
+"a game is secure if no adversary can *ever* win".
+One issue with this definition is that it's much too restrictive.
+The two main ways it's restrictive are that:
+- The adversary cannot win, even with a small probability. For example, you could have a game where an adversary has to guess a value in $\\{0, 1\\}^{2000}$, which happens with probability $2^{-2000}$, an absurdly low number, but nonetheless enough to count as winning sometimes.
+- The adversary has unbounded computational power, which will inherently break cryptographic assumptions.
 
-Negligible.
+The latter basically precludes most cryptography, restricting
+us to schemes like the one-time pad, where the key used for encrypting
+a message has to be at least as long as the message.
 
-This allows for some problems to be hard.
+{{<note>}}
+Or, more precisely, that the key has at least as much **entropy**
+as the message.
+{{</note>}}
 
-You can argue via reduction.
+So, usually, we instead say that a game is secure if
+"no *efficient* adversary can win, except with some *small* probability".
 
-The issue is that most problems can only be assumed to be hard.
+The notion of *efficient* computation is not very controversial,
+nor hard to define.
+What a "small" probability should mean is something we do need
+to think about and define.
 
-In fact, people may disagree about what assumptions are safe.
+The most common notion of smallness is that of being *negligible*.
+We measure the amount of time computation some algorithm
+takes relative to some (security) parameter $\lambda$.
+Efficient algorithms should only use $\mathcal{O}(\text{poly}(\lambda))$
+worth of computation: i.e. only a polynomial amount.
+As $\lambda$ grows, so can the amount of computation.
+Some tasks are prohibited by this bound, like trying all values
+in the set $\\{0, 1\\}^\lambda$, which would take $2^\lambda$ steps.
+Since this is exponential, and not polynomial in $\lambda$.
+A negligible amount is sort of like the opposite of this logic:
+some function $f(\lambda)$ is negligible if $1 / f(\lambda)$
+grows faster than any polynomial function.
+
+The reason this definition is useful is that it behaves well
+under composition.
+If you some two negligible values together, you'll get a negligible
+value, as long as you only do this operation a reasonable
+(i.e. $\text{poly}(\lambda)$) number of times.
+This is why we use this as our notion of what amount of success
+probability can be allowed while still having security:
+we can compose a bunch of little schemes together, knowing
+that if they're all secure, the end result will be, because
+summing up all the negligible amounts of success probability
+we might have will still give us a negligible amount.
+
+One common example of a negligible value that shows up
+is when trying to guess a value sampled from $\\{0, 1\\}^\lambda$,
+which has success probability $2^-\lambda$,
+and is thus negligible, since $2^\lambda$ grows faster
+than any polynomial in $\lambda$.
+
+Thus, the usual definition of security we end up with is:
+"A game is secure if no efficient adversary can win the game except
+with negligible probability".
+
+Some games can be shown directly to be secure: 
+for example, a game which requires the adversary to
+guess some value in a large set.
+But, most games require some kind of hardness assumption for their security.
+
+For example, the security of public key encryption will rely
+on a hardness assumption about things like factoring, or elliptic curves,
+and encryption will need to assume that some kind of block cipher
+or PRF is secure.
+
+This kind of "conditional security" is known as a *reduction*.
+This is a proof that if some set of games are assumed to be secure,
+then some other game is also secure.
+For example, you might prove that if a block cipher is secure,
+then a larger mode of encryption using that cipher is secure as well.
+
+In fact, most security results are of this second kind.
+We can't prove most things to be secure in the abstract,
+but only secure relative to some assumptions.
+
+In the classical view we've been talking about so far, cryptography
+is mainly about:
+- Proving various large cryptographic schemes conditionally secure, ideally with the simplest assumptions possible.
+- Developing and analyzing the best attacks against certain assumptions, until reasonable *confidence* is attained that they're not insecure.
+
+There's usually a good consensus about what assumptions are reasonable.
+Many assumptions have "stood the test of time", in that while attacks
+have improved, their success has satured at a comfortable level.
+Sometimes there is disagreement though, and
+novel attacks do of course get developed.
+
+Now, here comes my *opinion*, which is that I am personally
+less interested in studying and analyzing assumptions than
+I am in studying reductions.
+Cryptanalysis is a fun and vibrant field of cryptography which---at the moment--I am happy to leave to other people.
+You don't need that many assumptions to do a *lot* of cryptography,
+it turns out.
 
 # Cryptography is about Reductions!
 
