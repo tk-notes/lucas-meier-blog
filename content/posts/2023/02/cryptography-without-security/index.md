@@ -1,7 +1,7 @@
 ---
 title: "Cryptography without Security"
-date: 2023-02-16T10:45:16+01:00
-draft: true
+date: 2023-02-19T18:59:59+01:00
+draft: false
 katex: true
 tags:
   - "Cryptography"
@@ -18,10 +18,10 @@ In theoretical cryptography, you usually start by defining what
 "security" should mean, then you go about trying to prove that
 various constructions are secure.
 Sometimes, you can succeed perfectly, like with the one-time pad,
-and other times, you need to rely on assumptions, like with every
+but other times, you need to rely on assumptions, like with every
 other encryption scheme.
 Most often you then argue that more complicated schemes
-are *secure*, by reducing their security to that of other
+are *conditionally secure*, by reducing their security to that of other
 schemes, or basic assumptions.
 
 I don't think this focus on *security* is very useful.
@@ -36,6 +36,7 @@ This reduction-centric perspective defers thinking about
 In any given model of cryptography, you'll have assumptions
 about what things are secure, and then your web of reductions
 will let you draw implications from that.
+This web even exists independently of what you're willing to assume.
 In that way, the reduction perspective subsumes the security
 perspective, since we have more information,
 and can even consider competing models of what security should mean.
@@ -71,16 +72,16 @@ It's the latter that this blog post is about.
 Given a security game describing the properties
 a scheme should have, you can then define what it means
 for that scheme to be *secure*.
-This property tries to guarantee that the properties
-of the scheme will hold.
+This should guarantee that the properties
+of the scheme will hold, regardless of how the scheme is attacked.
 
 This definition arises in a very natural way.
 
 First, you characterize what properties a scheme should have by defining
 a *game*, that an *adversary* (some arbitrary algorithm / computer / whatever)
 can interact with.
-The scheme's properties should be such that the game should hopefully
-not be winnable.
+The scheme's properties should be such that the game is hopefully
+not winnable.
 
 For example, a game for signatures could involve an adversary
 trying to forge a signature on some message,
@@ -112,21 +113,21 @@ What a "small" probability should mean is something we do need
 to think about and define.
 
 The most common notion of smallness is that of being *negligible*.
-We measure the amount of time computation some algorithm
+We measure the amount of time some algorithm
 takes relative to some (security) parameter $\lambda$.
 Efficient algorithms should only use $\mathcal{O}(\text{poly}(\lambda))$
 worth of computation: i.e. only a polynomial amount.
 As $\lambda$ grows, so can the amount of computation.
 Some tasks are prohibited by this bound, like trying all values
-in the set $\\{0, 1\\}^\lambda$, which would take $2^\lambda$ steps.
-Since this is exponential, and not polynomial in $\lambda$.
+in the set $\\{0, 1\\}^\lambda$, which would take $2^\lambda$ steps,
+since this is exponential, and not polynomial in $\lambda$.
 A negligible amount is sort of like the opposite of this logic:
 some function $f(\lambda)$ is negligible if $1 / f(\lambda)$
 grows faster than any polynomial function.
 
 The reason this definition is useful is that it behaves well
 under composition.
-If you some two negligible values together, you'll get a negligible
+If you sum two negligible values together, you'll get a negligible
 value, as long as you only do this operation a reasonable
 (i.e. $\text{poly}(\lambda)$) number of times.
 This is why we use this as our notion of what amount of success
@@ -138,7 +139,7 @@ we might have will still give us a negligible amount.
 
 One common example of a negligible value that shows up
 is when trying to guess a value sampled from $\\{0, 1\\}^\lambda$,
-which has success probability $2^-\lambda$,
+which has success probability $2^{-\lambda}$,
 and is thus negligible, since $2^\lambda$ grows faster
 than any polynomial in $\lambda$.
 
@@ -218,7 +219,7 @@ You slowly build up a web of reductions this way.
 This web exists regardless of what assumptions you make.
 Even if something is not secure, reductions to that assumption
 still remain valid,
-even if they're not useful anymore.
+although they may not be useful anymore.
 
 I think this web of reductions is interesting to study and develop
 on its own merits, although one should still have some eye
@@ -270,6 +271,12 @@ For example, allowing $2^{16}$ uses only, before generating a new key,
 would mean that you need 160 bits of security in the original
 assumption now.
 
+Because of this, many people often focus on developing so called
+"tight" reductions, which lose a minimal amount of security
+relative to their assumptions.
+This allows one to get the most "bang for the buck" out of cryptographic
+assumptions.
+
 To really embrace this approach you'd also want a way to account
 for the amount of work the reduction itself does.
 Each reduction would then account for the "loss" in security,
@@ -305,7 +312,7 @@ ways, like allowing for unbounded adversaries, or not allowing
 reductions to rewind adversaries, and other things like that.
 
 In this perspective, you naturally have to take a reduction-centric
-view, since focusing on reductions allows considering a wide variety
+view, since focusing on reductions allows considering a gamut
 of models which differ only in the assumptions they make.
 This perspective goes beyond the "web of reductions" mentioned earlier,
 in that not only do you look at this web in one model, 
@@ -315,7 +322,7 @@ and try and relate them together.
 This might sound esoteric, but is actually somewhat common.
 For example, many schemes are analyzed in things like the "random oracle model",
 or the "generic group model".
-This can be seen as specific cryptographic models in which certain
+These can be seen as specific cryptographic models in which certain
 objects are modeled in an idealized manner.
 In this case, hash functions are modeled as random functions,
 and groups are modeled as perfectly opaque abstractions, respectively.
@@ -348,7 +355,7 @@ Also, I find this perspective fun.
 # Conclusion
 
 To summarize:
-- Theoretical cryptography is often framed about being about formally defining and modelling what it means to be "secure".
+- Theoretical cryptography is often framed in terms of being about formally defining and modelling what it means to be "secure".
 - This notion of security, in practice, will basically always depend on what you're willing to assume.
 - I would argue that this makes *reductions* the central notion of theoretical cryptography, rather than security itself.
 - There's utility in studying reductions on their own merit because they allow for better accounting of concrete security loss and the resource usage of adversaries.
