@@ -58,6 +58,9 @@ $$
 &\enspace \texttt{wait } \forall i \neq j \in P.\ m_{j \to i, w} \neq \bot\cr
 &\enspace \texttt{return } [m_{j \to i, w} \mid j \in P]\cr
 \cr
+&\underline{\text{Abort}():}\cr
+&\enspace \texttt{die }\cr
+\cr
 &\underline{\textcolor{#ef4444}{\text{sent}}(i, j, w):}\cr
 &\enspace \texttt{return } m_{i \to j, w} \neq \bot\cr
 \end{aligned}
@@ -81,6 +84,9 @@ parties in the set $P$ they provide.
 <p style="text-align: left">
 $\Lsh_i$ is the counterpart, allowing us to receive messages.
 We request to receive from a set of parties $P$ at a given waitpoint, and then receive all those messages, once they're ready.
+</p>
+<p style="text-align: left">
+Any party can immediately stop the protocol at will, by aborting.
 </p>
 <p style="text-align: left">
 The adversary is also able to see which messages have been sent,
@@ -111,3 +117,16 @@ Malicious parties, however, are free to send different
 messages to different parties, even when the protocol specifies
 that the party should be using ${\Rsh_i(\star, \ldots)}$ instead,
 so we need to allow the more general behavior.
+
+One thing we should mention is the $\texttt{die}$ keyword.
+Basically, we augment packages with the ability to be "dead".
+If you call a function in a package that's dead, it responds
+with a dummy message indicating that, and then you become dead as well.
+You can think of this like a kind of exception mechanism,
+where as soon as some package in a larger system dies,
+the entire system does.
+
+Of course, honest parties will not abort unless something bad happens,
+and if everybody is honest, nothing bad should ever happen.
+It's important to note that malicious parties can cause aborts at will.
+We don't attempt to analyze identifiable aborts in this model.
