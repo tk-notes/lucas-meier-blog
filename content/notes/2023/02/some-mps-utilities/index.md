@@ -130,3 +130,10 @@ Of course, honest parties will not abort unless something bad happens,
 and if everybody is honest, nothing bad should ever happen.
 It's important to note that malicious parties can cause aborts at will.
 We don't attempt to analyze identifiable aborts in this model.
+
+We also add some convenient syntax around aborts, namely:
+$$
+\texttt{abort if } \langle \text{cond} \rangle
+$$
+which will trigger an abort, by calling $\text{Abort}$, if some
+condition holds.
