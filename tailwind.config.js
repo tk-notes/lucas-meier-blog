@@ -15,5 +15,10 @@ module.exports = {
       sans: ["IBM Plex Sans", ...defaultTheme.fontFamily.sans],
     },
   },
+  purge: {
+    options: {
+      safelist: ["text-left", "flex-initial"]
+    }
+  },
   plugins: [require("@tailwindcss/typography")],
 };
