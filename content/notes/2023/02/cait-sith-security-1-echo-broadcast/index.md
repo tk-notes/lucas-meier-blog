@@ -64,3 +64,42 @@ The protocol has an ideal functionality $F[\text{SyncComm}] \otimes 1(H_1, H_2)$
 where $H_1$ and $H_2$ are global random oracles.
 
 $\square$
+
+**Definition (Echo Broadcast Functionality):**
+
+$$
+\boxed{
+\normalsize{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $F[\text{EB}]$
+}\cr
+\cr
+&\text{con}_1, c_1, o_1, \text{confirmed}_1, \text{open}_1, \ldots \gets \bot\cr
+\cr
+&\begin{aligned}
+&\underline{(1)\text{Commit}_i(x):}\cr
+&\enspace o_i \gets x\cr
+&\enspace c_i \gets H_1(x)\cr
+\cr
+&\underline{\text{WaitCommit}_i():}\cr
+&\enspace\texttt{wait } \forall j.\ c_j \neq \bot\cr
+&\enspace \text{confirmed}_i \gets \texttt{true}\cr
+&\enspace \texttt{return } [c_j \mid j \in [n]]\cr
+\end{aligned}
+&\begin{aligned}
+&\underline{(1)\text{Open}_i():}\cr
+&\enspace \texttt{assert } o_i \neq \bot\cr
+&\enspace \text{open}_i \gets \texttt{true}\cr
+\cr
+&\underline{\text{WaitOpen}_i():}\cr
+&\enspace \texttt{assert } \text{confirmed}_i \cr
+&\enspace\texttt{wait } \forall j.\ o_j \neq \bot\cr
+&\enspace \texttt{return } [o_j \mid j \in [n]]\cr
+\end{aligned}
+\end{aligned}
+}
+}
+$$
+
+$\square$
