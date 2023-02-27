@@ -58,7 +58,7 @@ $$
 &\enspace \texttt{wait } \forall i \neq j \in P.\ m_{j \to i, w} \neq \bot\cr
 &\enspace \texttt{return } [m_{j \to i, w} \mid j \in P]\cr
 \cr
-&\underline{\text{Abort}():}\cr
+&\underline{\text{Stop}():}\cr
 &\enspace \texttt{die }\cr
 \cr
 &\underline{\textcolor{#ef4444}{\text{sent}}(i, j, w):}\cr
