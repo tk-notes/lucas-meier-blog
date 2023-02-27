@@ -174,28 +174,28 @@ $$
 }\cr
 \cr
 &\underline{(1)\text{Commit}_i(x):}\cr
-&\enspace o_i \gets x\cr
-&\enspace c_i \gets H_1(x)\cr
-&\enspace \Rsh_i(\star, c_i, 0)\cr
+&\enspace o^i_i \gets x\cr
+&\enspace c^i_i \gets H_1(x)\cr
+&\enspace \Rsh_i(\star, c^i_i, 0)\cr
 \cr
 &\underline{\text{WaitCommit}_i():}\cr
-&\enspace [c_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
-&\enspace \text{con}_i \gets H_2(c_1, \ldots, c_n)\cr
-&\enspace \Rsh_i(\star, \text{con}_i, 1)\cr
-&\enspace \texttt{return } [c_j \mid j \in [n]]\cr
+&\enspace [c^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
+&\enspace \text{con}^i_i \gets H_2(c^i_1, \ldots, c^i_n)\cr
+&\enspace \Rsh_i(\star, \text{con}^i_i, 1)\cr
+&\enspace \texttt{return } [c^i_j \mid j \in [n]]\cr
 \cr
 &\underline{(1)\text{Open}_i():}\cr
-&\enspace \texttt{assert } o_i \neq \bot\cr
-&\enspace \Rsh_i(\star, o_i, 2)\cr
+&\enspace \texttt{assert } o^i_i \neq \bot\cr
+&\enspace \Rsh_i(\star, o^i_i, 2)\cr
 \cr
 &\underline{\text{WaitOpen}_i():}\cr
-&\enspace \texttt{assert } \text{con}_i \neq \bot\cr
-&\enspace [\text{con}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 1)\cr
-&\enspace \texttt{abort if } \exists j \neq j'.\ \text{con}_j \neq \text{con} _{j'}\cr
-&\enspace [\text{o}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)\cr
-&\enspace \texttt{abort if } \exists j.\ H_1(o_j) \neq c_j\cr
-&\enspace \text{con}_i \gets H_2(c_1, \ldots, c_n)\cr
-&\enspace \texttt{return } [o_j \mid j \in [n]]\cr
+&\enspace \texttt{assert } \text{con}^i_i \neq \bot\cr
+&\enspace [\text{con}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 1)\cr
+&\enspace \texttt{abort if } \exists j \neq j'.\ \text{con}^i_j \neq \text{con}^i _{j'}\cr
+&\enspace [\text{o}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)\cr
+&\enspace \texttt{abort if } \exists j.\ H_1(o^i_j) \neq c^i_j\cr
+&\enspace \text{con}^i_i \gets H_2(c^i_1, \ldots, c^i_n)\cr
+&\enspace \texttt{return } [o^i_j \mid j \in [n]]\cr
 \end{aligned}
 }
 }
@@ -206,10 +206,10 @@ $$
   $\Gamma^0_M$
 }\cr
 \cr
-&\textcolor{#ef4444}{\underline{(1)\Rsh_k(P, [m_j], w):}}\cr
+&\textcolor{#ef4444}{\underline{\Rsh_k(P, [m_j], w):}}\cr
 &\enspace \texttt{super}.\Rsh_k(P, [m_j], w)\cr
 \cr
-&\textcolor{#ef4444}{\underline{(1)\Lsh_k(P, w):}}\cr
+&\textcolor{#ef4444}{\underline{\Lsh_k(P, w):}}\cr
 &\enspace \texttt{super}.\Lsh_k(P, w)\cr
 \cr
 &\textcolor{#ef4444}{\underline{\text{Stop}():}}\cr
@@ -222,6 +222,67 @@ $$
 \end{matrix}
 $$
 
+Next, we change things so that honest parties send their entire commitment
+vector, but we lie to malicious parties about what they're receiving.
+
+$$
+\begin{matrix}
+\boxed{
+\normalsize{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+\cr
+&\underline{(1)\text{Commit}_i(x):}\cr
+&\enspace o^i_i \gets x\cr
+&\enspace c^i_i \gets H_1(x)\cr
+&\enspace \Rsh_i(\star, c^i_i, 0)\cr
+\cr
+&\underline{\text{WaitCommit}_i():}\cr
+&\enspace [c^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
+&\enspace \Rsh_i(\star, \colorbox{#bae6fd}{$(c^i_1\ldots, c^i_n)$}, 1)\cr
+&\enspace \texttt{return } [c^i_j \mid j \in [n]]\cr
+\cr
+&\underline{(1)\text{Open}_i():}\cr
+&\enspace \texttt{assert } o^i_i \neq \bot\cr
+&\enspace \Rsh_i(\star, o^i_i, 2)\cr
+\cr
+&\underline{\text{WaitOpen}_i():}\cr
+&\enspace \texttt{assert } \text{con}^i_i \neq \bot\cr
+&\enspace \colorbox{#bae6fd}{$[(c^j_1, \ldots, c^j_n) \mid j \neq i] \gets \texttt{await }\Lsh_i(\mathcal{H}, 1)$}\cr
+&\enspace \colorbox{#bae6fd}{$\text{con}_j \gets H_2(c^j_1, \ldots)$}\cr
+&\enspace \colorbox{#bae6fd}{$[\text{con}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i(\mathcal{M}, 1)$}\cr
+&\enspace \texttt{abort if } \exists j \neq j'.\ \text{con}^i_j \neq \text{con}^i _{j'}\cr
+&\enspace [\text{o}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)\cr
+&\enspace \texttt{abort if } \exists j.\ H_1(o^i_j) \neq c_j\cr
+&\enspace \text{con}_i \gets H_2(c^i_1, \ldots, c^i_n)\cr
+&\enspace \texttt{return } [o^i_j \mid j \in [n]]\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^0_M$
+}\cr
+\cr
+&\textcolor{#ef4444}{\underline{\Rsh_k(P, [m_j], w):}}\cr
+&\enspace \texttt{super}.\Rsh_k(P, [m_j], w)\cr
+\cr
+&\textcolor{#ef4444}{\underline{\Lsh_k(P, w):}}\cr
+&\enspace \texttt{super}.\Lsh_k(P, w)\cr
+\cr
+&\textcolor{#ef4444}{\underline{\text{Stop}():}}\cr
+&\enspace \texttt{super}.\text{Stop}()\cr
+\cr
+\end{aligned}
+}\otimes \textcolor{#a855f7}{1(H_1, H_2)}\cr
+\circ\cr
+\left(F[\text{SyncComm}] \otimes 1(H_1, H_2)\right)
+\end{matrix}
+$$
 
 $\textcolor{#FBCFE8}{\blacksquare}$
 
