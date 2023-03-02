@@ -14,12 +14,261 @@ One sub-component used a couple of times is a combined broadcast commitment
 functionality, implemented via echo broadcast.
 
 **Definition (Echo Broadcast Protocol):**
-The echo broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following parties,
+The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following parties,
 for $i \in [n]$:
 
 $$
 \boxed{
-\normalsize{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \Rsh_i(\star, x, 0)
+  \cr
+  &\enspace
+    [\hat{x}_j] \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    \text{con}_i \gets \text{Hash}(\hat{x}_1, \ldots, \hat{x}_n)
+  \cr
+  &\enspace
+    \Rsh_i(\star, \text{con}_i, 1)
+  \cr
+  &\enspace
+    [\hat{\text{con}}_j] \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\enspace
+    \hat{\text{con}}_j \neq \text{con}_i:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+$$
+
+**Lemma**
+**Proof**
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{#FBCFE8}{\large
+  $\Gamma^0_M$
+} = 1
+\begin{pmatrix}
+    \Rsh_k
+  ,\cr
+    \Lsh_k
+  ,\cr
+    \text{Hash}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Next, send both hash and vector.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^1_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \Rsh_i(\star, x, 0)
+  \cr
+  &\enspace
+    [\hat{x}_j] \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    h_i \gets \text{Hash}(\hat{x}_1, \ldots, \hat{x}_n)
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \Rsh_i(\star, (h_i, [\hat{x}_j]), 1)
+  $}
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    [(\hat{h}_j, \vec{x}_j)] \Lsh_i(\star, 1)
+  $}
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\enspace
+    \hat{h}_j \neq h_i:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^1_M$
+}\cr
+\cr
+&\underline{
+  \Rsh_k(S, [h_j], 1):
+}\cr
+  &\enspace
+    \Rsh_k(S, [(h_j, \bot)], 1)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    [(h_j, \bullet)]\Lsh_k(S, [(h_j, \bot)], 1)
+  \cr
+  &\enspace
+    \texttt{return } [h_j]
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Next, have honest parties omit hash.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^1_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \Rsh_i(\star, x, 0)
+  \cr
+  &\enspace
+    [\hat{x}_j] \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    h_i \gets \text{Hash}(\hat{x}_1, \ldots, \hat{x}_n)
+  \cr
+  &\enspace
+    \Rsh_i(\star, (h_i, [\hat{x}_j]), 1)
+  \cr
+  &\enspace
+    [(\hat{h}_j, \vec{x}_j)] \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\enspace
+    \hat{h}_j \neq h_i:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^1_M$
+}\cr
+\cr
+&\underline{
+  \Rsh_k(S, [h_j], 1):
+}\cr
+  &\enspace
+    \Rsh_k(S, [(h_j, \bot)], 1)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    [(h_j, \bullet)]\Lsh_k(S, [(h_j, \bot)], 1)
+  \cr
+  &\enspace
+    \texttt{return } [h_j]
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+$\blacksquare$
+
+
+$\square$
+
+**Definition (Commit Protocol):**
+The echo broadcast protocol $\mathscr{P}[\text{Commit}]$ is defined by the following parties,
+for $i \in [n]$:
+
+<!-- $$ -->
+\boxed{
+\small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
   $P_i$
@@ -28,82 +277,70 @@ $$
 &\text{con}_i, c_i, o_i \gets \bot\cr
 \cr
 &\begin{aligned}
-&\underline{(1)\text{Commit}_i(x):}\cr
-&\enspace o_i \gets x\cr
-&\enspace c_i \gets H_1(x)\cr
-&\enspace \Rsh_i(\star, c_i, 0)\cr
-\cr
-&\underline{\text{WaitCommit}_i():}\cr
-&\enspace [c_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
-&\enspace \text{con}_i \gets H_2(c_1, \ldots, c_n)\cr
-&\enspace \Rsh_i(\star, \text{con}_i, 1)\cr
-&\enspace \texttt{return } [c_j \mid j \in [n]]\cr
-\cr
-\cr
-\end{aligned}
-&\begin{aligned}
-&\underline{(1)\text{Open}_i():}\cr
-&\enspace \texttt{assert } o_i \neq \bot\cr
-&\enspace \Rsh_i(\star, o_i, 2)\cr
-\cr
-\cr
-&\underline{\text{WaitOpen}_i():}\cr
-&\enspace \texttt{assert } \text{con}_i \neq \bot\cr
-&\enspace [\text{con}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 1)\cr
-&\enspace \texttt{abort if } \exists j \neq j'.\ \text{con}_j \neq \text{con} _{j'}\cr
-&\enspace [\text{o}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)\cr
-&\enspace \texttt{abort if } \exists j.\ H_1(o_j) \neq c_j\cr
-&\enspace \text{con}_i \gets H_2(c_1, \ldots, c_n)\cr
-&\enspace \texttt{return } [o_j \mid j \in [n]]\cr
-\end{aligned}
-\end{aligned}
-}
-}
-$$
-
-The protocol has an ideal functionality $F[\text{SyncComm}] \otimes 1(H_1, H_2)$,
-where $H_1$ and $H_2$ are global random oracles.
-
-$\square$
-
-**Definition (Echo Broadcast Functionality):**
-
-$$
-\boxed{
-\normalsize{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $F[\text{EB}]$
+&\underline{
+  (1)\text{Commit}_i(x):
 }\cr
+&\enspace
+  o_i \gets x
 \cr
-&c_1, o_1, \ldots \gets \bot\cr
-&\text{confirmed}_1, \ldots \gets \bot\cr
-&\text{open}_1, \ldots \gets \bot\cr
+&\enspace
+  c_i \gets H_1(x)
 \cr
-&\begin{aligned}
-&\underline{(1)\text{Commit}_i(x):}\cr
-&\enspace o_i \gets x\cr
-&\enspace c_i \gets H_1(x)\cr
+&\enspace
+  \Rsh_i(\star, c_i, 0)
+\cr
 \cr
 &\underline{\text{WaitCommit}_i():}\cr
-&\enspace\texttt{wait } \forall j.\ c_j \neq \bot\cr
-&\enspace \text{confirmed}_i \gets \texttt{true}\cr
-&\enspace \texttt{return } [c_j \mid j \in [n]]\cr
+&\enspace
+  [c_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)
 \cr
-&\underline{\text{Stop}():}\cr
-&\enspace \texttt{die}
+&\enspace
+  \text{con}_i \gets H_2(c_1, \ldots, c_n)
+\cr
+&\enspace
+  \Rsh_i(\star, \text{con}_i, 1)
+\cr
+&\enspace
+  \texttt{return } [c_j \mid j \in [n]]
+\cr
+\cr
+\cr
 \end{aligned}
 &\begin{aligned}
-&\underline{(1)\text{Open}_i():}\cr
-&\enspace \texttt{assert } o_i \neq \bot\cr
-&\enspace \text{open}_i \gets \texttt{true}\cr
+&\underline{
+  (1)\text{Open}_i():
+}\cr
+&\enspace
+  \texttt{assert } o_i \neq \bot
 \cr
-&\underline{\text{WaitOpen}_i():}\cr
-&\enspace \texttt{assert } \text{confirmed}_i \cr
-&\enspace\texttt{wait } \forall j.\ o_j \neq \bot\cr
-&\enspace \texttt{return } [o_j \mid j \in [n]]\cr
+&\enspace
+  \Rsh_i(\star, o_i, 2)
 \cr
 \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i():
+}\cr
+&\enspace
+  \texttt{assert } \text{con}_i \neq \bot
+\cr
+&\enspace
+  [\text{con}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 1)
+\cr
+&\enspace
+  \texttt{abort if } \exists j \neq j'.\ \text{con}_j \neq \text{con} _{j'}
+\cr
+&\enspace
+  [\text{o}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)
+\cr
+&\enspace
+  \texttt{abort if } \exists j.\ H_1(o_j) \neq c_j
+\cr
+&\enspace
+  \text{con}_i \gets H_2(c_1, \ldots, c_n)
+\cr
+&\enspace
+  \texttt{return } [o_j \mid j \in [n]]
 \cr
 \end{aligned}
 \end{aligned}
@@ -112,178 +349,3 @@ $$
 $$
 
 $\square$
-
-**Lemma:** $\mathscr{P}[\text{EB}] \leadsto_{\mathcal{M}} F[\text{EB}]$,
-where $\mathcal{M}$ is the corruption class allowing up to $n - 1$
-parties to be maliciously corrupt,
-relative to global random oracles $H_1$, $H_2$, allowing $Q_1$
-and $Q_2$ queries, respectively.
-
-{{<note>}}
-Strictly speaking, we mean that $\mathscr{P} \leadsto \mathscr{F}$,
-where $\mathscr{F}$ is a trivial protocol over $F$, providing access
-to each function directly in the protocol.
-{{</note>}}
-
-**Proof:**
-
-First, we consider the protocol $\mathscr{P}^0$, which is the same
-as $\mathscr{P}[\text{EB}]$, except that the confirmation consists
-of all commitments, rather than their hash:
-
-$$
-\boxed{
-\normalsize{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $P'_i$
-}\cr
-\cr
-&\ldots\cr
-\cr
-&\underline{\text{WaitCommit}_i():}\cr
-&\enspace [c_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
-&\enspace \text{con}_i \gets \colorbox{#bae6fd}{$(c_1, \ldots, c_n)$}\cr
-&\enspace \Rsh_i(\star, \text{con}_i, 1)\cr
-&\enspace \texttt{return } [c_j \mid j \in [n]]\cr
-\cr
-&\ldots\cr
-\end{aligned}
-}
-}
-$$
-
-Our next goal is to show that $\mathscr{P}[\text{EB}] \leadsto \mathscr{P}^0$.
-The basic idea is that it's difficult to find two confirmation
-vectors $(c_1, \ldots), (c'_1, \ldots)$ that yield the same hash,
-so checking a hash is as good as checking the entire vector.
-
-**Sub-Proof:**
-
-Let's assume that indices $i$ are honest, and indices $k$ are malicious,
-and unroll $\text{Inst}^{H_1, H_2}(\mathscr{P}[\text{EB}])$, which gives us
-$\Gamma_0$:
-
-$$
-\begin{matrix}
-\boxed{
-\normalsize{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $\Gamma^0_H$
-}\cr
-\cr
-&\underline{(1)\text{Commit}_i(x):}\cr
-&\enspace o^i_i \gets x\cr
-&\enspace c^i_i \gets H_1(x)\cr
-&\enspace \Rsh_i(\star, c^i_i, 0)\cr
-\cr
-&\underline{\text{WaitCommit}_i():}\cr
-&\enspace [c^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
-&\enspace \text{con}^i_i \gets H_2(c^i_1, \ldots, c^i_n)\cr
-&\enspace \Rsh_i(\star, \text{con}^i_i, 1)\cr
-&\enspace \texttt{return } [c^i_j \mid j \in [n]]\cr
-\cr
-&\underline{(1)\text{Open}_i():}\cr
-&\enspace \texttt{assert } o^i_i \neq \bot\cr
-&\enspace \Rsh_i(\star, o^i_i, 2)\cr
-\cr
-&\underline{\text{WaitOpen}_i():}\cr
-&\enspace \texttt{assert } \text{con}^i_i \neq \bot\cr
-&\enspace [\text{con}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 1)\cr
-&\enspace \texttt{abort if } \exists j \neq j'.\ \text{con}^i_j \neq \text{con}^i _{j'}\cr
-&\enspace [\text{o}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)\cr
-&\enspace \texttt{abort if } \exists j.\ H_1(o^i_j) \neq c^i_j\cr
-&\enspace \text{con}^i_i \gets H_2(c^i_1, \ldots, c^i_n)\cr
-&\enspace \texttt{return } [o^i_j \mid j \in [n]]\cr
-\end{aligned}
-}
-}
-\otimes
-\boxed{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $\Gamma^0_M$
-}\cr
-\cr
-&\textcolor{#ef4444}{\underline{\Rsh_k(P, [m_j], w):}}\cr
-&\enspace \texttt{super}.\Rsh_k(P, [m_j], w)\cr
-\cr
-&\textcolor{#ef4444}{\underline{\Lsh_k(P, w):}}\cr
-&\enspace \texttt{super}.\Lsh_k(P, w)\cr
-\cr
-&\textcolor{#ef4444}{\underline{\text{Stop}():}}\cr
-&\enspace \texttt{super}.\text{Stop}()\cr
-\cr
-\end{aligned}
-}\otimes \textcolor{#a855f7}{1(H_1, H_2)}\cr
-\circ\cr
-\left(F[\text{SyncComm}] \otimes 1(H_1, H_2)\right)
-\end{matrix}
-$$
-
-Next, we change things so that honest parties send their entire commitment
-vector, but we lie to malicious parties about what they're receiving.
-
-$$
-\begin{matrix}
-\boxed{
-\normalsize{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $\Gamma^0_H$
-}\cr
-\cr
-&\underline{(1)\text{Commit}_i(x):}\cr
-&\enspace o^i_i \gets x\cr
-&\enspace c^i_i \gets H_1(x)\cr
-&\enspace \Rsh_i(\star, c^i_i, 0)\cr
-\cr
-&\underline{\text{WaitCommit}_i():}\cr
-&\enspace [c^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)\cr
-&\enspace \Rsh_i(\star, \colorbox{#bae6fd}{$(c^i_1\ldots, c^i_n)$}, 1)\cr
-&\enspace \texttt{return } [c^i_j \mid j \in [n]]\cr
-\cr
-&\underline{(1)\text{Open}_i():}\cr
-&\enspace \texttt{assert } o^i_i \neq \bot\cr
-&\enspace \Rsh_i(\star, o^i_i, 2)\cr
-\cr
-&\underline{\text{WaitOpen}_i():}\cr
-&\enspace \texttt{assert } \text{con}^i_i \neq \bot\cr
-&\enspace \colorbox{#bae6fd}{$[(c^j_1, \ldots, c^j_n) \mid j \neq i] \gets \texttt{await }\Lsh_i(\mathcal{H}, 1)$}\cr
-&\enspace \colorbox{#bae6fd}{$\text{con}_j \gets H_2(c^j_1, \ldots)$}\cr
-&\enspace \colorbox{#bae6fd}{$[\text{con}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i(\mathcal{M}, 1)$}\cr
-&\enspace \texttt{abort if } \exists j \neq j'.\ \text{con}^i_j \neq \text{con}^i _{j'}\cr
-&\enspace [\text{o}^i_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)\cr
-&\enspace \texttt{abort if } \exists j.\ H_1(o^i_j) \neq c_j\cr
-&\enspace \text{con}_i \gets H_2(c^i_1, \ldots, c^i_n)\cr
-&\enspace \texttt{return } [o^i_j \mid j \in [n]]\cr
-\end{aligned}
-}
-}
-\otimes
-\boxed{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $\Gamma^0_M$
-}\cr
-\cr
-&\textcolor{#ef4444}{\underline{\Rsh_k(P, [m_j], w):}}\cr
-&\enspace \texttt{super}.\Rsh_k(P, [m_j], w)\cr
-\cr
-&\textcolor{#ef4444}{\underline{\Lsh_k(P, w):}}\cr
-&\enspace \texttt{super}.\Lsh_k(P, w)\cr
-\cr
-&\textcolor{#ef4444}{\underline{\text{Stop}():}}\cr
-&\enspace \texttt{super}.\text{Stop}()\cr
-\cr
-\end{aligned}
-}\otimes \textcolor{#a855f7}{1(H_1, H_2)}\cr
-\circ\cr
-\left(F[\text{SyncComm}] \otimes 1(H_1, H_2)\right)
-\end{matrix}
-$$
-
-$\textcolor{#FBCFE8}{\blacksquare}$
-
-$\blacksquare$
