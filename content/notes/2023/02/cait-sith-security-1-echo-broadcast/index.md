@@ -325,6 +325,126 @@ $$
 
 Now, get rid of communication.
 
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#bae6fd}{\large
+  $\Gamma^4_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \hat{x}\_{ij} \gets x
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ji} \neq \bot
+  \cr
+  &\enspace
+    e\_{ij} \gets (\bot, \hat{x}\_{\bullet i})
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)}\ \forall j.\ e\_{ji} \neq \bot
+  \cr
+  &\enspace
+    (\hat{h}_j, \vec{x}_j) \gets e\_{ji}
+  \cr
+  &\enspace
+    \texttt{if } \neg \forall j.\enspace
+    \begin{matrix}
+      (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
+      (\vec{x}_j \neq \bot \land \vec{x}_j = \hat{x}\_{\bullet i})
+    \end{matrix}
+    :
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#bae6fd}{\large
+  $\Gamma^4_M$
+}\cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 0):
+}\cr
+  &\enspace
+    \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, h\_\bullet, 1):
+}\cr
+  &\enspace
+    e\_{kj} \gets (h_j, \bot)\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 0):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 0)}\ \forall j \in S.\ \hat{x}\_{jk} \neq \bot
+  \cr
+  &\enspace
+    \texttt{return } [\hat{x}\_{j k} \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)}\ \forall j \in S.\ e\_{jk} \neq \bot
+  \cr
+  &\enspace
+    (\hat{h}_j, \vec{x}_j) \gets e\_{jk}
+  \cr
+  &\enspace
+    \texttt{if } \hat{h}_j = \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } \vec{x}_j \neq \bot
+  \cr
+  &\enspace\enspace
+    \hat{h}_j \gets \text{Hash}(\vec{x}_j)
+  \cr
+  &\enspace
+    \texttt{return } [\hat{h}_j \mid j \in S]
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+\boxed{
+\small{
+\begin{aligned}
+\texttt{pub } x\_{ij}, e\_{ij} \gets \bot
+\end{aligned}
+}
+}
+\otimes
+F[\text{Stop}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Next, remove $e_{ij}$ messages.
+
 $\blacksquare$
 
 
