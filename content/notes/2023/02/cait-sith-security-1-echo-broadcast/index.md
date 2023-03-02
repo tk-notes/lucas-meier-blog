@@ -143,7 +143,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{#bae6fd}{\large
   $\Gamma^1_M$
 }\cr
 \cr
@@ -161,7 +161,7 @@ $$
     [(h_j, \bullet)]\Lsh_k(S, [(h_j, \bot)], 1)
   \cr
   &\enspace
-    \texttt{return } [h_j]
+    \texttt{return } [\hat{h}_j]
   \cr
 \end{aligned}
 }
@@ -186,7 +186,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\Gamma^1_H$
+  $\Gamma^2_H$
 }\cr
 \cr
 &\underline{
@@ -199,17 +199,18 @@ $$
     [\hat{x}_j] \Lsh_i(\star, 0)
   \cr
   &\enspace
-    h_i \gets \text{Hash}(\hat{x}_1, \ldots, \hat{x}_n)
-  \cr
-  &\enspace
-    \Rsh_i(\star, (h_i, [\hat{x}_j]), 1)
+    \Rsh_i(\star, (\bot, [\hat{x}_j]), 1)
   \cr
   &\enspace
     [(\hat{h}_j, \vec{x}_j)] \Lsh_i(\star, 1)
   \cr
   &\enspace
-    \texttt{if } \exists j.\enspace
-    \hat{h}_j \neq h_i:
+    \texttt{if } \neg \forall j.\enspace
+    \begin{matrix}
+      (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
+      (\vec{x}_j \neq \bot \land \text{Hash}(\vec{x}_j) = \text{Hash}(\vec{x}_i))
+    \end{matrix}
+    :
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
@@ -223,7 +224,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\Gamma^1_M$
+  $\Gamma^2_M$
 }\cr
 \cr
 &\underline{
@@ -233,14 +234,23 @@ $$
     \Rsh_k(S, [(h_j, \bot)], 1)
   \cr
 \cr
-&\underline{
+&\colorbox{#bae6fd}{$\underline{
   \Lsh_k(S, 1):
-}\cr
+}$}\cr
   &\enspace
-    [(h_j, \bullet)]\Lsh_k(S, [(h_j, \bot)], 1)
+    [(\hat{h}_j, \vec{x}_j)]\Lsh_k(S, [(h_j, \bot)], 1)
   \cr
   &\enspace
-    \texttt{return } [h_j]
+    \texttt{if } \hat{h}_j = \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } \vec{x}_j \neq \bot
+  \cr
+  &\enspace\enspace
+    \hat{h}_j \gets \text{Hash}(\vec{x}_j)
+  \cr
+  &\enspace
+    \texttt{return } [\hat{h}_j]
   \cr
 \end{aligned}
 }
@@ -256,6 +266,64 @@ $$
 F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
+
+Except with negligible probability, the hashes won't collide.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^3_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \ldots
+  \cr
+  &\enspace
+    \texttt{if } \neg \forall j.\enspace
+    \begin{matrix}
+      (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
+      \colorbox{#bae6fd}{$
+      (\vec{x}_j \neq \bot \land \vec{x}_j = \vec{x}_i)
+      $}
+    \end{matrix}
+    :
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^3_M$
+} = \Gamma^2_M
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Now, get rid of communication.
 
 $\blacksquare$
 
