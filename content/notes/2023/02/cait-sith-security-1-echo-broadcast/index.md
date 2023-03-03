@@ -756,7 +756,7 @@ $$
 \cr
   \otimes
 \cr
-  F[\text{SyncComm}] \otimes 1(\text{Hash})
+  F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 \cr
   \circ
@@ -769,7 +769,120 @@ $$
 }
 }
 \otimes
-F[\text{Stop}] \otimes F[\text{Hash}]
+F[\text{Stop}]
+\end{matrix}
+$$
+
+The honest check only fails because of equivocation, and we can
+detect that in $\Gamma_M$.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^9_H$
+}\cr
+\cr
+&\colorbox{#bae6fd}{$
+\underline{
+  (1)\text{Broadcast}_i(x):
+}$}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+  &\enspace
+    \text{sent}\_{ij} \gets \texttt{true}
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \forall j.\ x_j \neq \bot
+  \cr
+  &\enspace
+    \vec{x}\_{ij} \gets x\_\bullet
+  \cr
+  &\enspace
+    \text{sync}\_{ij} \gets \texttt{true}
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } \exists j \in \mathcal{M}.\enspace
+      \vec{x}\_{ji} \neq x\_{\bullet}
+    :
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^8_M$
+}\cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 0):
+}\cr
+  &\enspace
+    \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 1):
+}\cr
+  &\enspace
+    \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{sync}\_{kj} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 0):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 0)}\ \forall j \in S.\ \hat{x}\_{jk} \neq \bot
+  \cr
+  &\enspace
+    \texttt{return } [\hat{x}\_{j k} \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)}\ \forall j \in S.\ \text{sync}\_{jk} \neq \bot
+  \cr
+  &\enspace
+    \texttt{return } [\vec{x}\_{jk} \mid j \in S]
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+\cr
+  \circ
+\cr
+\boxed{
+\small{
+\begin{aligned}
+\texttt{pub } x_j, \vec{x}\_{ij}, \text{sent}\_{ij}, \text{sync}\_{ij} \gets \bot
+\end{aligned}
+}
+}
+\otimes
+F[\text{Stop}]
 \end{matrix}
 $$
 
