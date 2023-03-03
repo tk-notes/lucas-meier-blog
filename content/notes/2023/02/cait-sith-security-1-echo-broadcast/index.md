@@ -391,6 +391,170 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
+Now, except with negligible probability, a hash with no pre-image
+will fail, so remove sending hashes.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^4_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \Rsh_i(\star, x, 0)
+  \cr
+  &\enspace
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \Rsh_i(\star, \hat{x}\_\bullet, 1)
+  $}
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \vec{x}\_\bullet \Lsh_i(\star, 1)
+  $}
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{if } \exists j.\enspace
+      \text{Hash}(\vec{x}_j) \neq \text{Hash}(\vec{x}_i)
+    :
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^4_M$
+}\cr
+\cr
+&\ldots\cr
+\cr
+&\underline{
+  \Rsh_k(S, h\_\bullet, 1):
+}\cr
+  &\enspace
+    \ldots
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    \texttt{if } \mu[h_j] \neq \bot:
+  \cr
+  &\enspace\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \Rsh_k(\\{j\\}, \mu[h_j], 1)
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{stop}(\star, 1)
+  $}
+  \cr
+  &
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \vec{x}\_\bullet\Lsh_k(S \cap \mathcal{H}, 1)
+  $}
+  \cr
+  &\enspace
+    \ldots
+  \cr
+\cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Now, unroll again.
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^5_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \Rsh_i(\star, x, 0)
+  \cr
+  &\enspace
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, \hat{x}\_\bullet, 1)
+  \cr
+  &\enspace
+    \vec{x}\_\bullet \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\enspace
+      \text{Hash}(\vec{x}_j) \neq \text{Hash}(\vec{x}_i)
+    :
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{#FBCFE8}{\large
+  $\Gamma^5_M$
+} = 1
+\begin{pmatrix}
+    \Rsh_k
+  ,\cr
+    \Lsh_k
+  ,\cr
+    \text{Hash}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
 Except with negligible probability, the hashes won't collide.
 
 $$
