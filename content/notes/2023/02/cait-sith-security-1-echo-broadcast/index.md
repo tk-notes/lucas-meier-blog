@@ -556,14 +556,13 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 $$
 
 Except with negligible probability, the hashes won't collide.
-
 $$
 \begin{matrix}
 \boxed{
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\Gamma^3_H$
+  $\Gamma^6_H$
 }\cr
 \cr
 &\underline{
@@ -573,14 +572,11 @@ $$
     \ldots
   \cr
   &\enspace
+  \colorbox{#bae6fd}{$
     \texttt{if } \exists j.\enspace
-    \begin{matrix}
-      (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
-      \colorbox{#bae6fd}{$
-      (\vec{x}_j \neq \bot \land \vec{x}_j = \vec{x}_i)
-      $}
-    \end{matrix}
+      \vec{x}_j \neq \vec{x}_i
     :
+  $}
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
@@ -589,21 +585,9 @@ $$
 }
 }
 \otimes
-\begin{matrix}
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $\Gamma^3_M$
-} = \Gamma^2_M
-\end{aligned}
-}
-}
-\cr
-  \otimes
-\cr
-  1(\Rsh_k, \Lsh_k, \text{Hash})
-\end{matrix}
+\boxed{\colorbox{#FBCFE8}{\large
+  $\Gamma^6_M$
+} = \Gamma^5_M}
 \cr
   \circ
 \cr
@@ -619,7 +603,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{#bae6fd}{\large
-  $\Gamma^4_H$
+  $\Gamma^7_H$
 }\cr
 \cr
 &\underline{
@@ -642,10 +626,7 @@ $$
   \cr
   &\enspace
     \texttt{if } \exists j.\enspace
-    \begin{matrix}
-      (\hat{h}\_{ji} \neq \bot \land \hat{h}\_{ji} \neq \text{Hash}(\hat{x}\_{\bullet i}))\ \lor\cr
-      (\vec{x}\_{ji} \neq \bot \land \vec{x}\_{ji} \neq \hat{x}\_{\bullet i})
-    \end{matrix}
+      \vec{x}\_{ji} \neq \hat{x}\_{\bullet i}
     :
   \cr
   &\enspace\enspace
@@ -660,7 +641,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{#bae6fd}{\large
-  $\Gamma^4_M$
+  $\Gamma^7_M$
 }\cr
 \cr
 &\underline{
@@ -671,10 +652,10 @@ $$
   \cr
 \cr
 &\underline{
-  \Rsh_k(S, h\_\bullet, 1):
+  \Rsh_k(S, m\_\bullet, 1):
 }\cr
   &\enspace
-    \hat{h}\_{kj} \gets h_j\ (\forall j \in S)
+    \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
   &\enspace
     \text{sync}\_{kj} \gets \texttt{true}\ (\forall j \in S)
@@ -697,16 +678,7 @@ $$
     \texttt{wait}\_{(k, 1)}\ \forall j \in S.\ \text{sync}\_{jk} \neq \bot
   \cr
   &\enspace
-    \texttt{if } \exists j \in S.\ \hat{h}\_{jk} = \bot:
-  \cr
-  &\enspace\enspace
-    \texttt{assert } \vec{x}\_{jk} \neq \bot
-  \cr
-  &\enspace\enspace
-    \hat{h}\_{jk} \gets \text{Hash}(\vec{x}\_{jk})
-  \cr
-  &\enspace
-    \texttt{return } [\hat{h}\_{jk} \mid j \in S]
+    \texttt{return } [\vec{x}\_{jk} \mid j \in S]
   \cr
 \end{aligned}
 }
@@ -714,7 +686,7 @@ $$
 \cr
   \otimes
 \cr
-  1(\Rsh_k, \Lsh_k, \text{Hash})
+  F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 \cr
   \circ
@@ -722,47 +694,47 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-\texttt{pub } \hat{x}\_{ij}, \hat{h}\_{ij}, \vec{x}\_{ij}, \text{sync}\_{ij} \gets \bot
+\texttt{pub } \hat{x}\_{ij}, \vec{x}\_{ij}, \text{sync}\_{ij} \gets \bot
 \end{aligned}
 }
 }
 \otimes
-F[\text{Stop}] \otimes F[\text{Hash}]
+F[\text{Stop}]
 \end{matrix}
 $$
 
-Next, remove hash checks.
-
+Next, we can split the check into an honest check, and a malicious check.
 $$
 \begin{matrix}
 \boxed{
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\Gamma^5_H$
+  $\Gamma^8_H$
 }\cr
 \cr
 &\underline{
   (1)\text{Broadcast}_i(x):
 }\cr
   &\enspace
-    \hat{x}\_{ij} \gets x
+    \ldots
   \cr
   &\enspace
-    \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ji} \neq \bot
+  \colorbox{#bae6fd}{$
+    \texttt{if } \exists j \in \mathcal{H}.\enspace
+      \hat{x}\_{\bullet j} \neq \hat{x}\_{\bullet i}
+    :
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
   \cr
   &\enspace
-    e\_{ij} \gets (\bot, \hat{x}\_{\bullet i})
-  \cr
-  &\enspace
-    \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
-  \cr
-  &\enspace
-    \colorbox{#bae6fd}{$
-      \texttt{if } \exists j.\enspace
-        (\vec{x}_j \neq \bot \land \vec{x}_j = \hat{x}\_{\bullet i})
-      :
-    $}
+  \colorbox{#bae6fd}{$
+    \texttt{if } \exists j \in \mathcal{M}.\enspace
+      \vec{x}\_{ji} \neq \hat{x}\_{\bullet i}
+    :
+  $}
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
@@ -776,81 +748,15 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\Gamma^5_M$
-}\cr
-\cr
-&\underline{
-  \Rsh_k(S, m\_\bullet, 0):
-}\cr
-  &\enspace
-    \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
-  \cr
-  &\enspace
-    \colorbox{#bae6fd}{$
-      \text{Bad} \gets \\{i \in S \cap \mathcal{H} \mid \hat{x}\_{\bullet i} \neq \bot \land \text{Hash}(\hat{x}\_{\bullet i}) \neq h_i\\}
-    $}
-  \cr
-  &\enspace
-    \colorbox{#bae6fd}{$
-      \text{Stop}(\text{Bad}, 1)
-    $}
-  \cr
-\cr
-&\underline{
-  \Rsh_k(S, h\_\bullet, 1):
-}\cr
-  &\enspace
-    \colorbox{#bae6fd}{$
-      \text{Bad} \gets \\{i \in S \cap \mathcal{H} \mid \hat{x}\_{\bullet i} \neq \bot \land \text{Hash}(\hat{x}\_{\bullet i}) \neq h_i\\}
-    $}
-  \cr
-  &\enspace
-    \colorbox{#bae6fd}{$
-      \text{Stop}(\text{Bad}, 1)
-    $}
-  \cr
-  &\enspace
-    e\_{kj} \gets (h_j, \bot)\ (\forall j \in S)
-  \cr
-\cr
-&\underline{
-  \Lsh_k(S, 0):
-}\cr
-  &\enspace
-    \texttt{wait}\_{(k, 0)}\ \forall j \in S.\ \hat{x}\_{jk} \neq \bot
-  \cr
-  &\enspace
-    \texttt{return } [\hat{x}\_{j k} \mid j \in S]
-  \cr
-\cr
-&\underline{
-  \Lsh_k(S, 1):
-}\cr
-  &\enspace
-    \texttt{wait}\_{(k, 1)}\ \forall j \in S.\ e\_{jk} \neq \bot
-  \cr
-  &\enspace
-    (\hat{h}_j, \vec{x}_j) \gets e\_{jk}
-  \cr
-  &\enspace
-    \texttt{if } \hat{h}_j = \bot:
-  \cr
-  &\enspace\enspace
-    \texttt{assert } \vec{x}_j \neq \bot
-  \cr
-  &\enspace\enspace
-    \hat{h}_j \gets \text{Hash}(\vec{x}_j)
-  \cr
-  &\enspace
-    \texttt{return } [\hat{h}_j \mid j \in S]
-  \cr
+  $\Gamma^8_M$
+} = \Gamma^7_M\cr
 \end{aligned}
 }
 }
 \cr
   \otimes
 \cr
-  1(\Rsh_k, \Lsh_k, \text{Hash})
+  F[\text{SyncComm}] \otimes 1(\text{Hash})
 \end{matrix}
 \cr
   \circ
@@ -858,7 +764,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-\texttt{pub } \hat{x}\_{ij}, \hat{h}\_{ij}, \vec{x}\_{ij}, \text{sync}\_{ij} \gets \bot
+\texttt{pub } \hat{x}\_{ij}, \vec{x}\_{ij}, \text{sync}\_{ij} \gets \bot
 \end{aligned}
 }
 }
@@ -868,94 +774,3 @@ F[\text{Stop}] \otimes F[\text{Hash}]
 $$
 
 $\blacksquare$
-
-
-$\square$
-
-**Definition (Commit Protocol):**
-The echo broadcast protocol $\mathscr{P}[\text{Commit}]$ is defined by the following parties,
-for $i \in [n]$:
-
-<!-- $$ -->
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{#FBCFE8}{\large
-  $P_i$
-}\cr
-\cr
-&\text{con}_i, c_i, o_i \gets \bot\cr
-\cr
-&\begin{aligned}
-&\underline{
-  (1)\text{Commit}_i(x):
-}\cr
-&\enspace
-  o_i \gets x
-\cr
-&\enspace
-  c_i \gets H_1(x)
-\cr
-&\enspace
-  \Rsh_i(\star, c_i, 0)
-\cr
-\cr
-&\underline{\text{WaitCommit}_i():}\cr
-&\enspace
-  [c_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 0)
-\cr
-&\enspace
-  \text{con}_i \gets H_2(c_1, \ldots, c_n)
-\cr
-&\enspace
-  \Rsh_i(\star, \text{con}_i, 1)
-\cr
-&\enspace
-  \texttt{return } [c_j \mid j \in [n]]
-\cr
-\cr
-\cr
-\end{aligned}
-&\begin{aligned}
-&\underline{
-  (1)\text{Open}_i():
-}\cr
-&\enspace
-  \texttt{assert } o_i \neq \bot
-\cr
-&\enspace
-  \Rsh_i(\star, o_i, 2)
-\cr
-\cr
-\cr
-&\underline{
-  \text{WaitOpen}_i():
-}\cr
-&\enspace
-  \texttt{assert } \text{con}_i \neq \bot
-\cr
-&\enspace
-  [\text{con}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 1)
-\cr
-&\enspace
-  \texttt{abort if } \exists j \neq j'.\ \text{con}_j \neq \text{con} _{j'}
-\cr
-&\enspace
-  [\text{o}_j \mid j \neq i] \gets \texttt{await }\Lsh_i([n], 2)
-\cr
-&\enspace
-  \texttt{abort if } \exists j.\ H_1(o_j) \neq c_j
-\cr
-&\enspace
-  \text{con}_i \gets H_2(c_1, \ldots, c_n)
-\cr
-&\enspace
-  \texttt{return } [o_j \mid j \in [n]]
-\cr
-\end{aligned}
-\end{aligned}
-}
-}
-$$
-
-$\square$
