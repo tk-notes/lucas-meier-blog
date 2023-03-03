@@ -32,16 +32,16 @@ $$
     \Rsh_i(\star, x, 0)
   \cr
   &\enspace
-    [\hat{x}_j] \Lsh_i(\star, 0)
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
-    \text{con}_i \gets \text{Hash}(\hat{x}_1, \ldots, \hat{x}_n)
+    \text{con}_i \gets \text{Hash}(\hat{x}\_\bullet)
   \cr
   &\enspace
     \Rsh_i(\star, \text{con}_i, 1)
   \cr
   &\enspace
-    [\hat{\text{con}}_j] \Lsh_i(\star, 1)
+    \hat{\text{con}}\_\bullet \Lsh_i(\star, 1)
   \cr
   &\enspace
     \texttt{if } \exists j.\enspace
@@ -113,19 +113,19 @@ $$
     \Rsh_i(\star, x, 0)
   \cr
   &\enspace
-    [\hat{x}_j] \Lsh_i(\star, 0)
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
-    h_i \gets \text{Hash}(\hat{x}_1, \ldots, \hat{x}_n)
+    h_i \gets \text{Hash}(\hat{x}\_\bullet)
   \cr
   &\enspace
   \colorbox{#bae6fd}{$
-    \Rsh_i(\star, (h_i, [\hat{x}_j]), 1)
+    \Rsh_i(\star, (h_i, \hat{x}\_\bullet), 1)
   $}
   \cr
   &\enspace
   \colorbox{#bae6fd}{$
-    [(\hat{h}_j, \vec{x}_j)] \Lsh_i(\star, 1)
+    (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
   $}
   \cr
   &\enspace
@@ -148,20 +148,20 @@ $$
 }\cr
 \cr
 &\underline{
-  \Rsh_k(S, [h_j], 1):
+  \Rsh_k(S, h\_\bullet, 1):
 }\cr
   &\enspace
-    \Rsh_k(S, [(h_j, \bot)], 1)
+    \Rsh_k(S, (h\_\bullet, \bot), 1)
   \cr
 \cr
 &\underline{
   \Lsh_k(S, 1):
 }\cr
   &\enspace
-    [(h_j, \bullet)]\Lsh_k(S, [(h_j, \bot)], 1)
+    (\hat{h}\_\bullet, \ldots)\Lsh_k(S, 1)
   \cr
   &\enspace
-    \texttt{return } [\hat{h}_j]
+    \texttt{return } [\hat{h}_j \mid j \in S]
   \cr
 \end{aligned}
 }
@@ -196,19 +196,19 @@ $$
     \Rsh_i(\star, x, 0)
   \cr
   &\enspace
-    [\hat{x}_j] \Lsh_i(\star, 0)
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
-    \Rsh_i(\star, (\bot, [\hat{x}_j]), 1)
+    \Rsh_i(\star, (\bot, \hat{x}\_\bullet), 1)
   \cr
   &\enspace
-    [(\hat{h}_j, \vec{x}_j)] \Lsh_i(\star, 1)
+    (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
   \cr
   &\enspace
-    \texttt{if } \neg \forall j.\enspace
+    \texttt{if } \exists j.\enspace
     \begin{matrix}
-      (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
-      (\vec{x}_j \neq \bot \land \text{Hash}(\vec{x}_j) = \text{Hash}(\vec{x}_i))
+      (\hat{h}_j \neq \bot \land \hat{h}_j \neq \text{Hash}(\vec{x}_i))\ \lor\cr
+      (\vec{x}_j \neq \bot \land \text{Hash}(\vec{x}_j) \neq \text{Hash}(\vec{x}_i))
     \end{matrix}
     :
   \cr
@@ -228,17 +228,17 @@ $$
 }\cr
 \cr
 &\underline{
-  \Rsh_k(S, [h_j], 1):
+  \Rsh_k(S, h\_\bullet, 1):
 }\cr
   &\enspace
-    \Rsh_k(S, [(h_j, \bot)], 1)
+    \Rsh_k(S, (h\_\bullet, \bot), 1)
   \cr
 \cr
 &\colorbox{#bae6fd}{$\underline{
   \Lsh_k(S, 1):
 }$}\cr
   &\enspace
-    [(\hat{h}_j, \vec{x}_j)]\Lsh_k(S, [(h_j, \bot)], 1)
+    (\hat{h}\_\bullet, \vec{x}\_\bullet)\Lsh_k(S, 1)
   \cr
   &\enspace
     \texttt{if } \hat{h}_j = \bot:
@@ -250,8 +250,132 @@ $$
     \hat{h}_j \gets \text{Hash}(\vec{x}_j)
   \cr
   &\enspace
-    \texttt{return } [\hat{h}_j]
+    \texttt{return } [\hat{h}_j \mid j \in S]
   \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Now, except with negligible probability, we can use preimages instead.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^3_H$
+}\cr
+\cr
+&\colorbox{#bae6fd}{$\underline{
+  (1)\text{Broadcast}_i(x):
+}$}\cr
+  &\enspace
+    \Rsh_i(\star, x, 0)
+  \cr
+  &\enspace
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, (\bot, \hat{x}\_\bullet), 1)
+  \cr
+  &\enspace
+    (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\enspace
+    \begin{matrix}
+      (\hat{h}_j \neq \bot \land \hat{h}_j \neq \text{Hash}(\vec{x}_i))\ \lor\cr
+      (\vec{x}_j \neq \bot \land \text{Hash}(\vec{x}_j) \neq \text{Hash}(\vec{x}_i))
+    \end{matrix}
+    :
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#bae6fd}{\large
+  $\Gamma^3_M$
+}\cr
+\cr
+&\mu[\ldots] \gets \bot\cr
+&\underline{
+  \text{Hash}(x\_\bullet):
+}\cr
+  &\enspace
+    h \gets \text{Hash}(x\_\bullet)
+  \cr
+  &\enspace
+    \mu[h] \gets x\_\bullet
+  \cr
+  &\enspace
+    \texttt{return } h
+  \cr
+\cr
+&h\_{ij} \gets \bot\cr
+&\underline{
+  \Rsh_k(S, h\_\bullet, 1):
+}\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ h_j \neq \bot
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{M}:
+  \cr
+  &\enspace\enspace
+    h\_{kj} \gets h_j
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    \texttt{if } \mu[h_j] \neq \bot:
+  \cr
+  &\enspace\enspace\enspace
+    \Rsh_k(\\{j\\}, (\bot, \mu[h_j]), 1)
+  \cr
+  &\enspace\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace\enspace
+    \Rsh_k(\\{j\\}, (h_j, \bot), 1)
+  \cr
+  &
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    (\ldots, \vec{x}\_\bullet)\Lsh_k(S \cap \mathcal{H}, 1)
+  \cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)}\ \forall j \in S \cap \mathcal{M}.\ h\_{jk} \neq \bot
+  \cr
+  &\enspace
+    \texttt{return }\begin{bmatrix}
+      \text{Hash}(\vec{x}\_j) &\mid& j \in S \cap \mathcal{H}\cr
+      h\_{jk} &\mid& j \in S \cap \mathcal{M}\cr
+    \end{bmatrix}
+  \cr
+\cr
 \end{aligned}
 }
 }
@@ -285,7 +409,7 @@ $$
     \ldots
   \cr
   &\enspace
-    \texttt{if } \neg \forall j.\enspace
+    \texttt{if } \exists j.\enspace
     \begin{matrix}
       (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
       \colorbox{#bae6fd}{$
@@ -344,19 +468,19 @@ $$
     \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ji} \neq \bot
   \cr
   &\enspace
-    e\_{ij} \gets (\bot, \hat{x}\_{\bullet i})
+    \vec{x}\_{ij} \gets \hat{x}\_{\bullet i}
   \cr
   &\enspace
-    \texttt{wait}\_{(i, 1)}\ \forall j.\ e\_{ji} \neq \bot
+    \text{sync}\_{ij} \gets \texttt{true}
   \cr
   &\enspace
-    (\hat{h}_j, \vec{x}_j) \gets e\_{ji}
+    \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
   \cr
   &\enspace
-    \texttt{if } \neg \forall j.\enspace
+    \texttt{if } \exists j.\enspace
     \begin{matrix}
-      (\hat{h}_j \neq \bot \land \hat{h}_j = \text{Hash}(\vec{x}_i))\ \lor\cr
-      (\vec{x}_j \neq \bot \land \vec{x}_j = \hat{x}\_{\bullet i})
+      (\hat{h}\_{ji} \neq \bot \land \hat{h}\_{ji} \neq \text{Hash}(\hat{x}\_{\bullet i}))\ \lor\cr
+      (\vec{x}\_{ji} \neq \bot \land \vec{x}\_{ji} \neq \hat{x}\_{\bullet i})
     \end{matrix}
     :
   \cr
@@ -385,6 +509,142 @@ $$
 &\underline{
   \Rsh_k(S, h\_\bullet, 1):
 }\cr
+  &\enspace
+    \hat{h}\_{kj} \gets h_j\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{sync}\_{kj} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 0):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 0)}\ \forall j \in S.\ \hat{x}\_{jk} \neq \bot
+  \cr
+  &\enspace
+    \texttt{return } [\hat{x}\_{j k} \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)}\ \forall j \in S.\ \text{sync}\_{jk} \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } \exists j \in S.\ \hat{h}\_{jk} = \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } \vec{x}\_{jk} \neq \bot
+  \cr
+  &\enspace\enspace
+    \hat{h}\_{jk} \gets \text{Hash}(\vec{x}\_{jk})
+  \cr
+  &\enspace
+    \texttt{return } [\hat{h}\_{jk} \mid j \in S]
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  1(\Rsh_k, \Lsh_k, \text{Hash})
+\end{matrix}
+\cr
+  \circ
+\cr
+\boxed{
+\small{
+\begin{aligned}
+\texttt{pub } \hat{x}\_{ij}, \hat{h}\_{ij}, \vec{x}\_{ij}, \text{sync}\_{ij} \gets \bot
+\end{aligned}
+}
+}
+\otimes
+F[\text{Stop}] \otimes F[\text{Hash}]
+\end{matrix}
+$$
+
+Next, remove hash checks.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^5_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \hat{x}\_{ij} \gets x
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ji} \neq \bot
+  \cr
+  &\enspace
+    e\_{ij} \gets (\bot, \hat{x}\_{\bullet i})
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
+  \cr
+  &\enspace
+    \colorbox{#bae6fd}{$
+      \texttt{if } \exists j.\enspace
+        (\vec{x}_j \neq \bot \land \vec{x}_j = \hat{x}\_{\bullet i})
+      :
+    $}
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^5_M$
+}\cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 0):
+}\cr
+  &\enspace
+    \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+  &\enspace
+    \colorbox{#bae6fd}{$
+      \text{Bad} \gets \\{i \in S \cap \mathcal{H} \mid \hat{x}\_{\bullet i} \neq \bot \land \text{Hash}(\hat{x}\_{\bullet i}) \neq h_i\\}
+    $}
+  \cr
+  &\enspace
+    \colorbox{#bae6fd}{$
+      \text{Stop}(\text{Bad}, 1)
+    $}
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, h\_\bullet, 1):
+}\cr
+  &\enspace
+    \colorbox{#bae6fd}{$
+      \text{Bad} \gets \\{i \in S \cap \mathcal{H} \mid \hat{x}\_{\bullet i} \neq \bot \land \text{Hash}(\hat{x}\_{\bullet i}) \neq h_i\\}
+    $}
+  \cr
+  &\enspace
+    \colorbox{#bae6fd}{$
+      \text{Stop}(\text{Bad}, 1)
+    $}
+  \cr
   &\enspace
     e\_{kj} \gets (h_j, \bot)\ (\forall j \in S)
   \cr
@@ -434,7 +694,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-\texttt{pub } x\_{ij}, e\_{ij} \gets \bot
+\texttt{pub } \hat{x}\_{ij}, \hat{h}\_{ij}, \vec{x}\_{ij}, \text{sync}\_{ij} \gets \bot
 \end{aligned}
 }
 }
@@ -442,8 +702,6 @@ $$
 F[\text{Stop}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
-
-Next, remove $e_{ij}$ messages.
 
 $\blacksquare$
 
