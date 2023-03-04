@@ -648,12 +648,18 @@ $$
   \Rsh_k(S, m\_\bullet, 0):
 }\cr
   &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \hat{x}\_{kj} = \bot
+  \cr
+  &\enspace
     \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
 \cr
 &\underline{
   \Rsh_k(S, m\_\bullet, 1):
 }\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \vec{x}\_{kj} = \bot
+  \cr
   &\enspace
     \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
@@ -790,16 +796,16 @@ $$
   (1)\text{Broadcast}_i(x):
 }$}\cr
   &\enspace
-    x_i \gets x
+    \hat{x}\_{ij} \gets x
   \cr
   &\enspace
     \text{sent}\_{ij} \gets \texttt{true}
   \cr
   &\enspace
-    \texttt{wait}\_{(i, 0)}\ \forall j.\ x_j \neq \bot
+    \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ij} \neq \bot
   \cr
   &\enspace
-    \vec{x}\_{ij} \gets x\_\bullet
+    \vec{x}\_{ij} \gets \hat{x}\_{\bullet i}
   \cr
   &\enspace
     \text{sync}\_{ij} \gets \texttt{true}
@@ -809,7 +815,7 @@ $$
   \cr
   &\enspace
     \texttt{if } \exists j \in \mathcal{M}.\enspace
-      \vec{x}\_{ji} \neq x\_{\bullet}
+      \vec{x}\_{ji} \neq \hat{x}\_{\bullet i}
     :
   \cr
   &\enspace\enspace
@@ -827,9 +833,30 @@ $$
   $\Gamma^8_M$
 }\cr
 \cr
+&\colorbox{#bae6fd}{$
+  x_k \gets \bot
+$}\cr
 &\underline{
   \Rsh_k(S, m\_\bullet, 0):
 }\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \hat{x}\_{kj} = \bot
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{for } j \in S \cap \mathcal{H}:
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{if } x_k = \bot:\enspace x_k \gets m_j
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{elif } x_k \neq m_j:\enspace \texttt{stop}(\\{j\\}, 1)
+  $}
+  \cr
   &\enspace
     \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
@@ -837,6 +864,9 @@ $$
 &\underline{
   \Rsh_k(S, m\_\bullet, 1):
 }\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \vec{x}\_{kj} = \bot
+  \cr
   &\enspace
     \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
@@ -877,7 +907,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-\texttt{pub } x_j, \vec{x}\_{ij}, \text{sent}\_{ij}, \text{sync}\_{ij} \gets \bot
+\texttt{pub } \hat{x}\_{ij}, \vec{x}\_{ij}, \text{sent}\_{ij}, \text{sync}\_{ij} \gets \bot
 \end{aligned}
 }
 }
