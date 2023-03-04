@@ -31,11 +31,15 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  (1)\text{StartBroadcast}_i(x):
 }\cr
   &\enspace
     \Rsh_i(\star, x, 0)
   \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i(x):
+}\cr
   &\enspace
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
@@ -45,6 +49,10 @@ $$
   &\enspace
     \Rsh_i(\star, \text{con}_i, 1)
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i(x):
+}\cr
   &\enspace
     \hat{\text{con}}\_\bullet \Lsh_i(\star, 1)
   \cr
@@ -91,7 +99,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  (1)\text{StartBroadcast}_i(x):
 }\cr
   &\enspace
     \text{SetBroadcast}_i(x)
@@ -99,12 +107,20 @@ $$
   &\enspace
     \text{SendBroadcast}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i():
+}\cr
   &\enspace
     x\_{\bullet} \gets \text{GetBroadcast}_i(\star)
   \cr
   &\enspace
     \text{Sync}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     \text{WaitSync}_i(\star)
   \cr
@@ -193,7 +209,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  (1)\text{StartBroadcast}_i(x):
 }\cr
 &\enspace
   \ldots
@@ -230,13 +246,11 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^1_H$
 }\cr
+&\ldots\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{WaitBroadcast}_i():
 }\cr
-  &\enspace
-    \Rsh_i(\star, x, 0)
-  \cr
   &\enspace
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
@@ -248,6 +262,10 @@ $$
     \Rsh_i(\star, (h_i, \hat{x}\_\bullet), 1)
   $}
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
   \colorbox{#bae6fd}{$
     (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
@@ -313,9 +331,10 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^2_H$
 }\cr
+&\ldots\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{WaitBroadcast}_i():
 }\cr
   &\enspace
     \Rsh_i(\star, x, 0)
@@ -324,18 +343,26 @@ $$
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
+  \colorbox{#bae6fd}{$
     \Rsh_i(\star, (\bot, \hat{x}\_\bullet), 1)
+  $}
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
   \cr
   &\enspace
+  \colorbox{#bae6fd}{$
     \texttt{if } \exists j.\enspace
     \begin{matrix}
       (\hat{h}_j \neq \bot \land \hat{h}_j \neq \text{Hash}(\vec{x}_i))\ \lor\cr
       (\vec{x}_j \neq \bot \land \text{Hash}(\vec{x}_j) \neq \text{Hash}(\vec{x}_i))
     \end{matrix}
     :
+  $}
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
@@ -402,19 +429,21 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^3_H$
 }\cr
+&\ldots\cr
 \cr
 &\colorbox{#bae6fd}{$\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{WaitBroadcast}_i():
 }$}\cr
-  &\enspace
-    \Rsh_i(\star, x, 0)
-  \cr
   &\enspace
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
     \Rsh_i(\star, (\bot, \hat{x}\_\bullet), 1)
   \cr
+\cr
+&\colorbox{#bae6fd}{$\underline{
+  \text{EndBroadcast}_i():
+}$}\cr
   &\enspace
     (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
   \cr
@@ -527,13 +556,11 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^4_H$
 }\cr
+&\ldots\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{WaitBroadcast}_i():
 }\cr
-  &\enspace
-    \Rsh_i(\star, x, 0)
-  \cr
   &\enspace
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
@@ -542,6 +569,10 @@ $$
     \Rsh_i(\star, \hat{x}\_\bullet, 1)
   $}
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
   \colorbox{#bae6fd}{$
     \vec{x}\_\bullet \Lsh_i(\star, 1)
@@ -634,9 +665,10 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^5_H$
 }\cr
+&\ldots\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{WaitBroadcast}_i():
 }\cr
   &\enspace
     \Rsh_i(\star, x, 0)
@@ -647,6 +679,10 @@ $$
   &\enspace
     \Rsh_i(\star, \hat{x}\_\bullet, 1)
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     \vec{x}\_\bullet \Lsh_i(\star, 1)
   \cr
@@ -689,9 +725,9 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^6_H$
 }\cr
-\cr
+&\ldots\cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{EndBroadcast}_i():
 }\cr
   &\enspace
     \ldots
@@ -732,11 +768,15 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  (1)\text{StartBroadcast}_i(x):
 }\cr
   &\enspace
     \hat{x}\_{ij} \gets x
   \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i():
+}\cr
   &\enspace
     \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ji} \neq \bot
   \cr
@@ -746,6 +786,10 @@ $$
   &\enspace
     \text{sync}\_{ij} \gets \texttt{true}
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
   \cr
@@ -843,9 +887,10 @@ $$
 &\colorbox{#FBCFE8}{\large
   $\Gamma^8_H$
 }\cr
+&\ldots\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  \text{EndBroadcast}_i():
 }\cr
   &\enspace
     \ldots
@@ -917,7 +962,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Broadcast}_i(x):
+  (1)\text{StartBroadcast}_i(x):
 }\cr
   &\enspace
     \hat{x}\_{ij} \gets x
@@ -925,6 +970,10 @@ $$
   &\enspace
     \text{sent}\_{ij} \gets \texttt{true}
   \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i():
+}\cr
   &\enspace
     \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ij} \neq \bot
   \cr
@@ -934,6 +983,10 @@ $$
   &\enspace
     \text{sync}\_{ij} \gets \texttt{true}
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
   \cr
@@ -1033,6 +1086,10 @@ $$
   &\enspace
     \text{sent}\_{ij} \gets \texttt{true}
   \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i():
+}\cr
   &\enspace
     \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ij} \neq \bot
   \cr
@@ -1042,6 +1099,10 @@ $$
   &\enspace
     \text{sync}\_{ij} \gets \texttt{true}
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
   \cr
@@ -1127,26 +1188,33 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{#bae6fd}{\large
   $\Gamma^{11}_H$
 }\cr
 \cr
-&\colorbox{#bae6fd}{$
-\underline{
+&\underline{
   (1)\text{Broadcast}_i(x):
-}$}\cr
+}\cr
   &\enspace
     \text{SetBroadcast}_i(x)
   \cr
   &\enspace
     \text{SendBroadcast}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i():
+}\cr
   &\enspace
     x\_{\bullet} \gets \text{GetBroadcast}_i(\star)
   \cr
   &\enspace
     \text{Sync}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
   &\enspace
     \text{WaitSync}_i(\star)
   \cr
