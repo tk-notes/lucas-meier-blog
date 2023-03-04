@@ -173,7 +173,7 @@ $$
   \text{BadBroadcast}_i(j, m\_\bullet):
 }\cr
   &\enspace
-    \texttt{return } \forall i.\ \text{trap}\_{i j} \neq \bot \land \text{trap}\_{i j} \neq x\_\bullet
+    \texttt{return } \exists i.\ \text{trap}\_{i j} \neq \bot \land \text{trap}\_{i j} \neq x\_\bullet
   \cr
 \end{aligned}
 }
