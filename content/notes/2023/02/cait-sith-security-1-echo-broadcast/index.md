@@ -922,7 +922,7 @@ $$
   \cr
   &\enspace
   \colorbox{#bae6fd}{$
-    \texttt{if } \exists j.\enspace
+    \texttt{if }
       \text{trap}\_{\bullet i} \neq \bot \land
       \text{trap}\_{\bullet i} \neq \hat{x}\_{\bullet i}
     :
@@ -994,5 +994,213 @@ $$
 F[\text{Stop}]
 \end{matrix}
 $$
+
+Since we can't equivocate, simplify variables.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{11}_H$
+}\cr
+\cr
+&\colorbox{#bae6fd}{$
+\underline{
+  (1)\text{Broadcast}_i(x):
+}$}\cr
+  &\enspace
+    \text{SetBroadcast}_i(x)
+  \cr
+  &\enspace
+    \text{SendBroadcast}_i(\star)
+  \cr
+  &\enspace
+    x\_{\bullet} \gets \text{GetBroadcast}_i(\star)
+  \cr
+  &\enspace
+    \text{Sync}_i(\star)
+  \cr
+  &\enspace
+    \text{WaitSync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{if } \text{BadBroadcast}_i():
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{11}_M$
+}\cr
+\cr
+&\colorbox{#bae6fd}{$
+x_k, \hat{x}\_{ij}, \vec{x}\_{ij} \gets \bot
+$}\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 0):
+}\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \hat{x}\_{kj} = \bot
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    \texttt{if } x_k = \bot:
+  \cr
+  &\enspace\enspace\enspace
+    x_k \gets m_j
+  \cr
+  &\enspace\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \text{SetBroadcast}_k(x_k)
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{elif } x_k \neq m_j:\enspace \texttt{stop}(\\{j\\}, 1)
+  \cr
+  &\enspace
+    \hat{x}\_{kj} \gets m_j\ (\forall j \in S \cap \mathcal{M})
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \text{SendBroadcast}_k(S \cap \mathcal{H})
+  $}
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 1):
+}\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \vec{x}\_{kj} = \bot
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    \texttt{if } \text{trap}\_{\bullet j} = \bot:
+  \cr
+  &\enspace\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \text{Trap}(j, m_j)
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{elif } \text{trap}\_{\bullet j} \neq m_j:\enspace \texttt{stop}(\\{j\\}, 1)
+  \cr
+  &\enspace
+    \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \text{Sync}_k(S)
+  $}
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 0):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 0)}\ \forall j \in S \cap M.\ \hat{x}\_{jk} \neq \bot
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \hat{x}\_{jk} \gets \text{GetBroadcast}_k(\\{j\\})\ (\forall j \in S \cap \mathcal{H})
+  $}
+  \cr
+  &\enspace
+    \texttt{return } [\hat{x}\_{j k} \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \text{WaitSync}_k()
+  $}
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \vec{x}\_{jk} \gets \text{GetBroadcast}_k(\star)\ (\forall j \in S \cap \mathcal{H})
+  $}
+  \cr
+  &\enspace
+    \texttt{return } [\vec{x}\_{jk} \mid j \in S]
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+\cr
+  \circ
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $F^0$
+}\cr
+\cr
+&x_i, \text{sent}\_{ij}, \text{trap}\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetBroadcast}_i(x):
+}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+\cr
+&\underline{
+  \text{GetBroadcast}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \text{sent}\_{ji}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{return } [x_j \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \text{Trap}(j, m\_\bullet):
+}\cr
+  &\enspace
+    \texttt{assert } \text{trap}\_{\bullet j} = \bot
+  \cr
+  &\enspace
+    \text{trap}\_{i j} \gets m_i
+  \cr
+\cr
+&\underline{
+  \text{BadBroadcast}(j, m\_\bullet):
+}\cr
+  &\enspace
+    \texttt{return } \text{trap}\_{\bullet j} \neq \bot \land \text{trap}\_{\bullet j} \neq x\_\bullet
+  \cr
+\end{aligned}
+}
+}
+\otimes
+F[\text{Sync}(1)]
+\otimes
+F[\text{Stop}]
+\end{matrix}
+$$
+
+concluding our proof.
 
 $\blacksquare$
