@@ -1153,7 +1153,7 @@ $}\cr
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $F^0$
+  $F[\text{Broadcast}]$
 }\cr
 \cr
 &x_i, \text{sent}\_{ij}, \text{trap}\_{ij} \gets \bot\cr
