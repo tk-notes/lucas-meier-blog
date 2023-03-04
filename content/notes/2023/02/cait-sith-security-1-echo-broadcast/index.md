@@ -14,10 +14,15 @@ One sub-component used a couple of times is a combined broadcast commitment
 functionality, implemented via echo broadcast.
 
 **Definition (Echo Broadcast Protocol):**
-The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following parties,
-for $i \in [n]$:
+The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following;
 
 $$
+\boxed{
+\begin{matrix}
+\colorbox{#FBCFE8}{\large
+  $\mathscr{P}[\text{IdealBroadcast}]$
+}\cr
+\cr
 \boxed{
 \small{
 \begin{aligned}
@@ -53,9 +58,129 @@ $$
 \end{aligned}
 }
 }
+\quad
+\begin{matrix}
+F[\text{SyncComm}]\cr
+\otimes\cr
+F[\text{Hash}]\cr
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
+\end{matrix}
+}
 $$
 
+$\square$
+
+**Definition (Ideal Broadcast Protocol):**
+The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following parties,
+for $i \in [n]$:
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{#FBCFE8}{\large
+  $\mathscr{P}[\text{IdealBroadcast}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \text{SetBroadcast}_i(x)
+  \cr
+  &\enspace
+    \text{SendBroadcast}_i(\star)
+  \cr
+  &\enspace
+    x\_{\bullet} \gets \text{GetBroadcast}_i(\star)
+  \cr
+  &\enspace
+    \text{Sync}_i(\star)
+  \cr
+  &\enspace
+    \text{WaitSync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{if } \text{BadBroadcast}_i():
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $F[\text{Broadcast}]$
+}\cr
+\cr
+&x_i, \text{sent}\_{ij}, \text{trap}\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetBroadcast}_i(x):
+}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+\cr
+&\underline{
+  \text{GetBroadcast}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \text{sent}\_{ji}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{return } [x_j \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \textcolor{#ef4444}{\text{Trap}(j, m\_\bullet)}:
+}\cr
+  &\enspace
+    \texttt{assert } \text{trap}\_{\bullet j} = \bot
+  \cr
+  &\enspace
+    \text{trap}\_{i j} \gets m_i
+  \cr
+\cr
+&\underline{
+  \text{BadBroadcast}_i(j, m\_\bullet):
+}\cr
+  &\enspace
+    \texttt{return } \text{trap}\_{\bullet j} \neq \bot \land \text{trap}\_{\bullet j} \neq x\_\bullet
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+F[\text{Sync}(1)]\cr
+\otimes\cr
+F[\text{Stop}]\cr
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\text{Trap}, \texttt{stop}\\}
+\end{matrix}
+}
+$$
+
+$\square$
+
 **Lemma**
+$\mathscr{P}[\text{EchoBroadcast}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealBroadcast}]$,
+for a negligible $\epsilon$, and any combination of malicious parties.
+
 **Proof**
 
 $$
