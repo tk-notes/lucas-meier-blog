@@ -81,8 +81,6 @@ $$
 $\square$
 
 **Definition (Ideal Broadcast Protocol):**
-The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following parties,
-for $i \in [n]$:
 
 $$
 \boxed{
@@ -165,7 +163,7 @@ $$
   \textcolor{#ef4444}{\text{Trap}(j, m\_\bullet)}:
 }\cr
   &\enspace
-    \texttt{assert } \text{trap}\_{\bullet j} = \bot
+    \texttt{assert } \forall i.\ m_i = \bot \lor (\text{trap}\_{i j} = \bot \land x_i = \bot)
   \cr
   &\enspace
     \text{trap}\_{i j} \gets m_i
@@ -175,7 +173,7 @@ $$
   \text{BadBroadcast}_i(j, m\_\bullet):
 }\cr
   &\enspace
-    \texttt{return } \text{trap}\_{\bullet j} \neq \bot \land \text{trap}\_{\bullet j} \neq x\_\bullet
+    \texttt{return } \forall i.\ \text{trap}\_{i j} \neq \bot \land \text{trap}\_{i j} \neq x\_\bullet
   \cr
 \end{aligned}
 }
@@ -1346,7 +1344,7 @@ $}\cr
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $F[\text{Broadcast}]$
+  $F[\text{Broadcast}]'$
 }\cr
 \cr
 &x_i, \text{sent}\_{ij}, \text{trap}\_{ij} \gets \bot\cr
@@ -1391,6 +1389,102 @@ $}\cr
 F[\text{Sync}(1)]
 \otimes
 F[\text{Stop}]
+\end{matrix}
+$$
+
+Next, unroll again.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{12}_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{StartBroadcast}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{#FBCFE8}{\large
+  $\Gamma^{12}_M$
+} = 1
+\begin{pmatrix}
+    \text{SetBroadcast}_k
+  ,\cr
+    \text{GetBroadcast}_k
+  ,\cr
+    \text{BadBroadcast}_k
+  ,\cr
+    \text{Sync}_k
+  ,\cr
+    \text{Trap}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}]' \otimes F[\text{Sync}(1)] \otimes F[\text{Stop}]
+\end{matrix}
+$$
+
+Then, amend things so that trap only runs before values have been broadcast.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{13}_H$
+} = \Gamma^{12}_H\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{13}_M$
+}\cr
+\cr
+&\colorbox{#bae6fd}{$
+\underline{
+  \text{Trap}(j, m\_{\bullet}):
+}$}\cr
+  &\enspace
+    \texttt{for } i \in \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    \texttt{if } \exists k.\ x \gets \texttt{nowait } \text{GetBroadcast}_k(\\{i\\}):
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{if } m_i \neq x:
+  \cr
+  &\enspace\enspace\enspace\enspace
+    \texttt{stop}(\\{j\\}, 1)
+  \cr
+  &\enspace\enspace\enspace\enspace
+    \texttt{return}
+  \cr
+  &\enspace
+    \text{Trap}(j, m\_\bullet)
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}] \otimes F[\text{Sync}(1)] \otimes F[\text{Stop}]
 \end{matrix}
 $$
 
