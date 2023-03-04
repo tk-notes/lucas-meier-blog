@@ -791,10 +791,9 @@ $$
   $\Gamma^9_H$
 }\cr
 \cr
-&\colorbox{#bae6fd}{$
-\underline{
+&\underline{
   (1)\text{Broadcast}_i(x):
-}$}\cr
+}\cr
   &\enspace
     \hat{x}\_{ij} \gets x
   \cr
@@ -830,7 +829,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{#FBCFE8}{\large
-  $\Gamma^8_M$
+  $\Gamma^9_M$
 }\cr
 \cr
 &\colorbox{#bae6fd}{$
@@ -861,38 +860,9 @@ $}\cr
     \hat{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
 \cr
-&\underline{
-  \Rsh_k(S, m\_\bullet, 1):
-}\cr
-  &\enspace
-    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \vec{x}\_{kj} = \bot
-  \cr
-  &\enspace
-    \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
-  \cr
-  &\enspace
-    \text{sync}\_{kj} \gets \texttt{true}\ (\forall j \in S)
-  \cr
+&
+\ldots
 \cr
-&\underline{
-  \Lsh_k(S, 0):
-}\cr
-  &\enspace
-    \texttt{wait}\_{(k, 0)}\ \forall j \in S.\ \hat{x}\_{jk} \neq \bot
-  \cr
-  &\enspace
-    \texttt{return } [\hat{x}\_{j k} \mid j \in S]
-  \cr
-\cr
-&\underline{
-  \Lsh_k(S, 1):
-}\cr
-  &\enspace
-    \texttt{wait}\_{(k, 1)}\ \forall j \in S.\ \text{sync}\_{jk} \neq \bot
-  \cr
-  &\enspace
-    \texttt{return } [\vec{x}\_{jk} \mid j \in S]
-  \cr
 \end{aligned}
 }
 }
@@ -908,6 +878,115 @@ $}\cr
 \small{
 \begin{aligned}
 \texttt{pub } \hat{x}\_{ij}, \vec{x}\_{ij}, \text{sent}\_{ij}, \text{sync}\_{ij} \gets \bot
+\end{aligned}
+}
+}
+\otimes
+F[\text{Stop}]
+\end{matrix}
+$$
+
+Now, the only thing that can cause a malicious failure is if
+a bad $\vec{x}\_{ij}$ value is set.
+We can capture this with a trap value.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{10}_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Broadcast}_i(x):
+}\cr
+  &\enspace
+    \hat{x}\_{ij} \gets x
+  \cr
+  &\enspace
+    \text{sent}\_{ij} \gets \texttt{true}
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \forall j.\ \hat{x}\_{ij} \neq \bot
+  \cr
+  &\enspace
+    \vec{x}\_{ij} \gets \hat{x}\_{\bullet i}
+  \cr
+  &\enspace
+    \text{sync}\_{ij} \gets \texttt{true}
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{if } \exists j.\enspace
+      \text{trap}\_{\bullet i} \neq \bot \land
+      \text{trap}\_{\bullet i} \neq \hat{x}\_{\bullet i}
+    :
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{#FBCFE8}{\large
+  $\Gamma^{10}_M$
+}\cr
+\cr
+&\ldots\cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 1):
+}\cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \vec{x}\_{kj} = \bot
+  \cr
+  &\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{for } j \in S \cap \mathcal{H}:
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{if } \text{trap}\_{\bullet j} = \bot:\enspace \text{trap}\_{\bullet j} \gets m_j
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{#bae6fd}{$
+    \texttt{elif } \text{trap}\_{\bullet j} \neq m_j:\enspace \texttt{stop}(\\{j\\}, 1)
+  $}
+  \cr
+  &\enspace
+    \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{sync}\_{kj} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \otimes
+\cr
+  F[\text{SyncComm}] \otimes F[\text{Hash}]
+\end{matrix}
+\cr
+  \circ
+\cr
+\boxed{
+\small{
+\begin{aligned}
+\texttt{pub } \hat{x}\_{ij}, \text{trap}\_{ij}, \vec{x}\_{ij}, \text{sent}\_{ij}, \text{sync}\_{ij} \gets \bot
 \end{aligned}
 }
 }
