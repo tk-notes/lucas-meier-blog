@@ -27,6 +27,11 @@ Go, and Python.
 I also like math quite a bit, so that's a recurring topic in my posts as well. Interests there
 include algebra and category theory.
 
+# [Papers](/papers)
+
+I've written a couple of academic papers,
+with the help of my coauthors, of course!
+
 # [Posts](/posts)
 
 I try and write blog posts on a recurring basis, hopefully at least once
@@ -36,6 +41,12 @@ to guides and tutorials, but the main things on my plate at the moment
 are related to cryptography.
 
 If you want to stay up to date, I'd recommend checking out the [RSS feed](/posts/index.xml).
+
+# [Podcast](/podcast)
+
+I also run a podcast: [The Cold Dive](https://cronokirby.substack.com).
+This page has an episode list.
+I'm trying to schedule episodes regularly.
 
 # [Projects](/projects)
 

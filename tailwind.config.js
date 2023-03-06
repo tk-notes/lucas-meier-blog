@@ -17,7 +17,7 @@ module.exports = {
   },
   purge: {
     options: {
-      safelist: ["text-left", "flex-initial"]
+      safelist: ["text-left", "flex-initial", "md:visible", "md:hidden", "hidden", "visible"]
     }
   },
   plugins: [require("@tailwindcss/typography")],
