@@ -1409,14 +1409,6 @@ video {
   margin-bottom: 2rem;
 }
 
-.mt-1 {
-  margin-top: 0.25rem;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
 .block {
   display: block;
 }
@@ -1483,16 +1475,16 @@ video {
   margin-bottom: calc(2rem * var(--tw-space-y-reverse));
 }
 
-.space-x-8 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(2rem * var(--tw-space-x-reverse));
-  margin-left: calc(2rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
 .space-y-4 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
   margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+
+.space-x-8 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(2rem * var(--tw-space-x-reverse));
+  margin-left: calc(2rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .space-y-2 > :not([hidden]) ~ :not([hidden]) {
@@ -1533,10 +1525,6 @@ video {
   padding: 0.5rem;
 }
 
-.p-6 {
-  padding: 1.5rem;
-}
-
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -1552,18 +1540,18 @@ video {
   padding-bottom: 1rem;
 }
 
-.py-1 {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
 .px-6 {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
 
-.pt-6 {
-  padding-top: 1.5rem;
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.pt-4 {
+  padding-top: 1rem;
 }
 
 .text-left {
@@ -1572,6 +1560,10 @@ video {
 
 .font-sans {
   font-family: IBM Plex Sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.font-mono {
+  font-family: Iosevka, monospace;
 }
 
 .text-lg {
@@ -1599,6 +1591,11 @@ video {
   line-height: 1.25rem;
 }
 
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
 .font-bold {
   font-weight: 700;
 }
@@ -1615,6 +1612,11 @@ video {
 .text-slate-900 {
   --tw-text-opacity: 1;
   color: rgb(15 23 42 / var(--tw-text-opacity));
+}
+
+.text-pink-700 {
+  --tw-text-opacity: 1;
+  color: rgb(190 24 93 / var(--tw-text-opacity));
 }
 
 .text-red-700 {

@@ -5,7 +5,7 @@
   {{ $pages := where site.RegularPages "Type" "in" "[projects]"}}
   <ul class="space-y-8">
   {{ range $pages }}
-    <li class="border border-2 border-current p-6 shadow-hard space-y-6">
+    <li class="border border-2 border-current px-6 py-4 shadow-hard space-y-4">
       <div>
         <div class="flex items-center justify-between">
           <div class="content">
@@ -21,10 +21,9 @@
         <ul class="flex flex-wrap items-center space-x-2">
           {{ range .Params.Tech | sort }}
           <li>
-            <a
-              href="/tags/{{. | urlize}}/"
+            <span
               class="shadow-hard-sm border-current border-2 text-xs p-1 hover:text-pink-600"
-              >{{.}}</a
+              >{{.}}</span
             >
           </li>
           {{ end }}

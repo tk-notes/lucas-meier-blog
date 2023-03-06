@@ -20,3 +20,4 @@ relativeURLs = true
 [taxonomies]
   tag = "tags"
   "note-tag" = "note-tags"
+  "podcast-tag" = "podcast-tags"
