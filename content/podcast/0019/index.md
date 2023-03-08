@@ -5,8 +5,8 @@ type: podcast
 tag:
   - "Cryptography"
 withpost: false
-description: "https://cronokirby.substack.com/p/cool-another-interesting-threshold"
-link: "Stuff"
+description: ""
+link: "https://cronokirby.substack.com/p/cool-another-interesting-threshold"
 ---
 
 In which I talk about CAIT-SITH, and why it's a pretty cool threshold
