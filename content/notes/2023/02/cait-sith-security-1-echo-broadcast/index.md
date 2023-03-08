@@ -19,14 +19,14 @@ The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following;
 $$
 \boxed{
 \begin{matrix}
-\colorbox{#FBCFE8}{\large
+\colorbox{FBCFE8}{\large
   $\mathscr{P}[\text{IdealBroadcast}]$
 }\cr
 \cr
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $P_i$
 }\cr
 \cr
@@ -85,14 +85,14 @@ $\square$
 $$
 \boxed{
 \begin{matrix}
-\colorbox{#FBCFE8}{\large
+\colorbox{FBCFE8}{\large
   $\mathscr{P}[\text{IdealBroadcast}]$
 }\cr
 \cr
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $P_i$
 }\cr
 \cr
@@ -136,7 +136,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $F[\text{Broadcast}]$
 }\cr
 \cr
@@ -160,7 +160,7 @@ $$
   \cr
 \cr
 &\underline{
-  \textcolor{#ef4444}{\text{Trap}(j, m\_\bullet)}:
+  \textcolor{ef4444}{\text{Trap}(j, m\_\bullet)}:
 }\cr
   &\enspace
     \texttt{assert } \forall i.\ m_i = \bot \lor (\text{trap}\_{i j} = \bot \land x_i = \bot)
@@ -202,7 +202,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^0_H$
 }\cr
 \cr
@@ -216,7 +216,7 @@ $$
 }
 }
 \otimes
-\boxed{\colorbox{#FBCFE8}{\large
+\boxed{\colorbox{FBCFE8}{\large
   $\Gamma^0_M$
 } = 1
 \begin{pmatrix}
@@ -241,7 +241,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^1_H$
 }\cr
 &\ldots\cr
@@ -256,7 +256,7 @@ $$
     h_i \gets \text{Hash}(\hat{x}\_\bullet)
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \Rsh_i(\star, (h_i, \hat{x}\_\bullet), 1)
   $}
   \cr
@@ -265,7 +265,7 @@ $$
   \text{EndBroadcast}_i():
 }\cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
   $}
   \cr
@@ -284,7 +284,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#bae6fd}{\large
+&\colorbox{bae6fd}{\large
   $\Gamma^1_M$
 }\cr
 \cr
@@ -326,7 +326,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^2_H$
 }\cr
 &\ldots\cr
@@ -341,7 +341,7 @@ $$
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \Rsh_i(\star, (\bot, \hat{x}\_\bullet), 1)
   $}
   \cr
@@ -353,7 +353,7 @@ $$
     (\hat{h}\_\bullet, \vec{x}\_\bullet) \Lsh_i(\star, 1)
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } \exists j.\enspace
     \begin{matrix}
       (\hat{h}_j \neq \bot \land \hat{h}_j \neq \text{Hash}(\vec{x}_i))\ \lor\cr
@@ -373,7 +373,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^2_M$
 }\cr
 \cr
@@ -384,7 +384,7 @@ $$
     \Rsh_k(S, (h\_\bullet, \bot), 1)
   \cr
 \cr
-&\colorbox{#bae6fd}{$\underline{
+&\colorbox{bae6fd}{$\underline{
   \Lsh_k(S, 1):
 }$}\cr
   &\enspace
@@ -424,12 +424,12 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^3_H$
 }\cr
 &\ldots\cr
 \cr
-&\colorbox{#bae6fd}{$\underline{
+&\colorbox{bae6fd}{$\underline{
   \text{WaitBroadcast}_i():
 }$}\cr
   &\enspace
@@ -439,7 +439,7 @@ $$
     \Rsh_i(\star, (\bot, \hat{x}\_\bullet), 1)
   \cr
 \cr
-&\colorbox{#bae6fd}{$\underline{
+&\colorbox{bae6fd}{$\underline{
   \text{EndBroadcast}_i():
 }$}\cr
   &\enspace
@@ -464,7 +464,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#bae6fd}{\large
+&\colorbox{bae6fd}{\large
   $\Gamma^3_M$
 }\cr
 \cr
@@ -551,7 +551,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^4_H$
 }\cr
 &\ldots\cr
@@ -563,7 +563,7 @@ $$
     \hat{x}\_\bullet \Lsh_i(\star, 0)
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \Rsh_i(\star, \hat{x}\_\bullet, 1)
   $}
   \cr
@@ -572,12 +572,12 @@ $$
   \text{EndBroadcast}_i():
 }\cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \vec{x}\_\bullet \Lsh_i(\star, 1)
   $}
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } \exists j.\enspace
       \text{Hash}(\vec{x}_j) \neq \text{Hash}(\vec{x}_i)
     :
@@ -594,7 +594,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^4_M$
 }\cr
 \cr
@@ -613,7 +613,7 @@ $$
     \texttt{if } \mu[h_j] \neq \bot:
   \cr
   &\enspace\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \Rsh_k(\\{j\\}, \mu[h_j], 1)
   $}
   \cr
@@ -621,7 +621,7 @@ $$
     \texttt{else}:
   \cr
   &\enspace\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{stop}(\star, 1)
   $}
   \cr
@@ -631,7 +631,7 @@ $$
   \Lsh_k(S, 1):
 }\cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \vec{x}\_\bullet\Lsh_k(S \cap \mathcal{H}, 1)
   $}
   \cr
@@ -660,7 +660,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^5_H$
 }\cr
 &\ldots\cr
@@ -696,7 +696,7 @@ $$
 }
 }
 \otimes
-\boxed{\colorbox{#FBCFE8}{\large
+\boxed{\colorbox{FBCFE8}{\large
   $\Gamma^5_M$
 } = 1
 \begin{pmatrix}
@@ -720,7 +720,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^6_H$
 }\cr
 &\ldots\cr
@@ -731,7 +731,7 @@ $$
     \ldots
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } \exists j.\enspace
       \vec{x}_j \neq \vec{x}_i
     :
@@ -744,7 +744,7 @@ $$
 }
 }
 \otimes
-\boxed{\colorbox{#FBCFE8}{\large
+\boxed{\colorbox{FBCFE8}{\large
   $\Gamma^6_M$
 } = \Gamma^5_M}
 \cr
@@ -761,7 +761,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#bae6fd}{\large
+&\colorbox{bae6fd}{\large
   $\Gamma^7_H$
 }\cr
 \cr
@@ -807,7 +807,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#bae6fd}{\large
+&\colorbox{bae6fd}{\large
   $\Gamma^7_M$
 }\cr
 \cr
@@ -882,7 +882,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^8_H$
 }\cr
 &\ldots\cr
@@ -894,7 +894,7 @@ $$
     \ldots
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } \exists j \in \mathcal{H}.\enspace
       \hat{x}\_{\bullet j} \neq \hat{x}\_{\bullet i}
     :
@@ -904,7 +904,7 @@ $$
     \texttt{stop}(\star, 1)
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } \exists j \in \mathcal{M}.\enspace
       \vec{x}\_{ji} \neq \hat{x}\_{\bullet i}
     :
@@ -921,7 +921,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^8_M$
 } = \Gamma^7_M\cr
 \end{aligned}
@@ -955,7 +955,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^9_H$
 }\cr
 \cr
@@ -1004,11 +1004,11 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^9_M$
 }\cr
 \cr
-&\colorbox{#bae6fd}{$
+&\colorbox{bae6fd}{$
   x_k \gets \bot
 $}\cr
 &\underline{
@@ -1018,17 +1018,17 @@ $}\cr
     \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \hat{x}\_{kj} = \bot
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{for } j \in S \cap \mathcal{H}:
   $}
   \cr
   &\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } x_k = \bot:\enspace x_k \gets m_j
   $}
   \cr
   &\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{elif } x_k \neq m_j:\enspace \texttt{stop}(\\{j\\}, 1)
   $}
   \cr
@@ -1071,7 +1071,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^{10}_H$
 }\cr
 \cr
@@ -1105,7 +1105,7 @@ $$
     \texttt{wait}\_{(i, 1)}\ \forall j.\ \text{sync}\_{ji} \neq \bot
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if }
       \text{trap}\_{\bullet i} \neq \bot \land
       \text{trap}\_{\bullet i} \neq \hat{x}\_{\bullet i}
@@ -1123,7 +1123,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^{10}_M$
 }\cr
 \cr
@@ -1136,17 +1136,17 @@ $$
     \texttt{assert } \forall j \in S.\ m_j \neq \bot \land \vec{x}\_{kj} = \bot
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{for } j \in S \cap \mathcal{H}:
   $}
   \cr
   &\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{if } \text{trap}\_{\bullet j} = \bot:\enspace \text{trap}\_{\bullet j} \gets m_j
   $}
   \cr
   &\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \texttt{elif } \text{trap}\_{\bullet j} \neq m_j:\enspace \texttt{stop}(\\{j\\}, 1)
   $}
   \cr
@@ -1186,7 +1186,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#bae6fd}{\large
+&\colorbox{bae6fd}{\large
   $\Gamma^{11}_H$
 }\cr
 \cr
@@ -1230,11 +1230,11 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^{11}_M$
 }\cr
 \cr
-&\colorbox{#bae6fd}{$
+&\colorbox{bae6fd}{$
 x_k, \hat{x}\_{ij}, \vec{x}\_{ij} \gets \bot
 $}\cr
 &\underline{
@@ -1253,7 +1253,7 @@ $}\cr
     x_k \gets m_j
   \cr
   &\enspace\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \text{SetBroadcast}_k(x_k)
   $}
   \cr
@@ -1264,7 +1264,7 @@ $}\cr
     \hat{x}\_{kj} \gets m_j\ (\forall j \in S \cap \mathcal{M})
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \text{SendBroadcast}_k(S \cap \mathcal{H})
   $}
   \cr
@@ -1282,7 +1282,7 @@ $}\cr
     \texttt{if } \text{trap}\_{\bullet j} = \bot:
   \cr
   &\enspace\enspace\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \text{Trap}(j, m_j)
   $}
   \cr
@@ -1293,7 +1293,7 @@ $}\cr
     \vec{x}\_{kj} \gets m_j\ (\forall j \in S)
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \text{Sync}_k(S)
   $}
   \cr
@@ -1305,7 +1305,7 @@ $}\cr
     \texttt{wait}\_{(k, 0)}\ \forall j \in S \cap M.\ \hat{x}\_{jk} \neq \bot
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \hat{x}\_{jk} \gets \text{GetBroadcast}_k(\\{j\\})\ (\forall j \in S \cap \mathcal{H})
   $}
   \cr
@@ -1317,12 +1317,12 @@ $}\cr
   \Lsh_k(S, 1):
 }\cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \text{WaitSync}_k()
   $}
   \cr
   &\enspace
-  \colorbox{#bae6fd}{$
+  \colorbox{bae6fd}{$
     \vec{x}\_{jk} \gets \text{GetBroadcast}_k(\star)\ (\forall j \in S \cap \mathcal{H})
   $}
   \cr
@@ -1343,7 +1343,7 @@ $}\cr
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $F[\text{Broadcast}]'$
 }\cr
 \cr
@@ -1399,7 +1399,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^{12}_H$
 }\cr
 \cr
@@ -1413,7 +1413,7 @@ $$
 }
 }
 \otimes
-\boxed{\colorbox{#FBCFE8}{\large
+\boxed{\colorbox{FBCFE8}{\large
   $\Gamma^{12}_M$
 } = 1
 \begin{pmatrix}
@@ -1442,7 +1442,7 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^{13}_H$
 } = \Gamma^{12}_H\cr
 \end{aligned}
@@ -1452,11 +1452,11 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{#FBCFE8}{\large
+&\colorbox{FBCFE8}{\large
   $\Gamma^{13}_M$
 }\cr
 \cr
-&\colorbox{#bae6fd}{$
+&\colorbox{bae6fd}{$
 \underline{
   \text{Trap}(j, m\_{\bullet}):
 }$}\cr
