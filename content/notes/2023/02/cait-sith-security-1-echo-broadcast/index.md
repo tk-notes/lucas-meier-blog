@@ -1533,7 +1533,7 @@ $$
     x_i \gets x, \quad r_i \xleftarrow{\\$} \texttt{01}^{2 \lambda}
   \cr
   &\enspace
-    \text{SetBroadcast}(\text{Hash}(x_i, r_i))
+    \text{SetBroadcast}_i(\text{Hash}(x_i, r_i))
   \cr
 \cr
 &\underline{
@@ -1606,7 +1606,7 @@ $$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{Commit}]$
+  $\mathscr{P}[\text{IdealCommit}]$
 }\cr
 \cr
 \boxed{
@@ -1615,8 +1615,6 @@ $$
 &\colorbox{FBCFE8}{\large
   $P_i$
 }\cr
-\cr
-&x_i, r_i \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetCommit}_i(x):
@@ -1740,4 +1738,410 @@ $$
 $$
 for some negligible $\epsilon$.
 
-$\blacksquare$
+**Proof:**
+
+First, unroll to get:
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^0_M$
+} = 1
+\begin{pmatrix}
+    \text{SetBroadcast}_k
+  ,\cr
+    \text{GetBroadcast}_k
+  ,\cr
+    \text{BadBroadcast}_k
+  ,\cr
+    \text{Trap}
+  ,\cr
+    \text{Sync}_k
+  ,\cr
+    \text{WaitSync}_k
+  ,\cr
+    \Rsh_k
+  ,\cr
+    \Lsh_k
+  ,\cr
+    \text{Hash}
+  ,\cr
+    \texttt{stop}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Now, a trap value needs to be provided before the commitment
+value is known.
+However, for honest parties, these commitment values
+are in all likelihood freshly sampled, because of the entropy
+in $r$.
+This means that trapping honest values is useless,
+since except with negligible probability, it has no effect.
+
+$$
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^1_H$
+} = \Gamma^0_H
+\end{aligned}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^1_M$
+}\cr
+&\ldots\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{Trap}(j, m\_\bullet):
+}$}\cr
+  &\enspace
+    \text{com}_i \gets x_i \neq \bot (\forall i \in \mathcal{M})
+  \cr
+  &\enspace
+    \text{com}_i \gets \texttt{nowait } \text{GetBroadcast}_k(\\{i\\})\neq \bot (\forall i \in \mathcal{H})
+  \cr
+  &\enspace
+    \texttt{assert } \forall i.\ m_i = \bot \lor (\text{trap}\_{i j} = \bot \land \neg \text{com}_i)
+  \cr
+  &\enspace
+    \forall i \in \mathcal{H}.\ m_i \gets \bot
+  \cr
+  &\enspace
+    \text{Trap}(j, m\_{\bullet})
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+We can now replace $F[\text{Broadcast}]$ with
+a function $F[\text{Broadcast}']$, in which trapping isn't
+possible, because we can simulate the effects ourself.
+
+$$
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^2_H$
+} = \Gamma^1_H
+\end{aligned}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^2_M$
+}\cr
+&\ldots\cr
+&\colorbox{bae6fd}{$
+c_k, \text{trap}\_{ij}, \text{bad}_k \gets \bot$}
+\cr
+\cr
+&\underline{
+  \text{Trap}(j, m\_\bullet):
+}\cr
+  &\enspace
+    \text{com}_i \gets c_i \neq \bot (\forall i \in \mathcal{M})
+  \cr
+  &\enspace
+    \text{com}_i \gets \texttt{nowait } \text{GetBroadcast}_k(\\{i\\})\neq \bot (\forall i \in \mathcal{H})
+  \cr
+  &\enspace
+    \texttt{assert } \forall i.\ m_i = \bot \lor (\text{trap}\_{i j} = \bot \land \neg \text{com}_i)
+  \cr
+  &\enspace
+    \forall i \in \mathcal{H}.\ m_i \gets \bot
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \text{trap}\_{ij} \gets m_i
+  $}
+  \cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{SetBroadcast}_k(c):
+}$}\cr
+  &\enspace
+    c_k \gets c
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{trap}\_{jk} \neq \bot \land \text{trap}\_{jk} \neq c:
+  \cr
+  &\enspace\enspace
+    \text{bad}_j \gets \texttt{true}
+  \cr
+  &\enspace\enspace
+    \texttt{if } j \in \mathcal{H}:\ \texttt{stop}(\\{j\\}, 1)
+  \cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{BadBroadcast}_k():
+}$}\cr
+  &\enspace
+    \texttt{return } \text{bad}_k
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+From this we see that we're in fact simulating a protocol
+which is like $\mathscr{P}[\text{EchoBroadcast}]$,
+except that trapping is not possible.
+Let's unroll that protocol, to get:
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^3_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^3_M$
+} = 1
+\begin{pmatrix}
+    \text{SetBroadcast}_k
+  ,\cr
+    \text{GetBroadcast}_k
+  ,\cr
+    \text{Sync}_k
+  ,\cr
+    \text{WaitSync}_k
+  ,\cr
+    \Rsh_k
+  ,\cr
+    \Lsh_k
+  ,\cr
+    \text{Hash}
+  ,\cr
+    \texttt{stop}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+At the end of $\text{WaitOpen}_i$, we check that the opened
+values match the commitments.
+Because honest parties will always open the right values,
+we can instead limit the check to malicious parties.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^4_H$
+}\cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(x):
+}\cr
+  &\enspace
+    c\_\bullet \gets \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{EndBroadcast}_i()
+  \cr
+  &\enspace
+    (\hat{x}\_{\bullet}, \hat{r}\_{\bullet}) \Lsh_i(\star, 2)
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{if } \exists j \in \mathcal{M}.\ \text{Hash}(\hat{x}_j, \hat{r}_j) \neq c_j:
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 2)
+  \cr
+  &\enspace
+    \texttt{return } \hat{x}\_{\bullet}
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^4_M$
+} = \Gamma^3_M
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Now, because of the entropy of the $r$ values, in all likelihood
+the random oracle will not have been queried
+at that value before, and so we can instead assume that the value
+is random, and then backfill it later.
+Thus, we have honest parties broadcast completely random commitments,
+and then program the random oracle after they open the commitment.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^5_H$
+}\cr
+\cr
+&\colorbox{bae6fd}{$
+x_i, c_i \gets \bot
+$}\cr
+&\ldots\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  (1)\text{SetCommit}_i(x):
+}$}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+  &\enspace
+    c_i \xleftarrow{\\$} \texttt{01}^{2 \lambda}
+  \cr
+  &\enspace
+    \text{SetBroadcast}_i(c_i)
+  \cr
+\cr
+&\underline{
+  \text{Open}_i():
+}\cr
+  &\enspace
+    \texttt{assert } x_i \neq \bot
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    r_i \xleftarrow{\\$} \texttt{01}^{2\lambda}
+  $}
+  \cr
+  &\enspace
+    \Rsh_i(\star, (x_i, r_i), 2)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(x):
+}\cr
+  &\enspace
+    c\_\bullet \gets \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{EndBroadcast}_i()
+  \cr
+  &\enspace
+    (\hat{x}\_{\bullet}, \hat{r}\_{\bullet}) \Lsh_i(\star, 2)
+  \cr
+  &\enspace
+    \texttt{if } \exists j \in \mathcal{M}.\ \text{Hash}(\hat{x}_j, \hat{r}_j) \neq c_j:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 2)
+  \cr
+  &\enspace
+    \texttt{return } \hat{x}\_{\bullet}
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^5_H$
+}\cr
+&\ldots\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{Hash}(x, r):
+}$}\cr
+  &\enspace
+    \texttt{if } \exists k \in \mathcal{M}, j \in \mathcal{H}.\ \texttt{nowait}\Lsh_k(\\{j\\}, 2) = (x, r):
+  \cr
+  &\enspace\enspace
+    \texttt{if } \exists k \in \mathcal{M}, j \in \mathcal{H}.\ \texttt{nowait } \text{GetBroadcast}(\\{j\\}) \to c_j:
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{return } c_j
+  \cr
+  &\enspace
+    \texttt{return } \text{Hash}(x, r)
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
