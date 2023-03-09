@@ -14,13 +14,13 @@ One sub-component used a couple of times is a combined broadcast commitment
 functionality, implemented via echo broadcast.
 
 **Definition (Echo Broadcast Protocol):**
-The broadcast protocol $\mathscr{P}[\text{EB}]$ is defined by the following;
+The broadcast protocol $\mathscr{P}[\text{EchoBroadcast}]$ is defined by the following;
 
 $$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{IdealBroadcast}]$
+  $\mathscr{P}[\text{EchoBroadcast}]$
 }\cr
 \cr
 \boxed{
@@ -49,9 +49,12 @@ $$
   &\enspace
     \Rsh_i(\star, \text{con}_i, 1)
   \cr
+  &\enspace
+    \texttt{return } x\_{\bullet}
+  \cr
 \cr
 &\underline{
-  \text{EndBroadcast}_i(x):
+  \text{EndBroadcast}_i():
 }\cr
   &\enspace
     \hat{\text{con}}\_\bullet \Lsh_i(\star, 1)
@@ -115,6 +118,9 @@ $$
   &\enspace
     \text{Sync}_i(\star)
   \cr
+  &\enspace
+    \texttt{return } x\_{\bullet}
+  \cr
 \cr
 &\underline{
   \text{EndBroadcast}_i():
@@ -150,6 +156,16 @@ $$
   \cr
 \cr
 &\underline{
+  \text{SendBroadcast}_i(S):
+}\cr
+  &\enspace
+    \texttt{assert } x_i \neq \bot
+  \cr
+  &\enspace
+    \text{sent}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
   \text{GetBroadcast}_i(S):
 }\cr
   &\enspace
@@ -170,10 +186,10 @@ $$
   \cr
 \cr
 &\underline{
-  \text{BadBroadcast}_i(j, m\_\bullet):
+  \text{BadBroadcast}_i():
 }\cr
   &\enspace
-    \texttt{return } \exists i.\ \text{trap}\_{i j} \neq \bot \land \text{trap}\_{i j} \neq x\_i
+    \texttt{return } \exists j.\ \text{trap}\_{j i} \neq \bot \land \text{trap}\_{j i} \neq x\_j
   \cr
 \end{aligned}
 }
@@ -1380,7 +1396,7 @@ $}\cr
   \text{BadBroadcast}(j, m\_\bullet):
 }\cr
   &\enspace
-    \texttt{return } \text{trap}\_{\bullet j} \neq \bot \land \text{trap}\_{\bullet j} \neq x\_\bullet
+    \texttt{return } \exists i.\ \text{trap}\_{i j} \neq \bot \land \text{trap}\_{i j} \neq x\_i
   \cr
 \end{aligned}
 }
@@ -1489,5 +1505,239 @@ F[\text{Broadcast}] \otimes F[\text{Sync}(1)] \otimes F[\text{Stop}]
 $$
 
 concluding our proof.
+
+$\blacksquare$
+
+**Definition (Commitment Protocol):**
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Commit}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&x_i, r_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+  &\enspace
+    x_i \gets x, \quad r_i \xleftarrow{\\$} \texttt{01}^{2 \lambda}
+  \cr
+  &\enspace
+    \text{SetBroadcast}(\text{Hash}(x_i, r_i))
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i():
+}\cr
+  &\enspace
+    \text{SendBroadcast}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i():
+}\cr
+  &\enspace
+    \texttt{return } \text{WaitBroadcast}_i()
+  \cr
+\cr
+&\underline{
+  \text{Open}_i():
+}\cr
+  &\enspace
+    \texttt{assert } x_i \neq \bot
+  \cr
+  &\enspace
+    \Rsh_i(\star, (x_i, r_i), 2)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i():
+}\cr
+  &\enspace
+    c\_\bullet \gets \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{EndBroadcast}_i()
+  \cr
+  &\enspace
+    (\hat{x}\_{\bullet}, \hat{r}\_{\bullet}) \Lsh_i(\star, 2)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{Hash}(\hat{x}_j, \hat{r}_j) \neq c_j:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 2)
+  \cr
+  &\enspace
+    \texttt{return } \hat{x}\_{\bullet}
+  \cr
+\cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{Stop}]\cr
+\circledcirc\cr
+F[\text{SyncComm}]\cr
+\otimes\cr
+F[\text{Hash}]\cr
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
+\end{matrix}
+}
+$$
+
+$\square$
+
+**Definition (Ideal Commitment):**
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Commit}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&x_i, r_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+  &\enspace
+    \text{SetCommit}_i(x)
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i():
+}\cr
+  &\enspace
+    \text{Commit}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i(\star)
+  \cr
+  &\enspace
+    \text{Sync}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{Open}_i():
+}\cr
+  &\enspace
+    \text{Open}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{WaitSync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } \text{WaitOpen}_i(\star)
+  \cr
+\cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Commit}]$
+}\cr
+\cr
+&x_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i(S):
+}\cr
+  &\enspace
+    \text{com}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{com}\_{ji}
+  \cr
+\cr
+&\underline{
+  \text{Open}_i(S):
+}\cr
+  &\enspace
+    \texttt{assert } x_i \neq \bot
+  \cr
+  &\enspace
+    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(S):
+}\cr
+  &\enspace
+    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+  \cr
+  &\enspace
+    \texttt{return } x\_\bullet
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+F[\text{Sync}(1)]\cr
+\circledcirc\cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
+\end{matrix}
+}
+$$
+
+**Lemma**
+$$
+\begin{matrix}
+\mathscr{P}[\text{Commit}] \lhd \mathscr{P}[\text{IdealBroadcast}]
+\overset{\epsilon}{\leadsto}
+\mathscr{P}[\text{IdealCommit}]
+\end{matrix}
+$$
+for some negligible $\epsilon$.
 
 $\blacksquare$
