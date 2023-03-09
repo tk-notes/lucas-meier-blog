@@ -1659,7 +1659,6 @@ $$
   &\enspace
     \texttt{return } \text{WaitOpen}_i(\star)
   \cr
-\cr
 \end{aligned}
 }
 }
@@ -1766,6 +1765,8 @@ $$
 } = 1
 \begin{pmatrix}
     \text{SetBroadcast}_k
+  ,\cr
+    \text{SendBroadcast}_k
   ,\cr
     \text{GetBroadcast}_k
   ,\cr
@@ -1960,7 +1961,10 @@ $$
 \begin{pmatrix}
     \text{SetBroadcast}_k
   ,\cr
+    \text{SendBroadcast}_k
+  ,\cr
     \text{GetBroadcast}_k
+  ,\cr
   ,\cr
     \text{Sync}_k
   ,\cr
@@ -2145,3 +2149,392 @@ F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otime
 \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
+
+Next, except with negligible probability we can extract preimages
+of commitments, since a commitment that hasn't come from the hash
+function will fail with probability $\leq 2^{-2\lambda}$.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^6_H$
+} = \Gamma^5_H\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^6_H$
+}\cr
+&\mu[\bullet], x_k, r_k \gets \bot\cr
+&\ldots\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{SetBroadcast}_k(h):
+}$}\cr
+  &\enspace
+    \texttt{assert } h \in \mu
+  \cr
+  &\enspace
+    (x_k, r_k) \gets \mu[h]
+  \cr
+  &\enspace
+    \text{SetBroadcast}_k(h)
+  \cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{Hash}(x, r):
+}$}\cr
+  &\enspace
+    h \gets \text{Hash}'(x, r)
+  \cr
+  &\enspace
+    \mu[h] \gets (x, r)
+  \cr
+  &\enspace
+    \texttt{return } h
+  \cr
+&\underline{
+  \text{Hash}'(x, r):
+}\cr
+  &\enspace
+    \ldots
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Next, instead of checking for bad openings inside honest parties,
+when can instead have malicious parties directly cause
+a stop once they send a bad value.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^7_H$
+}\cr
+&\ldots\cr
+\cr
+&\underline{
+  \text{WaitOpen}_i():
+}\cr
+  &\enspace
+    c\_\bullet \gets \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{EndBroadcast}_i()
+  \cr
+  &\enspace
+    (\hat{x}\_{\bullet}, \hat{r}\_{\bullet}) \Lsh_i(\star, 2)
+  \cr
+  &\enspace
+  \colorbox{#fca5a5}{$
+    \texttt{if } \exists j.\ \text{Hash}(\hat{x}_j, \hat{r}_j) \neq c_j:
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{#fca5a5}{$
+    \texttt{stop}(\star, 2)
+  $}
+  \cr
+  &\enspace
+    \texttt{return } \hat{x}\_{\bullet}
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^7_H$
+}\cr
+&\mu[\bullet], x_k, r_k \gets \bot\cr
+&\ldots\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \Rsh_k(S, (\hat{x}\_\bullet, \hat{r}\_\bullet)):
+}$}\cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}.\ \text{Hash}(\hat{x}_j, \hat{r}_j) \neq \text{Hash}(x_k, r_k):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\\{j\\}, 2)
+  \cr
+  &\enspace
+    \Rsh_k(S, (\hat{x}\_\bullet, \hat{r}\_\bullet))
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+(red parts deleted).
+
+Next, it's indifferentiable to check direct equality.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^8_H$
+} = \Gamma^7_H\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^8_H$
+}\cr
+&\ldots\cr
+\cr
+&\underline{
+  \Rsh_k(S, (\hat{x}\_\bullet, \hat{r}\_\bullet), 2):
+}\cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{for } j \in S \cap \mathcal{H}.\ (\hat{x}_j, \hat{r}_j) \neq (x_k, r_k):
+  $}
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\\{j\\}, 2)
+  \cr
+  &\enspace
+    \Rsh_k(S, (\hat{x}\_\bullet, \hat{r}\_\bullet))
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otimes F[\text{Hash}]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+At this point, the malicious party can't actually send honest
+parties an opened value that's any different than the one they
+used to generate their initial broadcast hash.
+We can now rewrite the adversary to use the ideal commitment
+functionality instead.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $\Gamma^9_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+  &\enspace
+    \text{SetCommit}_i(x)
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i():
+}\cr
+  &\enspace
+    \text{Commit}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i(\star)
+  \cr
+  &\enspace
+    \text{Sync}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{Open}_i():
+}\cr
+  &\enspace
+    \text{Open}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{WaitSync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } \text{WaitOpen}_i(\star)
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $\Gamma^9_H$
+}\cr
+&\ldots\cr
+\cr
+&\underline{
+  \text{SetBroadcast}_k(h):
+}\cr
+  &\enspace
+    \texttt{assert } h \in \mu
+  \cr
+  &\enspace
+    h_k \gets h
+  \cr
+  &\enspace
+    \text{SetCommit}_k(\mu[h])
+  \cr
+\cr
+&\underline{
+  \text{SendBroadcast}_k(S):
+}\cr
+  &\enspace
+  \hat{h}\_{kj} \gets h_k \ (\forall j \in S \cap \mathcal{m})
+  \cr
+  &\enspace
+    \text{Commit}_k(S)
+  \cr
+\cr
+&\underline{
+  \text{GetBroadcast}_k(S):
+}\cr
+  &\enspace
+    \text{WaitCommit}_k(S)
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}.\ c_j = \bot:
+  \cr
+  &\enspace\enspace
+    c_j \xleftarrow{\\$} \texttt{01}^{2\lambda}
+  \cr
+  &\enspace
+    \texttt{return } \begin{bmatrix}
+      c_j &\mid j \in S \cap \mathcal{H} \cr
+      \hat{h}\_{jk} &\mid j \in S \cap \mathcal{M}
+    \end{bmatrix}
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, \hat{m}\_\bullet, 2):
+}\cr
+  &\enspace
+    (\hat{x}\_\bullet, \hat{r}\_\bullet) \gets \hat{m}\_\bullet
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}.\ (\hat{x}_j, \hat{r}_j) \neq (x_k, r_k):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\\{j\\}, 2)
+  \cr
+  &\enspace\enspace
+    S \gets S / \\{j\\}
+  \cr
+  &\enspace
+    m\_{kj} \gets (\forall j \in S \cap \mathcal{M})
+  \cr
+  &\enspace
+    \text{Open}_k(S)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 2):
+}\cr
+  &\enspace
+    \text{xr}\_\bullet \gets \text{WaitOpen}_k(S)
+  \cr
+  &\enspace
+    \texttt{return } \begin{bmatrix}
+      \text{xr}_j &\mid j \in S \cap \mathcal{H}\cr
+      m\_{kj} &\mid j \in S \cap \mathcal{M}
+    \end{bmatrix}
+  \cr
+\cr
+&\underline{
+  \text{Hash}(x, r):
+}\cr
+  &\enspace
+    h \gets \text{Hash}'(x, r)
+  \cr
+  &\enspace
+    \mu[h] \gets (x, r)
+  \cr
+  &\enspace
+    \texttt{return } h
+  \cr
+\cr
+&\underline{
+  \text{Hash}'(x, r):
+}\cr
+  &\enspace
+    \texttt{if } \exists k \in \mathcal{M}, j \in \mathcal{H}.\ \texttt{nowait}\Lsh_k(\\{j\\}, 2) = (x, r):
+  \cr
+  &\enspace\enspace
+    \texttt{if } \exists k \in \mathcal{M}, j \in \mathcal{H}.\ \texttt{nowait } \text{GetBroadcast}(\\{j\\}) \to c_j:
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{return } c_j
+  \cr
+  &\enspace
+    \texttt{return } \text{Hash}(x, r)
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+1(\text{Sync}_k, \text{WaitSync}_k, \texttt{stop}) \otimes F[\text{Hash}]
+\end{matrix}
+\cr
+  \circ
+\cr
+F[\text{IdealCommit}] \otimes F[\text{Sync}(1)]
+\circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+This is fact a simulator over $\mathscr{P}[IdealCommit]$,
+concluding our proof.
+
+$\blacksquare$
