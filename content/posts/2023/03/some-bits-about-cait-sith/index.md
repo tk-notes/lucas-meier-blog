@@ -29,7 +29,6 @@ To produce a signature, we run the following algorithm:
 $$
 \begin{aligned}
 &\underline{\text{Sign}(m)}\cr
-&\quad m \gets H(m)\cr
 &\quad k \xleftarrow{R} \mathbb{F}_q\cr
 &\quad K \gets \frac{1}{k} \cdot G\cr
 &\quad s \gets k \cdot (H(m) + h(K) \cdot x)\cr
