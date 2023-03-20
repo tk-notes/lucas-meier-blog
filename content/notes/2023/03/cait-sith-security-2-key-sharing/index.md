@@ -495,5 +495,94 @@ F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
 $$
 
 By stopping inside $\Gamma_M$, we deliver earlier.
+Any proof not coming from prove is false, with neglible probability.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^1_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(s):
+}\cr
+  &\enspace
+    \ldots
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 3)} \forall j.\ \pi\_{ji} \neq \bot
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{wait}\_{(i, 4)} \forall j.\ x\_{ji} \neq \bot
+  $}
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor \neg \text{Verify}(\pi_j, F_j(0)):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 3)
+  \cr
+  &\enspace
+    \ldots
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^1_M$
+}\cr
+&\ldots\cr
+&\colorbox{bae6fd}{$
+\pi\_k \gets \bot
+$}\cr
+\cr
+&\underline{
+  (1)\text{Prove}_k(B;b):
+}\cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \pi\_k \gets \text{Prove}_k(B;b)
+  $}
+  \cr
+  &\enspace
+    \texttt{return } \pi\_k
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 3):
+}\cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{for } j \in S \cap \mathcal{H}.\ m_j \neq \bot \land m_j \neq \pi_k:
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{bae6fd}{$
+    \texttt{stop}(\\{j\\}, 3)
+  $}
+  \cr
+  &\enspace
+    \forall j \in S.\ x\_{kj} \gets m\_j
+  \cr
+\end{aligned}
+}\cr
+\otimes\cr1(\ldots)
+\end{matrix}
+\cr
+  \circ
+\cr
+F
+\otimes
+F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
 
 $\blacksquare$
