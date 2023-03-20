@@ -179,7 +179,7 @@ $$
     \text{Open}_i(\star)
   \cr
   &\enspace
-    (x_i, X) \gets \text{WaitOpen}_i()
+    \texttt{return } \text{WaitOpen}_i()
   \cr
 \end{aligned}
 }
@@ -220,7 +220,7 @@ $$
     \texttt{if } f = \bot:
   \cr
   &\enspace\enspace
-    f \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(o) = \sum_i s_i \\}
+    f \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = \sum_i s_i \\}
   \cr
   &\enspace
     \texttt{return } (f(i), f(0) \cdot G)
@@ -240,3 +240,260 @@ F[\text{Stop}]
 $$
 
 $\square$
+
+**Proof:**
+
+$\mathcal{P}[\text{KeyShare}] \lhd \mathcal{P}[\text{IdealCommit}] \overset{\epsilon}{\leadsto} \mathcal{P}[\text{IdealKeyShare}]$
+for a negligible $\epsilon$, and for any number of malicious corruptions
+such that $|\mathcal{M}| < t$.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^0_M$
+} = 1
+\begin{pmatrix}
+    \Rsh_k
+  ,\cr
+    \Lsh_k
+  ,\cr
+    \text{Prove}_k
+  ,\cr
+    \text{Verify}
+  ,\cr
+    \text{SetCommit}_k
+  ,\cr
+    \text{WaitCommit}_k
+  ,\cr
+    \text{Open}_k
+  ,\cr
+    \text{WaitOpen}_k
+  ,\cr
+    \texttt{stop}
+  ,\cr
+    \texttt{Sync}_k
+  ,\cr
+    \texttt{WaitSync}_k
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \otimes F[\text{Commit}] \otimes F[\text{Sync}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Next, inline messages
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^1_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(s):
+}\cr
+  &\enspace
+    s_i \gets s
+  \cr
+  &\enspace
+    f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
+  \cr
+  &\enspace
+    F_i \gets f_i \cdot G
+  \cr
+  &\enspace
+    \text{SetCommit}_i(F_i)
+  \cr
+  &\enspace
+    \text{Commit}_i(\star)
+  \cr
+  \cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{Sync}_i(\star, 1)
+  \cr
+  &\enspace
+    \pi_i \gets \text{Prove}_i(F_i(0); f(0))
+  \cr
+  &\enspace
+    \text{Open}_i(\star)
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \pi\_{ij} \gets \pi_i
+  $}
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    x\_{ij} \gets f_i(j)
+  $}
+  \cr
+  \cr
+  &\enspace
+    \text{WaitSync}_i(\star, 1)
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    F\_\bullet \gets \text{WaitOpen}_i(\star)
+  $}
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{wait}\_{(i, 3)} \forall j.\ \pi\_{ji} \neq \bot
+  $}
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor \neg \text{Verify}(\pi_j, F_j(0)):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 3)
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{wait}\_{(i, 4)} \forall j.\ x\_{ji} \neq \bot
+  $}
+  \cr
+  &\enspace
+    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
+  \cr
+  &\enspace
+    \texttt{if } x_i \cdot G \neq F(i):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 4)
+  \cr
+  &\enspace
+    \texttt{return } (x_i, F(0))
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^1_M$
+}\cr
+&\ldots\cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 3):
+}\cr
+  &\enspace
+    \forall j \in S.\ \pi\_{kj} \gets m\_j
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 4):
+}\cr
+  &\enspace
+    \forall j \in S.\ x\_{kj} \gets m\_j
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 3):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 3)} \forall j \in S.\ \pi\_{jk} \neq \bot
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 4):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 3)} \forall j \in S.\ x\_{jk} \neq \bot
+  \cr
+\end{aligned}
+}\cr
+\otimes\cr1(\ldots)
+\end{matrix}
+\cr
+  \circ
+\cr
+\boxed{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $F$
+}\cr
+\cr
+&F_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
+&\texttt{pub } \pi\_{ij}, x\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(F):
+}\cr
+  &\enspace
+    F_i \gets F
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i(S):
+}\cr
+  &\enspace
+    \texttt{assert } F_i \neq \bot
+  \cr
+  &\enspace
+    \text{com}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{com}\_{ji}
+  \cr
+\cr
+&\underline{
+  \text{Open}_i(S):
+}\cr
+  &\enspace
+    \texttt{assert } F_i \neq \bot
+  \cr
+  &\enspace
+    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(S):
+}\cr
+  &\enspace
+    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+  \cr
+  &\enspace
+    \texttt{return } F\_\bullet
+  \cr
+\end{aligned}
+}
+\otimes
+F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+By stopping inside $\Gamma_M$, we deliver earlier.
+
+$\blacksquare$
