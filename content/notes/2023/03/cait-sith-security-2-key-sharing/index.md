@@ -848,4 +848,87 @@ to open along with a proof and shares.
 
 Let's unroll again.
 
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^5_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^5_M$
+} = 1
+\begin{pmatrix}
+    \text{Prove}_k
+  ,\cr
+    \text{Verify}
+  ,\cr
+    \text{SetCommit}_k
+  ,\cr
+    \text{WaitCommit}_k
+  ,\cr
+    \text{Open}_k
+  ,\cr
+    \text{WaitOpen}_k
+  ,\cr
+    \texttt{stop}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F_1 \otimes F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Next, except with negligible probability, we can extract
+an $s_i$ value and set it.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^6_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^6_M$
+}\cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F_1 \otimes F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
 $\blacksquare$
