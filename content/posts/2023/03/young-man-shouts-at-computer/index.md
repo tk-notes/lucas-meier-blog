@@ -1,5 +1,5 @@
 ---
-title: "Old Man Shouts at Computer"
+title: "Young Man Shouts at Computer"
 date: 2023-03-23T21:31:27+01:00
 draft: false
 tags:
