@@ -353,7 +353,7 @@ unsure if whether your next move will make you fall to the ground.
 
 I feel a general sense of malaise as we move towards a future in which large
 opaque models govern so many systems around us.
-With traditional software, we were at least rying to develop an understanding of the world,
+With traditional software, we were at least trying to develop an understanding of the world,
 with effort, one could develop predictable models of what one was doing, how systems behaved.
 It seems that we're moving towards a model of programming in which we conjure up new programs,
 which may or may not do what we want, and programming becomes a matter of validating
@@ -365,7 +365,7 @@ Maybe technology has always felt out of reach, opaque, bizarre, and something th
 I think we've done a bad job at making "personal" computing happen,
 and have slowly alienated people from the computing devices they use every day.
 
-Most computers are noew merely portals into discrete application "experiences",
+Most computers are now merely portals into discrete application "experiences",
 with little ability to modify, or compose the applications in novel ways.
 There's a kind of meme about zoomers not even knowing what a file system is,
 what's worse is that they don't even know why they might want a file system.
