@@ -822,6 +822,9 @@ $$
     \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
   \cr
   &\enspace
+    \texttt{for } j \in S.\ \pi\_{ij}, x\_{ij} = \bot:
+  \cr
+  &\enspace\enspace
     \pi\_{ij}, x\_{ij} \gets \pi_j, x\_j
   \cr
 \cr
@@ -833,7 +836,7 @@ $$
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{return } (F\_\bullet, x\_{\bullet i}, \pi\_{\bullet i})
+    \texttt{return } (F\_\bullet, \pi\_{\bullet i}, x\_{\bullet i})
   $}
   \cr
 \end{aligned}
@@ -889,12 +892,12 @@ $$
 \cr
   \circ
 \cr
-F_1 \otimes F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
+F_1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
 Next, except with negligible probability, we can extract
-an $s_i$ value and set it.
+an $s_i$ value.
 
 $$
 \begin{matrix}
@@ -921,14 +924,196 @@ $$
 &\colorbox{FBCFE8}{\large
   $\Gamma^6_M$
 }\cr
+&\ldots\cr
+&\mu[\bullet] \gets \bot\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  (1)\text{Prove}_k(B; b):
+}$}\cr
+  &\enspace
+    \pi \gets \text{Prove}_k(B; b)
+  \cr
+  &\enspace
+    \mu[\pi] \gets b
+  \cr
+  &\enspace
+    \texttt{return } \pi
+  \cr
+\cr
+&\underline{
+  \text{Open}_k(S, (\pi\_\bullet, x\_\bullet)):
+}\cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{for } j \in S \cap \mathcal{H}.\ \pi\_{j} \notin \mu:
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{bae6fd}{$
+    \texttt{stop }(\\{j\\}, 3)
+  $}
+  \cr
+  &\enspace
+    \text{Open}_k(S, (\pi\_\bullet, x\_\bullet))
+  \cr
 \end{aligned}
 }
 }
 \cr
   \circ
 \cr
-F_1 \otimes F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
+F_1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
+
+Now, we can get rid of the ZK proofs entirely.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^7_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(s):
+}\cr
+  &\enspace
+    \ldots
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \text{Open}_i(\star, f_i(0), f_i(\bullet))
+  $}
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    (F\_\bullet, x\_{\bullet i}) \gets \text{WaitOpen}_i(\star)
+  $}
+  \cr
+  &\enspace
+    \ldots
+  \cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^7_M$
+}\cr
+&\ldots\cr
+&\colorbox{bae6fd}{$
+\pi_1, \ldots, \pi_n \xleftarrow{\\$} \texttt{01}^{\lambda}
+$}\cr
+&m\_{ij}, \mu[\bullet] \gets \bot\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  (1)\text{Prove}_k(B; b):
+}$}\cr
+  &\enspace
+    \mu[\pi_k] \gets b
+  \cr
+  &\enspace
+    \texttt{return } \pi_k
+  \cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{Open}_k(S, (\pi\_\bullet, x\_\bullet)):
+}$}\cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}.\ \pi\_{j} \notin \mu:
+  \cr
+  &\enspace\enspace
+    \texttt{stop }(\\{j\\}, 3)
+  \cr
+  &\enspace
+    \forall j \in S.\ m\_{kj} \gets \pi_j
+  \cr
+  &\enspace
+    \text{Open}_k(S, (\mu[\pi\_\bullet], x\_\bullet))
+  \cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{WaitOpen}_k(S):
+}$}\cr
+  &\enspace
+    (F\_\bullet, x\_{\bullet k}) \gets \text{WaitOpen}_i(\star)
+  \cr
+  &\enspace
+    \forall j \in S \cap \mathcal{H}.\ m_j \gets \pi_j
+  \cr
+  &\enspace
+    \forall j \in S \cap \mathcal{M}.\ m_j \gets m\_{j k}
+  \cr
+  &\enspace
+    \texttt{return } (F\_\bullet, m\_\bullet, x\_{\bullet k})
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F_2$
+}\cr
+\cr
+&F_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
+&x\_{ij} \gets \bot\cr
+\cr
+&\ldots\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  \text{Open}_i(S, s, x\_\bullet):
+}$}\cr
+  &\enspace
+    \texttt{assert } F_i \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } s \cdot G \neq F_i(0):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(S \cap \mathcal{H}, 3)
+  \cr
+  &\enspace
+    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{for } j \in S.\ x\_{ij} = \bot:
+  \cr
+  &\enspace\enspace
+    x\_{ij} \gets \pi_j, x\_j
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(S):
+}\cr
+  &\enspace
+    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{return } (F\_\bullet, x\_{\bullet i})
+  $}
+  \cr
+\end{aligned}
+} \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+At this point, we're simulating a protocol $\mathscr{P}_1$,
+and so we can reset and unroll again.
 
 $\blacksquare$
