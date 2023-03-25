@@ -995,6 +995,11 @@ $$
   $}
   \cr
   &\enspace
+  \colorbox{bae6fd}{$
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1:
+  $}
+  \cr
+  &\enspace
     \ldots
   \cr
 \end{aligned}
@@ -1115,5 +1120,46 @@ $$
 
 At this point, we're simulating a protocol $\mathscr{P}_1$,
 and so we can reset and unroll again.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^8_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^8_M$
+} = 1
+\begin{pmatrix}
+    \text{SetCommit}_k
+  ,\cr
+    \text{WaitCommit}_k
+  ,\cr
+    \text{Open}_k
+  ,\cr
+    \text{WaitOpen}_k
+  ,\cr
+    \texttt{stop}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F_2 \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
 
 $\blacksquare$
