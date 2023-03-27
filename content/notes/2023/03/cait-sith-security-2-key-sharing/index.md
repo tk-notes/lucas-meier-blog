@@ -1016,7 +1016,20 @@ $$
 &\colorbox{bae6fd}{$
 \pi_1, \ldots, \pi_n \xleftarrow{\\$} \texttt{01}^{\lambda}
 $}\cr
-&m\_{ij}, \mu[\bullet] \gets \bot\cr
+&\colorbox{bae6fd}{$
+F_k, m\_{ij}, \mu[\bullet] \gets \bot
+$}\cr
+\cr
+&\colorbox{bae6fd}{$
+\underline{
+  (1)\text{SetCommit}_k(F):
+}$}\cr
+  &\enspace
+    F_k \gets F
+  \cr
+  &\enspace
+    \text{SetCommit}_k(F)
+  \cr
 \cr
 &\colorbox{bae6fd}{$
 \underline{
@@ -1034,7 +1047,7 @@ $}\cr
   \text{Open}_k(S, (\pi\_\bullet, x\_\bullet)):
 }$}\cr
   &\enspace
-    \texttt{for } j \in S \cap \mathcal{H}.\ \pi\_{j} \notin \mu:
+    \texttt{for } j \in S \cap \mathcal{H}.\ \mu[\pi\_{j}] \cdot G \notin \neq F_k(0):
   \cr
   &\enspace\enspace
     \texttt{stop }(\\{j\\}, 3)
@@ -1084,13 +1097,7 @@ $}\cr
   \text{Open}_i(S, s, x\_\bullet):
 }$}\cr
   &\enspace
-    \texttt{assert } F_i \neq \bot
-  \cr
-  &\enspace
-    \texttt{if } s \cdot G \neq F_i(0):
-  \cr
-  &\enspace\enspace
-    \texttt{stop}(S \cap \mathcal{H}, 3)
+    \texttt{assert } F_i \neq \bot \land s \cdot G = F_i(0)
   \cr
   &\enspace
     \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
@@ -1099,7 +1106,7 @@ $}\cr
     \texttt{for } j \in S.\ x\_{ij} = \bot:
   \cr
   &\enspace\enspace
-    x\_{ij} \gets \pi_j, x\_j
+    x\_{ij} \gets x\_j
   \cr
 \cr
 &\underline{
@@ -1146,6 +1153,8 @@ $$
 \begin{pmatrix}
     \text{SetCommit}_k
   ,\cr
+    \text{Commit}_k
+  ,\cr
     \text{WaitCommit}_k
   ,\cr
     \text{Open}_k
@@ -1159,6 +1168,130 @@ $$
   \circ
 \cr
 F_2 \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Next we change things so that the functionality generates
+polynomials for honest parties.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^9_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^9_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $F_3$
+}\cr
+\cr
+&\text{com}\_{ij}, \text{open}\_{ij}, f_i, F_i, x\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(s, F):
+}\cr
+  &\enspace
+    \texttt{assert } s \neq \bot \lor F \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } s \neq \bot:
+  \cr
+  &\enspace\enspace
+    f_i \xleftarrow{\\$} \\{ f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = s\\}
+  \cr
+  &\enspace\enspace
+    F_i \gets f_i \cdot G
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    F_i \gets F
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i(S):
+}\cr
+  &\enspace
+    \forall j \in S.\ \text{com}\_{ij} \gets \texttt{true}
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{com}\_{ji}
+  \cr
+\cr
+&\underline{
+  \text{Open}_i(S, s, x\_\bullet):
+}\cr
+  &\enspace
+    \texttt{assert } F_i \neq \bot \land s \cdot G = F_i(0)
+  \cr
+  &\enspace
+    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{if } f_i \neq \bot:
+  \cr
+  &\enspace\enspace
+    \forall j \in S, x\_{ij} = \bot.\ x\_{ij} \gets f_i(j)
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \forall j \in S, x\_{ij} = \bot.\ x\_{ij} \gets x_j
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(S):
+}\cr
+  &\enspace
+    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+  \cr
+  &\enspace
+    \texttt{return } (F\_\bullet, x\_{\bullet i})
+  \cr
+\end{aligned}
+}
+}
+\circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
