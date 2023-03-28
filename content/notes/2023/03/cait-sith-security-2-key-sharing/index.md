@@ -1179,16 +1179,40 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{FBCFE8}{\large
+&\colorbox{bae6fd}{\large
   $\Gamma^9_H$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(x):
+  (1)\text{Run}_i(s):
 }\cr
-&\enspace
-  \ldots
-\cr
+  &\enspace
+    \text{SetCommit}_i(s)
+  \cr
+  &\enspace
+    \text{Commit}_i(\star)
+  \cr
+  &\enspace
+    \text{WaitCommit}_i(\star)
+  \cr
+  &\enspace
+    \text{Open}_i(\star, s, \bot)
+  \cr
+  &\enspace
+    (F\_\bullet, x\_{\bullet i}) \gets \text{WaitOpen}_i(\star)
+  \cr
+  &\enspace
+    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
+  \cr
+  &\enspace
+    \texttt{if } x_i \cdot G \neq F(i):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 4)
+  \cr
+  &\enspace
+    \texttt{return } (x_i, F(0))
+  \cr
 \end{aligned}
 }
 }
@@ -1200,12 +1224,35 @@ $$
   $\Gamma^9_H$
 }\cr
 \cr
+&\ldots\cr
+&\colorbox{bae6fd}{$
+\text{badF}_k \gets \bot
+$}\cr
+&\colorbox{bae6fd}{$
+\underline{
+  (1)\text{SetCommit}_k(F):
+}$}\cr
+  &\enspace
+    \texttt{if } \text{deg}(F) \neq t - 1:
+  \cr
+  &\enspace\enspace
+    \text{badF}_k \gets \texttt{true}
+  \cr
+  &\enspace
+    \text{SetCommit}_i(\bot, F)
+  \cr
 &\underline{
-  (1)\text{Run}_i(x):
+  \text{Commit}_k(S):
 }\cr
-&\enspace
-  \ldots
-\cr
+  &\enspace
+    \texttt{if } \text{badF}_k:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(S \cap \mathcal{H}, 3)
+  \cr
+  &\enspace
+    \text{Commit}_k(S)
+  \cr
 \end{aligned}
 }
 }
