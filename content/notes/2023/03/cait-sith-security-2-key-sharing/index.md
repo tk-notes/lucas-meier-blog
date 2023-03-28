@@ -1272,7 +1272,7 @@ $}\cr
   (1)\text{SetCommit}_i(s, F):
 }\cr
   &\enspace
-    \texttt{assert } s \neq \bot \lor F \neq \bot
+    \texttt{assert } s \neq \bot \lor (F \neq \bot \land \text{deg}(F) \leq t - 1)
   \cr
   &\enspace
     \texttt{if } s \neq \bot:
@@ -1339,6 +1339,52 @@ $}\cr
 }
 }
 \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+Now, $\Gamma^9_H$ acts as a simulator for a protocol $\mathscr{P}_2$,
+and so we can reset again.
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^{10}_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{Run}_i(x):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^{10}_M$
+} = 1
+\begin{pmatrix}
+    \text{SetCommit}_k
+  ,\cr
+    \text{Commit}_k
+  ,\cr
+    \text{WaitCommit}_k
+  ,\cr
+    \text{Open}_k
+  ,\cr
+    \text{WaitOpen}_k
+  ,\cr
+    \texttt{stop}
+\end{pmatrix}
+}
+\cr
+  \circ
+\cr
+F_3 \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
