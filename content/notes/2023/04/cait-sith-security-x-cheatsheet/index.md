@@ -256,7 +256,7 @@ $$
   $P_i$
 }\cr
 \cr
-&\texttt{setup} \gets \texttt{false}\cr
+&\texttt{setup}_i \gets \texttt{false}\cr
 &x_i, X \gets \bot\cr
 \cr
 &\underline{
@@ -266,12 +266,15 @@ $$
     (x_i, X) \gets \text{Gen}_i()
   \cr
   &\enspace
-    \texttt{setup} \gets \texttt{true}
+    \texttt{setup}_i \gets \texttt{true}
   \cr
 \cr
 &\underline{
   (1)\text{Presign}_i^\tau():
 }\cr
+  &\enspace
+    \texttt{assert } \texttt{setup}_i
+  \cr
   &\enspace
     (a_i, b_i, c_i, A, B, C) \gets \text{Triple}_i^{(\tau, 0)}()
   \cr
@@ -323,7 +326,7 @@ $$
     \sigma_i \gets \text{ka} \cdot x_i - \text{xb} \cdot a_i + c_i
   \cr
   &\enspace
-    \texttt{return } (R, k_i, \sigma_i)
+    \texttt{return } (X, R, k_i, \sigma_i)
   \cr
 \end{aligned}
 }
@@ -338,4 +341,77 @@ F[\text{Stop}]
 \text{Leakage} := \\{\texttt{stop}\\}
 \end{matrix}
 }
+\lhd \mathscr{P}[\text{KeyGen}]
+$$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Sign}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\texttt{setup}_i \gets \texttt{false}\cr
+\cr
+&\underline{
+  (1)\text{Setup}_i():
+}\cr
+  &\enspace
+    \texttt{super}.\text{Setup}_i()
+  \cr
+  &\enspace
+    \texttt{setup}_i \gets \texttt{true}
+  \cr
+\cr
+&\underline{
+  (1)\text{Sign}_i^\tau(m):
+}\cr
+  &\enspace
+    \texttt{assert } \texttt{setup}_i
+  \cr
+  &\enspace
+    (X, R, k_i, \sigma_i) \gets \text{Presign}_i^\tau()
+  \cr
+  &\enspace
+    s_i \gets \text{Hash}(m) \cdot k_i + x(R) \cdot \sigma_i
+  \cr
+  &\enspace
+    \Rsh_i(\star, s_i, 4)
+  \cr
+  &\enspace
+    s\_\bullet \gets \Lsh_i(\star, 4)
+  \cr
+  &\enspace
+    s \gets \sum_j s_j
+  \cr
+  &\enspace
+    \texttt{if } \neg \text{ECDSA}.\text{Verify}(X, m, (R, s)):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 4)
+  \cr
+  &\enspace
+    \texttt{return } s
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{SyncComm}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+\lhd \mathscr{P}[\text{Presign}]
 $$
