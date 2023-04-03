@@ -513,6 +513,50 @@ $$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Multiply}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Multiply}_i(a, b):
+}\cr
+  &\enspace
+    \forall j \neq i.\ \text{StartMTA}_i^{(0, j)}(\text{Flip}_i(a, b))
+  \cr
+  &\enspace
+    \forall j \neq i.\ \text{StartMTA}_i^{(1, j)}(\text{Flip}_i(b, a))
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j. (\gamma^0\_j, \gamma^1\_j) \gets (\text{EndMTA}_i^{(0, j)}(), \text{EndMTA}_i^{(1, j)}())
+  \cr
+  &\enspace
+    \texttt{return } a * b + \sum_j (\gamma^0_j + \gamma^1\_j)
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{SyncComm}]\cr
+\end{matrix}\cr
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{MTA}]\cr
+\end{matrix}
+$$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
   $\mathscr{P}[\text{Triple}]$
 }\cr
 \cr
@@ -523,14 +567,9 @@ $$
   $P_i$
 }\cr
 \cr
-&\texttt{setup}_i \gets \texttt{false}\cr
-\cr
 &\underline{
   (1)\text{Triple}_i():
 }\cr
-  &\enspace
-    \texttt{assert } \texttt{setup}_i
-  \cr
   &\enspace
     f_i, e_i \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}
   \cr
