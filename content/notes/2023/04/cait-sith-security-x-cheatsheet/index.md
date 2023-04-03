@@ -9,12 +9,11 @@ note-tags:
   - "TSS"
 katex: true
 ---
-
 $$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{IdealCommit}]$
+  $\mathscr{P}[\text{EchoBroadcast}]$
 }\cr
 \cr
 \boxed{
@@ -25,116 +24,143 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{SetCommit}_i(x):
+  (1)\text{StartBroadcast}_i(x):
 }\cr
   &\enspace
-    \text{SetCommit}_i(x)
+    \Rsh_i(\star, x, 0)
   \cr
 \cr
 &\underline{
-  \text{Commit}_i():
+  \text{WaitBroadcast}_i(x):
 }\cr
   &\enspace
-    \text{Commit}_i(\star)
+    \hat{x}\_\bullet \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    \text{con}_i \gets \text{Hash}(\hat{x}\_\bullet)
+  \cr
+  &\enspace
+    \Rsh_i(\star, \text{con}_i, 1)
+  \cr
+  &\enspace
+    \texttt{return } x\_{\bullet}
   \cr
 \cr
 &\underline{
-  \text{WaitCommit}_i():
+  \text{EndBroadcast}_i():
 }\cr
   &\enspace
-    \text{WaitCommit}_i(\star)
+    \hat{\text{con}}\_\bullet \Lsh_i(\star, 1)
   \cr
   &\enspace
-    \text{Sync}_i(\star)
+    \texttt{if } \exists j.\enspace
+    \hat{\text{con}}_j \neq \text{con}_i:
   \cr
-\cr
-&\underline{
-  \text{Open}_i():
-}\cr
-  &\enspace
-    \text{Open}_i(\star)
-  \cr
-\cr
-&\underline{
-  \text{WaitOpen}_i():
-}\cr
-  &\enspace
-    \text{WaitCommit}_i()
-  \cr
-  &\enspace
-    \text{WaitSync}_i(\star)
-  \cr
-  &\enspace
-    \texttt{return } \text{WaitOpen}_i(\star)
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
   \cr
 \end{aligned}
 }
 }
 \quad
 \begin{matrix}
+F[\text{SyncComm}]\cr
+\otimes\cr
+F[\text{Hash}]\cr
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
+\end{matrix}
+}
+$$
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Commit}]$
+}\cr
+\cr
 \boxed{
 \small{
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
-  $F[\text{Commit}]$
+  $P_i$
 }\cr
 \cr
-&x_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
+&x_i, r_i \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetCommit}_i(x):
 }\cr
   &\enspace
-    x_i \gets x
+    x_i \gets x, \quad r_i \xleftarrow{\\$} \texttt{01}^{2 \lambda}
+  \cr
+  &\enspace
+    \text{SetBroadcast}_i(\text{Hash}(x_i, r_i))
   \cr
 \cr
 &\underline{
-  \text{Commit}_i(S):
+  \text{Commit}_i():
 }\cr
   &\enspace
-    \text{com}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+    \text{SendBroadcast}_i(\star)
   \cr
 \cr
 &\underline{
-  \text{WaitCommit}_i(S):
+  \text{WaitCommit}_i():
 }\cr
   &\enspace
-    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{com}\_{ji}
+    \texttt{return } \text{WaitBroadcast}_i()
   \cr
 \cr
 &\underline{
-  \text{Open}_i(S):
+  \text{Open}_i():
 }\cr
   &\enspace
     \texttt{assert } x_i \neq \bot
   \cr
   &\enspace
-    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
+    \Rsh_i(\star, (x_i, r_i), 2)
   \cr
 \cr
 &\underline{
-  \text{WaitOpen}_i(S):
+  \text{WaitOpen}_i():
 }\cr
   &\enspace
-    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+    c\_\bullet \gets \text{WaitCommit}_i()
   \cr
   &\enspace
-    \texttt{return } x\_\bullet
+    \text{EndBroadcast}_i()
   \cr
+  &\enspace
+    (\hat{x}\_{\bullet}, \hat{r}\_{\bullet}) \Lsh_i(\star, 2)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{Hash}(\hat{x}_j, \hat{r}_j) \neq c_j:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 2)
+  \cr
+  &\enspace
+    \texttt{return } \hat{x}\_{\bullet}
+  \cr
+\cr
 \end{aligned}
 }
-}\cr
-\otimes\cr
-F[\text{Sync}(1)]\cr
+}
+\quad
+\begin{matrix}
+F[\text{Stop}]\cr
 \circledcirc\cr
-F[\text{Stop}]
+F[\text{SyncComm}]\cr
+\otimes\cr
+F[\text{Hash}]\cr
 \end{matrix}\cr
 \cr
-\text{Leakage} := \\{\texttt{stop}\\}
+\text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
 \end{matrix}
 }
 $$
-
 $$
 \boxed{
 \begin{matrix}
@@ -209,6 +235,7 @@ F[\text{Stop}]
 \text{Leakage} := \\{\texttt{stop}\\}
 \end{matrix}
 }
+\lhd \mathscr{P}[\text{Commit}]
 $$
 
 $$
@@ -240,6 +267,72 @@ $$
 \end{matrix}
 }
 \lhd \mathscr{P}[\text{KeyShare}]
+$$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Convert}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Convert}_i(s):
+}\cr
+  &\enspace
+    s_i \gets s
+  \cr
+  &\enspace
+    f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
+  \cr
+  &\enspace
+    F_i \gets f_i \cdot G
+  \cr
+  &\enspace
+    \Rsh_i(\star, F_i, 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, [f_i(j) \mid j \in [n]], 1)
+  \cr
+  &\enspace\cr
+  &\enspace
+    F\_\bullet \gets \Lsh_i(\star, F_i, 0)
+  \cr
+  &\enspace
+    x\_{\bullet i} \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor x_i \cdot G \neq F(i):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 3)
+  \cr
+  &\enspace
+    \texttt{return } (x_i, F(0))
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{SyncComm}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
 $$
 
 $$
@@ -415,3 +508,374 @@ F[\text{Stop}]
 }
 \lhd \mathscr{P}[\text{Presign}]
 $$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Triple}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\texttt{setup}_i \gets \texttt{false}\cr
+\cr
+&\underline{
+  (1)\text{Triple}_i():
+}\cr
+  &\enspace
+    \texttt{assert } \texttt{setup}_i
+  \cr
+  &\enspace
+    f_i, e_i \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}
+  \cr
+  &\enspace
+    F_i, E_i \gets f_i \cdot G, e_i \cdot G
+  \cr
+  &\enspace
+    \text{SetCommit}_i((F_i, E_i))
+  \cr
+  &\enspace
+    \text{Commit}_i()
+  \cr
+  \cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{Open}_i()
+  \cr
+  &\enspace
+    \Rsh_i(\star, [(f_i(j), e_i(j)) \mid j \in [n]], 0)
+  \cr
+  &\enspace\cr
+  &\enspace
+    (F\_\bullet, E\_\bullet) \gets \text{WaitOpen}_i()
+  \cr
+  &\enspace
+    (a\_{\bullet i}, b\_{\bullet i}) \gets \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    a_i \gets \sum_j a\_{ji}, \enspace F \gets \sum_j F_j(0)
+  \cr
+  &\enspace
+    b_i \gets \sum_j a\_{ji}, \enspace E \gets \sum_j E_j(0)
+  \cr
+  &\enspace
+    \texttt{if } a_i \cdot G \neq E(i) \lor b_i \cdot G \neq F(i):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 0)
+  \cr
+  &\enspace
+    \text{Multiply}_i(f_i(0), e_i(0))
+  \cr
+  &\enspace
+    C_i \gets e_i(0) \cdot F(0)
+  \cr
+  &\enspace
+    \pi_i \gets \text{Prove}(E_i(0), F(0), C_i; e_i(0))
+  \cr
+  &\enspace
+    \Rsh_i(\star, (C_i, \pi_i), 1)
+  \cr
+  &\enspace\cr
+  &\enspace
+    (C\_\bullet, \pi\_\bullet) \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \neg \text{Verify}(E_j(0), F(0), C_j)
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+  &\enspace
+    l_i \gets \text{WaitMultiply}_i()
+  \cr
+  &\enspace\cr
+  &\enspace
+    (c_i, \hat{C}) \gets \text{Convert}_i(l_i)
+  \cr
+  &\enspace
+    \texttt{if } \hat{C} \neq C:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 2)
+  \cr
+  &\enspace
+    \texttt{return } (a_i, b_i, c_i, E(0), F(0), C)
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{SyncComm}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{Commit}]\cr
+\otimes\cr
+\mathscr{P}[\text{Multiply}]\cr
+\otimes\cr
+\mathscr{P}[\text{Convert}]\cr
+\end{matrix}
+$$
+
+# Ideal Protocols
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{IdealBroadcast}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{StartBroadcast}_i(x):
+}\cr
+  &\enspace
+    \text{SetBroadcast}_i(x)
+  \cr
+  &\enspace
+    \text{SendBroadcast}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitBroadcast}_i():
+}\cr
+  &\enspace
+    x\_{\bullet} \gets \text{GetBroadcast}_i(\star)
+  \cr
+  &\enspace
+    \text{Sync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } x\_{\bullet}
+  \cr
+\cr
+&\underline{
+  \text{EndBroadcast}_i():
+}\cr
+  &\enspace
+    \text{WaitSync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{if } \text{BadBroadcast}_i():
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Broadcast}]$
+}\cr
+\cr
+&x_i, \text{sent}\_{ij}, \text{trap}\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetBroadcast}_i(x):
+}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+\cr
+&\underline{
+  \text{SendBroadcast}_i(S):
+}\cr
+  &\enspace
+    \texttt{assert } x_i \neq \bot
+  \cr
+  &\enspace
+    \text{sent}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{GetBroadcast}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)}\ \text{sent}\_{ji}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{return } [x_j \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \textcolor{ef4444}{\text{Trap}(j, m\_\bullet)}:
+}\cr
+  &\enspace
+    \texttt{assert } \forall i.\ m_i = \bot \lor (\text{trap}\_{i j} = \bot \land x_i = \bot)
+  \cr
+  &\enspace
+    \text{trap}\_{i j} \gets m_i
+  \cr
+\cr
+&\underline{
+  \text{BadBroadcast}_i():
+}\cr
+  &\enspace
+    \texttt{return } \exists j.\ \text{trap}\_{j i} \neq \bot \land \text{trap}\_{j i} \neq x\_j
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+F[\text{Sync}(1)]\cr
+\otimes\cr
+F[\text{Stop}]\cr
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\text{Trap}, \texttt{stop}\\}
+\end{matrix}
+}
+$$
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{IdealCommit}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+  &\enspace
+    \text{SetCommit}_i(x)
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i():
+}\cr
+  &\enspace
+    \text{Commit}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i(\star)
+  \cr
+  &\enspace
+    \text{Sync}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{Open}_i():
+}\cr
+  &\enspace
+    \text{Open}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{WaitSync}_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } \text{WaitOpen}_i(\star)
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Commit}]$
+}\cr
+\cr
+&x_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetCommit}_i(x):
+}\cr
+  &\enspace
+    x_i \gets x
+  \cr
+\cr
+&\underline{
+  \text{Commit}_i(S):
+}\cr
+  &\enspace
+    \text{com}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitCommit}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{com}\_{ji}
+  \cr
+\cr
+&\underline{
+  \text{Open}_i(S):
+}\cr
+  &\enspace
+    \texttt{assert } x_i \neq \bot
+  \cr
+  &\enspace
+    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_i(S):
+}\cr
+  &\enspace
+    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+  \cr
+  &\enspace
+    \texttt{return } x\_\bullet
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+F[\text{Sync}(1)]\cr
+\circledcirc\cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+$$
+
