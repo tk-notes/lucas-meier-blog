@@ -536,7 +536,7 @@ $$
     \texttt{wait}\_{(i, 0)} \forall j. (\gamma^0\_j, \gamma^1\_j) \gets (\text{EndMTA}_i^{(0, j)}(), \text{EndMTA}_i^{(1, j)}())
   \cr
   &\enspace
-    \texttt{return } a * b + \sum_j (\gamma^0_j + \gamma^1\_j)
+    \texttt{return } a \cdot b + \sum_j (\gamma^0_j + \gamma^1\_j)
   \cr
 \end{aligned}
 }
@@ -918,3 +918,82 @@ F[\text{Stop}]
 }
 $$
 
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{MTA}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&a_1, a_2, \beta_1, \beta_2 \gets \bot\cr
+&\Delta \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMTA}_i(a):
+}\cr
+  &\enspace
+    a_i \gets a
+  \cr
+\cr
+&\underline{
+  \text{Sample}():
+}\cr
+  &\enspace
+    \texttt{assert } a_1, a_2, \Delta \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } \beta_1, \beta_2 = \bot:
+  \cr
+  &\enspace\enspace
+    (\beta_1, \beta_2) \xleftarrow{\\$} \\{(\beta_1, \beta_2) \in \mathbb{F}_q^2 \mid \beta_1 + \beta_2 = a_1 \cdot a_2 \\}
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMTA}_i(a):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} a_1, a_2, \Delta \neq \bot
+  \cr
+  &\enspace
+    \text{Sample}()
+  \cr
+  &\enspace
+    \texttt{if } i = 1:
+  \cr
+  &\enspace\enspace
+    \texttt{return } \beta_1 + \Delta
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \texttt{return } \beta_2
+  \cr
+\cr
+&\underline{
+  (1)\text{Cheat}(\Delta)
+}\cr
+  &\enspace
+    \Delta \gets \Delta
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{SyncComm}]\cr
+\end{matrix}\cr
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{MTA}]\cr
+\end{matrix}
+$$
