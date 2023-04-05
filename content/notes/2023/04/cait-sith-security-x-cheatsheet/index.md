@@ -160,7 +160,9 @@ F[\text{Hash}]\cr
 \text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
 \end{matrix}
 }
+\lhd \mathscr{P}[\text{EchoBroadcast}]
 $$
+
 $$
 \boxed{
 \begin{matrix}
@@ -997,3 +999,17 @@ F[\text{SyncComm}]\cr
 \mathscr{P}[\text{MTA}]\cr
 \end{matrix}
 $$
+
+# Connections
+
+(All for negligeable epsilon, and up to $t - 1$ malicious corruptions.)
+
+- $\mathscr{P}[\text{EchoBroadcast}] \leadsto \mathscr{P}[\text{IdealBroadcast}]$.
+- $\mathscr{P}[\text{Commit}] \leadsto \mathscr{P}[\text{IdealCommit}]$
+- $\mathscr{P}[\text{KeyShare}] \leadsto \mathscr{P}[\text{IdealKeyShare}]$
+- $\mathscr{P}[\text{KeyGen}] \leadsto \mathscr{P}[\text{IdealKeyGen}]$
+- $\mathscr{P}[\text{Convert}] \leadsto \mathscr{P}[\text{IdealConvert}]$
+- $\mathscr{P}[\text{Presign}] \leadsto \mathscr{P}[\text{IdealPresign}]$
+- $\mathscr{P}[\text{Sign}] \leadsto \mathscr{P}[\text{IdealSign}]$
+- $\mathscr{P}[\text{Multiply}] \leadsto \mathscr{P}[\text{IdealMultiply}]$
+- $\mathscr{P}[\text{Triple}] \leadsto \mathscr{P}[\text{IdealTriple}]$
