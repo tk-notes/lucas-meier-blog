@@ -297,3 +297,154 @@ F[\text{MTA}^2]
 $$
 
 $\blacksquare$
+
+**Lemma:**
+$$
+\mathscr{P}[\text{Multiply}] \leadsto F[\text{Multiply}]
+$$
+**Proof:**
+
+First, $\mathscr{P}[\text{Multiply}] = \mathscr{P}^0 \lhd \mathscr{P}[\text{MTA}^2]^{n^2}$,
+where:
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}^0$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\text{start}_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a, b):
+}\cr
+  &\enspace
+    \text{start}_i \gets \texttt{true}
+  \cr
+  &\enspace
+    \forall j \neq i.\ \text{Start}_i^{ij}(a, b)
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{assert } \text{start}_i
+  \cr
+  &\enspace
+    \texttt{return } a \cdot b + \sum\_{j \neq i} \text{End}_i^{ij}()
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{MTA}^2]^{n^2}\cr
+\end{matrix}
+$$
+
+Then, it holds that:
+$$
+\mathscr{P}^0 \lhd \mathscr{P}[\text{MTA}^2]^{n^2/2}
+\leadsto \mathscr{P} \lhd F[\text{MTA}^2]^{n^2/2}
+= \mathscr{P}^1
+$$
+
+Unrolling $\mathscr{P}^1$, we get the following:
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a, b):
+}\cr
+&\enspace
+  \ldots
+\cr
+\end{aligned}
+}
+}
+\otimes
+\boxed{\colorbox{FBCFE8}{\large
+  $\Gamma^0_M$
+} = 1
+\begin{pmatrix}
+    \text{Start}_k^{ki}
+  ,\cr
+    \text{End}_k^{ki}
+  ,\cr
+    \text{Cheat}^{ki}
+\end{pmatrix}
+}
+\cr
+\circ\cr
+F[\text{MTA}^2]^{n^2/2}
+\end{matrix}
+$$
+This is equivalent to:
+$$
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $\Gamma^0_H$
+} = 1
+\begin{pmatrix}
+    \text{StartMultiply}_i
+  ,\cr
+    \text{EndMultiply}_i
+\end{pmatrix}
+\end{aligned}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $S$
+}\cr
+\cr
+&\text{left} \gets \\{(k, i)\ k \in \mathcal{M}, i \in \mathcal{H} \\}\cr
+&\alpha\_{ki} \xleftarrow{\\$} \mathbb{F}_q\cr
+&a\_{ki}, b\_{ki}, \Delta\_{ki} \gets \bot\cr
+\cr
+&\underline{
+  \text{Start}_k^{ki}(a, b)
+}\cr
+\cr
+&\underline{
+  \text{End}_k^{ki}
+}\cr
+\cr
+&\underline{
+  \text{Cheat}^{ki}(\Delta)
+}\cr
+  &\enspace
+  f
+  \cr
+\end{aligned}
+}
+}
+\cr
+\circ\cr
+F[\text{Multiply}]
+\end{matrix}
+$$
+
+$\blacksquare$

@@ -1059,10 +1059,6 @@ $$
 }
 \end{matrix}
 }
-\lhd
-\begin{matrix}
-F[\text{MTA}]^{2n^2}\cr
-\end{matrix}
 $$
 
 # Connections
@@ -1076,5 +1072,5 @@ $$
 - $\mathscr{P}[\text{Convert}] \leadsto \mathscr{P}[\text{IdealConvert}]$
 - $\mathscr{P}[\text{Presign}] \leadsto \mathscr{P}[\text{IdealPresign}]$
 - $\mathscr{P}[\text{Sign}] \leadsto \mathscr{P}[\text{IdealSign}]$
-- $\mathscr{P}[\text{Multiply}] \leadsto \mathscr{P}[\text{IdealMultiply}]$
+- $\mathscr{P}[\text{Multiply}] \leadsto F[\text{Multiply}]$
 - $\mathscr{P}[\text{Triple}] \leadsto \mathscr{P}[\text{IdealTriple}]$
