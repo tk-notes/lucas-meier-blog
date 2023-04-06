@@ -436,7 +436,12 @@ F[\text{Stop}]
 \text{Leakage} := \\{\texttt{stop}\\}
 \end{matrix}
 }
-\lhd \mathscr{P}[\text{KeyGen}]
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{KeyGen}]\cr
+\otimes\cr
+\mathscr{P}[\text{Triple}]
+\end{matrix}
 $$
 
 $$
@@ -551,7 +556,7 @@ F[\text{SyncComm}]\cr
 }
 \lhd
 \begin{matrix}
-\mathscr{P}[\text{MTA}]\cr
+F[\text{MTA}]\cr
 \end{matrix}
 $$
 
@@ -924,7 +929,7 @@ $$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{MTA}]$
+  $F[\text{MTA}]$
 }\cr
 \cr
 \boxed{
@@ -954,11 +959,11 @@ $$
     \texttt{if } \beta_1, \beta_2 = \bot:
   \cr
   &\enspace\enspace
-    (\beta_1, \beta_2) \xleftarrow{\\$} \\{(\beta_1, \beta_2) \in \mathbb{F}_q^2 \mid \beta_1 + \beta_2 = a_1 \cdot a_2 \\}
+    (\beta_1, \beta_2) \xleftarrow{\\$} \\{(\beta_1, \beta_2) \in \mathbb{F}_q^2 \mid \beta_1 + \beta_2 = a_1 \cdot a_2 + \Delta \\}
   \cr
 \cr
 &\underline{
-  (1)\text{EndMTA}_i(a):
+  (1)\text{EndMTA}_i():
 }\cr
   &\enspace
     \texttt{wait}\_{(i, 0)} a_1, a_2, \Delta \neq \bot
@@ -967,16 +972,7 @@ $$
     \text{Sample}()
   \cr
   &\enspace
-    \texttt{if } i = 1:
-  \cr
-  &\enspace\enspace
-    \texttt{return } \beta_1 + \Delta
-  \cr
-  &\enspace
-    \texttt{else}:
-  \cr
-  &\enspace\enspace
-    \texttt{return } \beta_2
+    \texttt{return } \beta_i
   \cr
 \cr
 &\underline{
@@ -988,16 +984,8 @@ $$
 \end{aligned}
 }
 }
-\quad
-\begin{matrix}
-F[\text{SyncComm}]\cr
-\end{matrix}\cr
 \end{matrix}
 }
-\lhd
-\begin{matrix}
-\mathscr{P}[\text{MTA}]\cr
-\end{matrix}
 $$
 
 # Connections
