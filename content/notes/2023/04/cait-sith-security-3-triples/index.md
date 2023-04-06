@@ -228,7 +228,7 @@ $$
   $S$
 }\cr
 \cr
-&\text{first} \gets \bot\cr
+&\Delta^1, \Delta^2, \text{first} \gets \bot\cr
 &\alpha \xleftarrow{\\$} \mathbb{F}_q\cr
 \cr
 &\underline{
@@ -254,7 +254,7 @@ $$
     (r_1, \bullet, r_2, \bullet) \gets \text{Leak}()
   \cr
   &\enspace
-    \texttt{wait}\_{(2, 0)} r_1 \neq \bot \land a^\tau \neq \bot
+    \texttt{wait}\_{(2, 0)} r\_\tau \neq \bot \land a^\tau, \Delta^\tau \neq \bot
   \cr
   &\enspace
     \texttt{if } \text{first} = \bot:

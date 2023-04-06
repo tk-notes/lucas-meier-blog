@@ -530,17 +530,29 @@ $$
   $P_i$
 }\cr
 \cr
+&\text{start}_i \gets \bot\cr
+\cr
 &\underline{
-  (1)\text{Multiply}_i(a, b):
+  (1)\text{StartMultiply}_i(a, b):
 }\cr
   &\enspace
-    \forall j \neq i.\ \text{StartMTA}_i^{(0, j)}(\text{Flip}_i(a, b))
+    \text{start}_i \gets \texttt{true}
   \cr
   &\enspace
-    \forall j \neq i.\ \text{StartMTA}_i^{(1, j)}(\text{Flip}_i(b, a))
+    \forall j \neq i.\ \text{StartMTA}_i^{(0, ij)}(\text{Flip}_i(a, b))
   \cr
   &\enspace
-    \texttt{wait}\_{(i, 0)} \forall j. (\gamma^0\_j, \gamma^1\_j) \gets (\text{EndMTA}_i^{(0, j)}(), \text{EndMTA}_i^{(1, j)}())
+    \forall j \neq i.\ \text{StartMTA}_i^{(1, ij)}(\text{Flip}_i(b, a))
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{assert } \text{start}_i
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j. (\gamma^0\_j, \gamma^1\_j) \gets (\text{EndMTA}_i^{(0, ij)}(), \text{EndMTA}_i^{(1, ij)}())
   \cr
   &\enspace
     \texttt{return } a \cdot b + \sum_j (\gamma^0_j + \gamma^1\_j)
@@ -548,15 +560,11 @@ $$
 \end{aligned}
 }
 }
-\quad
-\begin{matrix}
-F[\text{SyncComm}]\cr
-\end{matrix}\cr
 \end{matrix}
 }
 \lhd
 \begin{matrix}
-F[\text{MTA}]\cr
+F[\text{MTA}]^{2n^2}\cr
 \end{matrix}
 $$
 
@@ -986,6 +994,75 @@ $$
 }
 \end{matrix}
 }
+$$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $F[\text{Multiply}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&a\_{ij}, b\_{ij}, \beta_i, \Delta \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a\_\bullet, b\_\bullet):
+}\cr
+  &\enspace
+    a\_{i\bullet} \gets a\_\bullet,\ b\_{i \bullet} \gets b\_{\bullet}
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall ij.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot
+  \cr
+  &\enspace
+    \text{Sample}()
+  \cr
+  &\enspace
+    \texttt{return } \beta_i
+  \cr
+\cr
+&\underline{
+  \text{Sample}():
+}\cr
+  &\enspace
+    \texttt{assert } \forall ij.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } \forall i.\ \beta_i = \bot:
+  \cr
+  &\enspace\enspace
+    c \gets \sum\_{ij} a\_{ij} \cdot b\_{ij}
+  \cr
+  &\enspace\enspace
+    (\beta_1, \ldots, \beta_n) \gets \\{\beta_i \xleftarrow{\\$} \mathbb{F}_q^n \mid \sum_i \beta_i = c + \Delta \\}
+  \cr
+\cr
+&\underline{
+  (1)\text{Cheat}(\Delta):
+}\cr
+  &\enspace
+    \Delta \gets \Delta
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+F[\text{MTA}]^{2n^2}\cr
+\end{matrix}
 $$
 
 # Connections
