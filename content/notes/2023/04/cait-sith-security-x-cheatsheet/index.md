@@ -162,7 +162,92 @@ F[\text{Hash}]\cr
 }
 \lhd \mathscr{P}[\text{EchoBroadcast}]
 $$
-
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Convert}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&f_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetMask}_i():
+}\cr
+  &\enspace
+    f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = 0 \\\}
+  \cr
+  &\enspace
+    F_i \gets f_i \cdot G
+  \cr
+  &\enspace
+    \text{SetCommit}_i(F_i)
+  \cr
+  &\enspace
+    \text{Commit}_i()
+  \cr
+\cr
+&\underline{
+  \text{WaitMask}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+\cr
+&\underline{
+  \text{Share}_i(z_i):
+}\cr
+  &\enspace
+    \text{Open}_i()
+  \cr
+  &\enspace
+    \Rsh_i(\star, [z_i + f_i(j) \mid j \in [n]], 0)
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i(Z):
+}\cr
+  &\enspace
+    F\_\bullet \gets \text{WaitOpen}_i()
+  \cr
+  &\enspace
+    x\_{\bullet i} \gets \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    x_i \gets \sum_j x\_{ji}, \enspace F \gets Z + \sum_j F_j(0)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor x_i \cdot G \neq F(i) \lor F(0) \neq Z:
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 3)
+  \cr
+  &\enspace
+    \texttt{return } x_i
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{Commit}]\cr
+\otimes\cr
+F[\text{SyncComm}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+$$
 $$
 \boxed{
 \begin{matrix}
@@ -271,71 +356,6 @@ $$
 \lhd \mathscr{P}[\text{KeyShare}]
 $$
 
-$$
-\boxed{
-\begin{matrix}
-\colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{Convert}]$
-}\cr
-\cr
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{FBCFE8}{\large
-  $P_i$
-}\cr
-\cr
-&\underline{
-  (1)\text{Convert}_i(s):
-}\cr
-  &\enspace
-    s_i \gets s
-  \cr
-  &\enspace
-    f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
-  \cr
-  &\enspace
-    F_i \gets f_i \cdot G
-  \cr
-  &\enspace
-    \Rsh_i(\star, F_i, 0)
-  \cr
-  &\enspace
-    \Rsh_i(\star, [f_i(j) \mid j \in [n]], 1)
-  \cr
-  &\enspace\cr
-  &\enspace
-    F\_\bullet \gets \Lsh_i(\star, F_i, 0)
-  \cr
-  &\enspace
-    x\_{\bullet i} \gets \Lsh_i(\star, 1)
-  \cr
-  &\enspace
-    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
-  \cr
-  &\enspace
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor x_i \cdot G \neq F(i):
-  \cr
-  &\enspace\enspace
-    \texttt{stop}(\star, 3)
-  \cr
-  &\enspace
-    \texttt{return } (x_i, F(0))
-  \cr
-\end{aligned}
-}
-}
-\quad
-\begin{matrix}
-F[\text{SyncComm}]\cr
-\circledcirc \cr
-F[\text{Stop}]
-\end{matrix}\cr
-\cr
-\text{Leakage} := \\{\texttt{stop}\\}
-\end{matrix}
-}
-$$
 
 $$
 \boxed{
@@ -589,17 +609,23 @@ $$
     f_i, e_i \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}
   \cr
   &\enspace
-    F_i, E_i \gets f_i \cdot G, e_i \cdot G
+    F_i, E_i, L_i \gets f_i \cdot G, e_i \cdot G, l_i \cdot G
   \cr
   &\enspace
-    \text{SetCommit}_i((F_i, E_i))
+    \text{SetCommit}_i((F_i, E_i, L_i))
   \cr
   &\enspace
     \text{Commit}_i()
   \cr
+  &\enspace
+    \text{SetMask}_i()
+  \cr
   \cr
   &\enspace
     \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{WaitMask}_i()
   \cr
   &\enspace
     \text{Open}_i()
@@ -633,7 +659,7 @@ $$
     C_i \gets e_i(0) \cdot F(0)
   \cr
   &\enspace
-    \pi_i \gets \text{Prove}(E_i(0), F(0), C_i; e_i(0))
+    \pi_i \gets \text{Prove}^\psi(E_i(0), F(0), C_i; e_i(0))
   \cr
   &\enspace
     \Rsh_i(\star, (C_i, \pi_i), 1)
@@ -643,23 +669,19 @@ $$
     (C\_\bullet, \pi\_\bullet) \Lsh_i(\star, 1)
   \cr
   &\enspace
-    \texttt{if } \exists j.\ \neg \text{Verify}(E_j(0), F(0), C_j)
+    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(E_j(0), F(0), C_j)
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
   \cr
   &\enspace
-    l_i \gets \text{WaitMultiply}_i()
-  \cr
-  &\enspace\cr
-  &\enspace
-    (c_i, \hat{C}) \gets \text{Convert}_i(l_i)
+    z_i \gets \text{WaitMultiply}_i()
   \cr
   &\enspace
-    \texttt{if } \hat{C} \neq C:
+    \text{Share}_i(z_i)
   \cr
-  &\enspace\enspace
-    \texttt{stop}(\star, 2)
+  &\enspace
+    c_i \gets \text{WaitShare}_i(C)
   \cr
   &\enspace
     \texttt{return } (a_i, b_i, c_i, E(0), F(0), C)
@@ -669,6 +691,8 @@ $$
 }
 \quad
 \begin{matrix}
+F[\text{ZK}(\psi)]\cr
+\otimes\cr
 F[\text{SyncComm}]\cr
 \circledcirc \cr
 F[\text{Stop}]
@@ -680,6 +704,8 @@ F[\text{Stop}]
 \lhd
 \begin{matrix}
 \mathscr{P}[\text{Commit}]\cr
+\otimes\cr
+\mathscr{P}[\text{Convert}]\cr
 \otimes\cr
 \mathscr{P}[\text{Multiply}]\cr
 \otimes\cr
@@ -1058,6 +1084,39 @@ $$
 }
 }
 \end{matrix}
+}
+$$
+$$
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{ZK}(\varphi)]$
+}\cr
+\cr
+&\Pi[\bullet] \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{Prove}_i(b;a):
+}\cr
+  &\enspace
+    \texttt{assert } \varphi(a) = b
+  \cr
+  &\enspace
+    \pi_i \xleftarrow{\\$} \texttt{01}^\lambda
+  \cr
+  &\enspace
+    \Pi[\pi_i] \gets b
+  \cr
+\cr
+&\underline{
+  \text{Verify}(\pi, b):
+}\cr
+  &\enspace
+    \texttt{return } \Pi[\pi] \neq \bot \land \Pi[\pi] = b
+  \cr
+\end{aligned}
+}
 }
 $$
 
