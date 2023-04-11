@@ -300,7 +300,7 @@ $\blacksquare$
 
 **Lemma:**
 $$
-\mathscr{P}[\text{Multiply}] \leadsto F[\text{Multiply}]
+\mathscr{P}[\text{Multiply}] \leadsto \mathscr{P}[\text{IdealMultiply}]
 $$
 **Proof:**
 
@@ -421,26 +421,78 @@ $$
 }\cr
 \cr
 &\text{left} \gets \\{(k, i)\ k \in \mathcal{M}, i \in \mathcal{H} \\}\cr
-&\alpha\_{ki} \xleftarrow{\\$} \mathbb{F}_q\cr
-&a\_{ki}, b\_{ki}, \Delta\_{ki} \gets \bot\cr
+&a\_{ki}, b\_{ki}, \alpha\_{ki}, \Delta\_{ki} \gets \bot\cr
+&a\_{kl}, b\_{kl} \gets 0\cr
 \cr
 &\underline{
   \text{Start}_k^{ki}(a, b)
 }\cr
+  &\enspace
+    a\_{ki} \gets a, b\_{ki} \gets b
+  \cr
+  &\enspace
+    \texttt{if } \forall i.\ a\_{ki}, b\_{ki} \neq \bot:
+  \cr
+  &\enspace\enspace
+    \text{StartMultiply}_i(a\_\bullet, b\_\bullet)
+  \cr
 \cr
 &\underline{
   \text{End}_k^{ki}
 }\cr
+  &\enspace
+    \texttt{if } (k, i) \notin \text{left}:
+  \cr
+  &\enspace\enspace
+    \texttt{return } \alpha\_{ki}
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} a\_{ki}, b\_{ki}, \Delta\_{ki} \neq \bot \land \text{Leak}(i, k)
+  \cr
+  &\enspace
+    \text{left} \gets \text{left} / \\{(k, i)\\}
+  \cr
+  &\enspace
+    \texttt{if } |\text{left}| = 0:
+  \cr
+  &\enspace\enspace
+    \alpha \gets \text{EndMultiply}_k()
+  \cr
+  &\enspace\enspace
+    \texttt{return } \alpha - \sum\_{\alpha\_{ki} \neq \bot} \alpha\_{ki}
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \alpha\_{ki} \xleftarrow{\\$} \mathbb{F}_q
+  \cr
+  &\enspace\enspace
+    \texttt{return } \alpha\_{ki}
+  \cr
 \cr
 &\underline{
   \text{Cheat}^{ki}(\Delta)
 }\cr
   &\enspace
-  f
+    \Delta\_{ki} \gets \Delta
+  \cr
+  &\enspace
+    \texttt{if } \forall k, i.\ \text{Delta}\_{ki} \neq \bot
+  \cr
+  &\enspace\enspace
+    \text{Cheat}\left(\sum\_{(k, i)} \Delta\_{ki}\right)
   \cr
 \end{aligned}
 }
 }
+\otimes
+1
+\begin{pmatrix}
+\text{Start}^{kl}_k,\cr
+\text{End}^{kl}_k,\cr
+\text{Cheat}^{kl}\cr
+\end{pmatrix}
 \cr
 \circ\cr
 F[\text{Multiply}]

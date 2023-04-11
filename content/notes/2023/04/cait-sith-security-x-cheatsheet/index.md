@@ -584,7 +584,7 @@ $$
 }
 \lhd
 \begin{matrix}
-F[\text{MTA}]^{2n^2}\cr
+F[\text{MTA}]^{n^2}\cr
 \end{matrix}
 $$
 
@@ -609,10 +609,10 @@ $$
     f_i, e_i \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}
   \cr
   &\enspace
-    F_i, E_i, L_i \gets f_i \cdot G, e_i \cdot G, l_i \cdot G
+    F_i, E_i \gets f_i \cdot G, e_i \cdot G
   \cr
   &\enspace
-    \text{SetCommit}_i((F_i, E_i, L_i))
+    \text{SetCommit}_i((F_i, E_i))
   \cr
   &\enspace
     \text{Commit}_i()
@@ -1023,10 +1023,14 @@ $$
 $$
 
 $$
+
+$$
+
+$$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
-  $F[\text{Multiply}]$
+  $\mathscr{P}[\text{IdealMultiply}]$
 }\cr
 \cr
 \boxed{
@@ -1034,6 +1038,38 @@ $$
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
   $P_i$
+}\cr
+\cr
+&a, b \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a, b):
+}\cr
+  &\enspace
+    a, b \gets a, b
+  \cr
+  &\enspace
+    a\_{\bullet} \gets a,\ b\_{\bullet} \gets b
+  \cr
+  &\enspace
+    \text{StartMultiply}_i(a\_{\bullet}, b\_{\bullet})
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{return } a \cdot b + \text{EndMultiply}_i()
+  \cr
+\end{aligned}
+}
+}
+\quad
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Multiply}]$
 }\cr
 \cr
 &a\_{ij}, b\_{ij}, \beta_i, \Delta \gets \bot\cr
@@ -1049,7 +1085,7 @@ $$
   (1)\text{EndMultiply}_i():
 }\cr
   &\enspace
-    \texttt{wait}\_{(i, 0)} \forall ij.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot
+    \texttt{wait}\_{(i, 0)} \forall i \neq j.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot \land a\_{ii} \neq \bot
   \cr
   &\enspace
     \text{Sample}()
@@ -1062,13 +1098,13 @@ $$
   \text{Sample}():
 }\cr
   &\enspace
-    \texttt{assert } \forall ij.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot
+    \texttt{assert } \forall i \neq j.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot
   \cr
   &\enspace
     \texttt{if } \forall i.\ \beta_i = \bot:
   \cr
   &\enspace\enspace
-    c \gets \sum\_{ij} a\_{ij} \cdot b\_{ij}
+    c \gets \sum\_{i \neq j} a\_{ij} \cdot b\_{ji}
   \cr
   &\enspace\enspace
     (\beta_1, \ldots, \beta_n) \gets \\{\beta_i \xleftarrow{\\$} \mathbb{F}_q^n \mid \sum_i \beta_i = c + \Delta \\}
@@ -1086,6 +1122,7 @@ $$
 \end{matrix}
 }
 $$
+
 $$
 \boxed{
 \small{
