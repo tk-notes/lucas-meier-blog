@@ -208,37 +208,53 @@ $$
     \text{Open}_i()
   \cr
   &\enspace
-    \Rsh_i(\star, [z_i + f_i(j) \mid j \in [n]], 0)
+    Z_i \gets z_i \cdot G
+  \cr
+  &\enspace
+    \pi_i \gets \text{Prove}_i^\varphi(Z_i; z_i)
+  \cr
+  &\enspace
+    \Rsh_i(\star, (Z_i, \pi_i), 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, [z_i + f_i(j) \mid j \in [n]], 1)
   \cr
 \cr
 &\underline{
-  \text{WaitShare}_i(Z):
+  \text{WaitShare}_i():
 }\cr
   &\enspace
     F\_\bullet \gets \text{WaitOpen}_i()
   \cr
   &\enspace
-    x\_{\bullet i} \gets \Lsh_i(\star, 0)
+    (Z\_{\bullet i}, \pi\_{\bullet i}) \gets \Lsh_i(\star, 0)
   \cr
   &\enspace
-    x_i \gets \sum_j x\_{ji}, \enspace F \gets Z + \sum_j F_j(0)
-  \cr
-  &\enspace
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor x_i \cdot G \neq F(i) \lor F(0) \neq Z:
+    \texttt{if } \exists j.\ \neg \text{Verify}^\varphi(\pi\_{ji}, Z_j)
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 3)
+    \texttt{stop}(\star, 0)
   \cr
   &\enspace
-    \texttt{return } x_i
+    x\_{\bullet i} \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    x_i \gets \sum_j x\_{ji},\ Z \gets \sum_j Z_j, \enspace F \gets Z + \sum_j F_j
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ (\text{deg}(F_j) \neq t - 1 \lor F_j(0) \neq 0) \lor x_i \cdot G \neq F(i):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+  &\enspace
+    \texttt{return } (x_i, Z)
   \cr
 \end{aligned}
 }
 }
 \quad
 \begin{matrix}
-F[\text{Commit}]\cr
-\otimes\cr
 F[\text{SyncComm}]\cr
 \circledcirc \cr
 F[\text{Stop}]
@@ -247,6 +263,7 @@ F[\text{Stop}]
 \text{Leakage} := \\{\texttt{stop}\\}
 \end{matrix}
 }
+\lhd \mathscr{P}[\text{Commit}]
 $$
 $$
 \boxed{
@@ -263,10 +280,10 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Share}_i(s):
+  (1)\text{Share}_i(z):
 }\cr
   &\enspace
-    s_i \gets s
+    z_i \gets z
   \cr
   &\enspace
     f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
@@ -288,14 +305,29 @@ $$
     \text{Open}_i()
   \cr
   &\enspace
-    \Rsh_i(\star, [f_i(j) \mid j \in [n]], 3)
+    \pi_i \gets \text{Prove}_i^\varphi(F_i(0); z_i)
+  \cr
+  &\enspace
+    \Rsh_i(\star, \pi_i, 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, [f_i(j) \mid j \in [n]], 1)
   \cr
   &\enspace\cr
   &\enspace
     F\_\bullet \gets \text{WaitOpen}_i()
   \cr
   &\enspace
-    x\_{\bullet i} \gets \Lsh_i(\star, 3)
+    \pi\_{\bullet i} \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \neg \text{Verify}^\varphi(\pi\_{ji}, F_j(0))
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 0)
+  \cr
+  &\enspace
+    x\_{\bullet i} \gets \Lsh_i(\star, 1)
   \cr
   &\enspace
     x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
@@ -1115,6 +1147,13 @@ $$
 }\cr
   &\enspace
     \Delta \gets \Delta
+  \cr
+\cr
+&\underline{
+  \text{Leak}(i, j):
+}\cr
+  &\enspace
+    \texttt{return } a\_{ij}, b\_{ij} \neq \bot
   \cr
 \end{aligned}
 }

@@ -438,7 +438,7 @@ $$
   \cr
 \cr
 &\underline{
-  \text{End}_k^{ki}
+  \text{End}_k^{ki}()
 }\cr
   &\enspace
     \texttt{if } (k, i) \notin \text{left}:
@@ -456,10 +456,10 @@ $$
     \texttt{if } |\text{left}| = 0:
   \cr
   &\enspace\enspace
-    \alpha \gets \text{EndMultiply}_k()
+    \alpha_k \gets \text{EndMultiply}_k()\enspace (k \in \mathcal{M})
   \cr
   &\enspace\enspace
-    \texttt{return } \alpha - \sum\_{\alpha\_{ki} \neq \bot} \alpha\_{ki}
+    \texttt{return } \sum\_{k \in \mathcal{M}} \alpha_k - \sum\_{\alpha\_{ki} \neq \bot} \alpha\_{ki}
   \cr
   &\enspace
     \texttt{else}:
