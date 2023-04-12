@@ -10,53 +10,11 @@ note-tags:
 katex: true
 ---
 
-Next, we look at key sharing.
-
-**Definition: (Ideal Homomorphism NIZK)**
-
-$$
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{FBCFE8}{\large
-  $F[\text{ZK}(\varphi)]$
-}\cr
-\cr
-&\Pi[\bullet] \gets \bot\cr
-\cr
-&\underline{
-  (1)\text{Prove}_i(b;a):
-}\cr
-  &\enspace
-    \texttt{assert } \varphi(a) = b
-  \cr
-  &\enspace
-    \pi_i \xleftarrow{\\$} \texttt{01}^\lambda
-  \cr
-  &\enspace
-    \Pi[\pi_i] \gets b
-  \cr
-\cr
-&\underline{
-  \text{Verify}(\pi, b):
-}\cr
-  &\enspace
-    \texttt{return } \Pi[\pi] \neq \bot \land \Pi[\pi] = b
-  \cr
-\end{aligned}
-}
-}
-$$
-
-$\square$
-
-**Definition: (Key Share Protocol)**
-
 $$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{KeyShare}]$
+  $\mathscr{P}[\text{IdealConvert}]$
 }\cr
 \cr
 \boxed{
@@ -67,114 +25,29 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  (1)\text{SetMask}_i():
 }\cr
   &\enspace
-    s_i \gets s
+    \text{SetMask}_i(\star)
   \cr
-  &\enspace
-    f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
-  \cr
-  &\enspace
-    F_i \gets f_i \cdot G
-  \cr
-  &\enspace
-    \text{SetCommit}_i(F_i)
-  \cr
-  &\enspace
-    \text{Commit}_i()
-  \cr
-  \cr
-  &\enspace
-    \text{WaitCommit}_i()
-  \cr
-  &\enspace
-    \pi_i \gets \text{Prove}_i(F_i(0); f(0))
-  \cr
-  &\enspace
-    \text{Open}_i()
-  \cr
-  &\enspace
-    \Rsh_i(\star, \pi_i, 3)
-  \cr
-  &\enspace
-    \Rsh_i(\star, [f_i(j) \mid j \in [n]], 4)
-  \cr
-  \cr
-  &\enspace
-    F\_\bullet \gets \text{WaitOpen}_i()
-  \cr
-  &\enspace
-    \pi\_\bullet \gets \Lsh_i(\star, 3)
-  \cr
-  &\enspace
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor \neg \text{Verify}(\pi_j, F_j(0)):
-  \cr
-  &\enspace\enspace
-    \texttt{stop}(\star, 3)
-  \cr
-  &\enspace
-    x\_{\bullet i} \gets \Lsh_i(\star, 4)
-  \cr
-  &\enspace
-    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
-  \cr
-  &\enspace
-    \texttt{if } x_i \cdot G \neq F(i):
-  \cr
-  &\enspace\enspace
-    \texttt{stop}(\star, 4)
-  \cr
-  &\enspace
-    \texttt{return } (x_i, F(0))
-  \cr
-\end{aligned}
-}
-}
-\quad
-\begin{matrix}
-F[\text{ZK}(\varphi)]\cr
-\otimes\cr
-F[\text{SyncComm}]\cr
-\circledcirc \cr
-F[\text{Stop}]
-\end{matrix}\cr
-\cr
-\text{Leakage} := \\{\texttt{stop}\\}
-\end{matrix}
-}
-$$
-
-$\square$
-
-**Definition: (Ideal Key Sharing Protocol)**
-
-$$
-\boxed{
-\begin{matrix}
-\colorbox{FBCFE8}{\large
-  $\mathscr{P}[\text{IdealKeyShare}]$
-}\cr
-\cr
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{FBCFE8}{\large
-  $P_i$
-}\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  \text{WaitMask}_i():
 }\cr
   &\enspace
-    \text{Set}_i(s)
+    \text{WaitMask}_i(\star)
   \cr
+\cr
+&\underline{
+  (1)\text{Share}_i(z):
+}\cr
   &\enspace
-    \text{Sync}_i(\star, 0)
+    \text{Share}_i(\star, z)
   \cr
-  &\enspace
-    \text{WaitSync}_i(\star, 0)
-  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
   &\enspace
     \text{Open}_i(\star)
   \cr
@@ -193,37 +66,61 @@ $$
   $F[\text{KeyShare}]$
 }\cr
 \cr
+&f^h \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = 0\\}\cr
+&F^m, \text{ready}\_{ij}, z\_{ij}, x_j \gets \bot\cr
+\cr
 &\underline{
-  (1)\text{Set}_i(s):
+  (1)\text{SetMask}_i(S):
 }\cr
   &\enspace
-    s_i \gets s
+    \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
   \cr
 \cr
 &\underline{
-  \text{Open}_i(S):
+  (1)\text{Cheat}(F):
 }\cr
   &\enspace
-    \texttt{assert } s_i \neq \bot
+    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
   \cr
   &\enspace
-    \text{open}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+    F^m \gets F
+  \cr
+  &\enspace
+    \texttt{return } f^h \cdot G
   \cr
 \cr
 &\underline{
-  \text{WaitOpen}_i():
+  \text{WaitMask}_i(S):
 }\cr
   &\enspace
-    \texttt{wait } \forall j.\ \text{open}\_{ji}
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{ready}\_{ji} \land F^m \neq \bot
+  \cr
+\cr
+&\underline{
+  \text{Share}_i(S, z\_\bullet):
+}\cr
+  &\enspace
+    z\_{ij} \gets z_j\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{CheatShare}(S, x\_\bullet):
+}\cr
+  &\enspace
+    \texttt{assert } F^m \neq \bot \land \forall j \in S.\ x_j \cdot G = F^m(j)
   \cr
   &\enspace
-    \texttt{if } f = \bot:
+    x_j \gets x_j
   \cr
-  &\enspace\enspace
-    f \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = \sum_i s_i \\}
+\cr
+&\underline{
+  \text{WaitShare}_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)} \forall j \in S.\ x_j \neq \bot \land z\_{ji} \neq \bot
   \cr
   &\enspace
-    \texttt{return } (f(i), f(0) \cdot G)
+    \texttt{return } \sum_j z\_{ji} + f^h(i) + x_i
   \cr
 \end{aligned}
 }

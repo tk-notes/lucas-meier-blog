@@ -202,7 +202,7 @@ $$
   \cr
 \cr
 &\underline{
-  \text{Share}_i(z_i):
+  (1)\text{Share}_i(z_i):
 }\cr
   &\enspace
     \text{Open}_i()
@@ -1173,16 +1173,19 @@ $$
 &\Pi[\bullet] \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{Prove}_i(b;a):
+  \text{Prove}_i(b;a):
 }\cr
   &\enspace
     \texttt{assert } \varphi(a) = b
   \cr
   &\enspace
-    \pi_i \xleftarrow{\\$} \texttt{01}^\lambda
+    \pi \xleftarrow{\\$} \texttt{01}^{2\lambda}
   \cr
   &\enspace
-    \Pi[\pi_i] \gets b
+    \Pi[\pi] \gets b
+  \cr
+  &\enspace
+    \texttt{return } \pi
   \cr
 \cr
 &\underline{
