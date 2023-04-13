@@ -49,10 +49,7 @@ $$
   \text{WaitShare}_i():
 }\cr
   &\enspace
-    \text{Open}_i(\star)
-  \cr
-  &\enspace
-    \texttt{return } \text{WaitOpen}_i()
+    \texttt{return } \text{WaitShare}_i(\star)
   \cr
 \end{aligned}
 }
@@ -63,7 +60,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
-  $F[\text{KeyShare}]$
+  $F[\text{Convert}]$
 }\cr
 \cr
 &f^h \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = 0\\}\cr
@@ -77,7 +74,9 @@ $$
   \cr
 \cr
 &\underline{
+\textcolor{ef4444}{
   (1)\text{Cheat}(F):
+}
 }\cr
   &\enspace
     \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
@@ -104,7 +103,9 @@ $$
   \cr
 \cr
 &\underline{
+\textcolor{ef4444}{
   \text{CheatShare}(S, x\_\bullet):
+}
 }\cr
   &\enspace
     \texttt{assert } F^m \neq \bot \land \forall j \in S.\ x_j \cdot G = F^m(j)
@@ -122,6 +123,14 @@ $$
   &\enspace
     \texttt{return } \sum_j z\_{ji} + f^h(i) + x_i
   \cr
+&\underline{
+\textcolor{ef4444}{
+  \text{Leak}(i):
+}
+}\cr
+  &\enspace
+    \texttt{return } z_i \cdot G
+  \cr
 \end{aligned}
 }
 }\cr
@@ -138,11 +147,19 @@ $$
 
 $\square$
 
+**Lemma:**
+
+$$
+\mathscr{P}[\text{Convert}] \leadsto \mathscr{P}[\text{IdealConvert}]
+$$
+
 **Proof:**
 
-$\mathcal{P}[\text{KeyShare}] \lhd \mathcal{P}[\text{IdealCommit}] \overset{\epsilon}{\leadsto} \mathcal{P}[\text{IdealKeyShare}]$
-for a negligible $\epsilon$, and for any number of malicious corruptions
-such that $|\mathcal{M}| < t$.
+First, $\mathscr{P}[\text{Convert}] \leadsto \mathscr{P}^0$,
+where $\mathscr{P}^0$ replaces $\mathscr{P}[\text{Commit}]$
+with $\mathscr{P}[\text{IdealCommit}]$.
+
+Unrolling, we get:
 
 $$
 \begin{matrix}
@@ -154,7 +171,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(x):
+  (1)\text{SetMask}_i():
 }\cr
 &\enspace
   \ldots
@@ -183,11 +200,11 @@ $$
   ,\cr
     \text{WaitOpen}_k
   ,\cr
+    \text{Sync}_k
+  ,\cr
+    \text{WaitSync}_k
+  ,\cr
     \texttt{stop}
-  ,\cr
-    \texttt{Sync}_k
-  ,\cr
-    \texttt{WaitSync}_k
 \end{pmatrix}
 }
 \cr
@@ -209,11 +226,8 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  (1)\text{SetMask}_i():
 }\cr
-  &\enspace
-    s_i \gets s
-  \cr
   &\enspace
     f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
   \cr
@@ -226,32 +240,45 @@ $$
   &\enspace
     \text{Commit}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{WaitMask}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i(\star)
   \cr
   &\enspace
-    \text{WaitCommit}_i()
+    \text{Sync}_i(\star, 0)
   \cr
-  &\enspace
-    \text{Sync}_i(\star, 1)
-  \cr
-  &\enspace
-    \pi_i \gets \text{Prove}_i(F_i(0); f(0))
-  \cr
+\cr
+&\underline{
+  (1)\text{Share}_i(z_i):
+}\cr
   &\enspace
     \text{Open}_i(\star)
   \cr
   &\enspace
+    Z_i \gets z_i \cdot G
+  \cr
+  &\enspace
+    \pi_i \gets \text{Prove}_i(Z_i; z_i)
+  \cr
+  &\enspace
   \colorbox{bae6fd}{$
-    \pi\_{ij} \gets \pi_i
+    Z\_{ij} \gets Z_i,\ \pi\_{ij} \gets \pi_i
   $}
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    x\_{ij} \gets f_i(j)
+    x\_{ij} \gets z_i + f_i(j)
   $}
   \cr
-  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
   &\enspace
-    \text{WaitSync}_i(\star, 1)
+    \text{WaitSync}_i(\star, 0)
   \cr
   &\enspace
   \colorbox{bae6fd}{$
@@ -260,28 +287,28 @@ $$
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{wait}\_{(i, 3)} \forall j.\ \pi\_{ji} \neq \bot
+    \texttt{wait}\_{(i, 1)} \forall j.\ Z\_{ji}, \pi\_{ji} \neq \bot
   $}
   \cr
   &\enspace
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor \neg \text{Verify}(\pi_j, F_j(0)):
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor F_j(0) \neq 0 \lor \neg \text{Verify}(\pi\_{ji}, Z\_{ji}):
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 3)
+    \texttt{stop}(\star, 1)
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{wait}\_{(i, 4)} \forall j.\ x\_{ji} \neq \bot
+    \texttt{wait}\_{(i, 2)} \forall j.\ x\_{ji} \neq \bot
   $}
   \cr
   &\enspace
-    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
+    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j Z\_{ji} + \sum_j F_j
   \cr
   &\enspace
     \texttt{if } x_i \cdot G \neq F(i):
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 4)
+    \texttt{stop}(\star, 2)
   \cr
   &\enspace
     \texttt{return } (x_i, F(0))
@@ -300,34 +327,34 @@ $$
 &\ldots\cr
 \cr
 &\underline{
-  \Rsh_k(S, m\_\bullet, 3):
+  \Rsh_k(S, m\_\bullet, 1):
 }\cr
   &\enspace
-    \forall j \in S.\ \pi\_{kj} \gets m\_j
+    \forall j \in S.\ (Z\_{kj}, \pi\_{kj}) \gets m\_j
   \cr
 \cr
 &\underline{
-  \Rsh_k(S, m\_\bullet, 4):
+  \Rsh_k(S, m\_\bullet, 2):
 }\cr
   &\enspace
     \forall j \in S.\ x\_{kj} \gets m\_j
   \cr
 \cr
 &\underline{
-  \Lsh_k(S, 3):
+  \Lsh_k(S, 1):
 }\cr
   &\enspace
-    \texttt{wait}\_{(k, 3)} \forall j \in S.\ \pi\_{jk} \neq \bot
+    \texttt{wait}\_{(k, 1)} \forall j \in S.\ Z\_{jk}, \pi\_{jk} \neq \bot
   \cr
   &\enspace
-    \texttt{return } [\pi\_{jk} \mid j \in S]
+    \texttt{return } [(Z\_{jk}, \pi\_{jk}) \mid j \in S]
   \cr
 \cr
 &\underline{
-  \Lsh_k(S, 4):
+  \Lsh_k(S, 2):
 }\cr
   &\enspace
-    \texttt{wait}\_{(k, 3)} \forall j \in S.\ x\_{jk} \neq \bot
+    \texttt{wait}\_{(k, 2)} \forall j \in S.\ x\_{jk} \neq \bot
   \cr
   &\enspace
     \texttt{return } [x\_{jk} \mid j \in S]
@@ -341,13 +368,14 @@ $$
   \circ
 \cr
 \boxed{
+\small{
 \begin{aligned}
 &\colorbox{bae6fd}{\large
-  $F_0$
+  $F^0$
 }\cr
 \cr
 &F_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
-&\texttt{pub } \pi\_{ij}, x\_{ij} \gets \bot\cr
+&\texttt{pub } Z\_{ij}, \pi\_{ij}, x\_{ij} \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetCommit}_i(F):
@@ -394,6 +422,7 @@ $$
   \cr
 \end{aligned}
 }
+}
 \otimes
 F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
 \end{matrix}
@@ -412,24 +441,24 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  \text{WaitMask}_i():
 }\cr
   &\enspace
     \ldots
   \cr
   &\enspace
-    \texttt{wait}\_{(i, 3)} \forall j.\ \pi\_{ji} \neq \bot
+    \texttt{wait}\_{(i, 1)} \forall j.\ Z\_{ji}, \pi\_{ji} \neq \bot
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{wait}\_{(i, 4)} \forall j.\ x\_{ji} \neq \bot
+    \texttt{wait}\_{(i, 1)} \forall j.\ x\_{ji} \neq \bot
   $}
   \cr
   &\enspace
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor \neg \text{Verify}(\pi_j, F_j(0)):
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor F_j(0) \neq 0 \lor \neg \text{Verify}(\pi\_{ji}, Z\_{ji}):
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 3)
+    \texttt{stop}(\star, 1)
   \cr
   &\enspace
     \ldots
@@ -447,7 +476,7 @@ $$
 }\cr
 &\ldots\cr
 &\colorbox{bae6fd}{$
-X_k, B_k, \pi\_k \gets \bot
+F_k, \mu[\bullet] \gets \bot
 $}\cr
 \cr
 &\underline{
@@ -455,7 +484,7 @@ $}\cr
 }\cr
   &\enspace
   \colorbox{bae6fd}{$
-    X_k \gets F(0)
+    F_k \gets F
   $}
   \cr
   &\enspace
@@ -463,37 +492,47 @@ $}\cr
   \cr
 \cr
 &\underline{
-  (1)\text{Prove}_k(B;b):
+  (1)\text{Prove}_k(Z;z):
 }\cr
   &\enspace
   \colorbox{bae6fd}{$
-    B_k \gets X_k
+    \pi \gets \text{Prove}_k(B;b)
   $}
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \pi\_k \gets \text{Prove}_k(B;b)
+    \mu[\pi] \gets Z
   $}
   \cr
   &\enspace
-    \texttt{return } \pi\_k
+    \texttt{return } \pi
   \cr
 \cr
 &\underline{
-  \Rsh_k(S, m\_\bullet, 3):
+  \Rsh_k(S, m\_\bullet, 1):
 }\cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{for } j \in S \cap \mathcal{H}.\ m_j \neq \pi_k \lor B_k \neq X_k:
+    \texttt{for } j \in S \cap \mathcal{H}:
   $}
   \cr
   &\enspace\enspace
   \colorbox{bae6fd}{$
-    \texttt{stop}(\\{j\\}, 3)
+    (Z_j, \pi_j) \gets m_j
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{bae6fd}{$
+    \texttt{if } \text{deg}(F_k) \neq t - 1 \lor F_k(0) \neq 0 \lor \mu[\pi] \neq Z_j
+  $}
+  \cr
+  &\enspace\enspace\enspace
+  \colorbox{bae6fd}{$
+    \texttt{stop}(\\{j\\}, 1)
   $}
   \cr
   &\enspace
-    \forall j \in S.\ \pi\_{kj} \gets m\_j
+    \forall j \in S.\ (Z\_{kj}, \pi\_{kj}) \gets m\_j
   \cr
 \end{aligned}
 }
@@ -503,7 +542,7 @@ $}\cr
 \cr
   \circ
 \cr
-F_0
+F^0
 \otimes
 F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
 \end{matrix}
@@ -521,11 +560,8 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  (1)\text{SetMask}_i():
 }\cr
-  &\enspace
-    s_i \gets s
-  \cr
   &\enspace
     f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = s_i \\\}
   \cr
@@ -538,40 +574,62 @@ $$
   &\enspace
     \text{Commit}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{WaitMask}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i(\star)
   \cr
   &\enspace
-    \text{WaitCommit}_i()
+    \text{Sync}_i(\star, 0)
+  \cr
+\cr
+&\underline{
+  (1)\text{Share}_i(z_i):
+}\cr
+  &\enspace
+    Z_i \gets z_i \cdot G
   \cr
   &\enspace
-    \pi_i \gets \text{Prove}_i(F_i(0); f(0))
-  \cr
-  &\enspace
-    \text{Open}_i(\star, (\pi_i, f_i(\bullet)))
-  \cr
+    \pi_i \gets \text{Prove}_i(Z_i; z_i)
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    (F\_\bullet, \pi\_{\bullet i}, x\_{\bullet i}) \gets \text{WaitOpen}_i(\star)
+    \text{Open}_i(\star, Z_i, \pi_i, z_i + f_i(j))
+  $}
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
+  &\enspace
+    \text{WaitSync}_i(\star, 0)
+  \cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    (F\_\bullet, Z\_\bullet, \pi\_\bullet, x\_\bullet) \gets \text{WaitOpen}_i(\star)
   $}
   \cr
   &\enspace
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor \neg \text{Verify}(\pi_j, F_j(0)):
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor F_j(0) \neq 0 \lor \neg \text{Verify}(\pi\_{ji}, Z\_{ji}):
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 3)
+    \texttt{stop}(\star, 1)
   \cr
   &\enspace
-    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
+    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j Z\_{ji} + \sum_j F_j
   \cr
   &\enspace
     \texttt{if } x_i \cdot G \neq F(i):
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 4)
+    \texttt{stop}(\star, 1)
   \cr
   &\enspace
     \texttt{return } (x_i, F(0))
   \cr
+\cr
 \end{aligned}
 }
 }
@@ -583,49 +641,62 @@ $$
 &\colorbox{bae6fd}{\large
   $\Gamma^4_M$
 }\cr
-&\ldots\cr
+\cr
+&\mu[\bullet], \text{open}\_{kj}, \text{sync}\_{kj}, Z\_{kj}, \pi\_{kj}, x\_{kj} \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetCommit}_k(F):
 }\cr
   &\enspace
-    X_k \gets F(0)
+    F_k \gets F
   \cr
   &\enspace
     \text{SetCommit}_k(F)
   \cr
 \cr
 &\underline{
-  (1)\text{Prove}_k(B;b):
+  (1)\text{Prove}_k(Z;z):
 }\cr
   &\enspace
-    B_k \gets X_k
+    \pi \gets \text{Prove}_k(Z;z)
   \cr
   &\enspace
-    \pi\_k \gets \text{Prove}_k(B;b)
+    \mu[Z] \gets z
   \cr
   &\enspace
-    \texttt{return } \pi\_k
+    \texttt{return } \pi
   \cr
 \cr
 &\underline{
-  \Rsh_k(S, m\_\bullet, 3):
+  \Rsh_k(S, m\_\bullet, 1):
 }\cr
   &\enspace
-    \texttt{for } j \in S \cap \mathcal{H}.\ m_j \neq \bot \land m_j \neq \pi_k:
+    \texttt{for } j \in S \cap \mathcal{H}:
   \cr
   &\enspace\enspace
-    \texttt{stop}(\\{j\\}, 3)
+  \colorbox{bae6fd}{$
+    (Z_j, \pi_j) \gets m_j
+  $}
+  \cr
+  &\enspace\enspace
+  \colorbox{bae6fd}{$
+    \texttt{if } \text{deg}(F_k) \neq t - 1 \lor F_k(0) \neq 0 \lor \mu[\pi] \neq Z_j
+  $}
+  \cr
+  &\enspace\enspace\enspace
+  \colorbox{bae6fd}{$
+    \texttt{stop}(\\{j\\}, 1)
+  $}
   \cr
   &\enspace
-    \forall j \in S.\ \pi\_{kj} \gets m\_j
+    \forall j \in S.\ (Z\_{kj}, \pi\_{kj}) \gets m\_j
   \cr
   &\enspace
     \text{Open?}_k()
   \cr
 \cr
 &\underline{
-  \Rsh_k(S, m\_\bullet, 4):
+  \Rsh_k(S, m\_\bullet, 2):
 }\cr
   &\enspace
     \forall j \in S.\ x\_{kj} \gets m\_j
@@ -635,23 +706,23 @@ $$
   \cr
 \cr
 &\underline{
-  \Lsh_k(S, 3):
+  \Lsh_k(S, 1):
 }\cr
   &\enspace
-    (\forall j \in \mathcal{H})\ (\bullet, \pi\_{j k}, \bullet) \gets \texttt{nowait } \text{WaitOpen}\_k(\\{j\\})
+    (\forall j \in \mathcal{H})\ (\bullet, Z\_{jk}, \pi\_{j k}, \bullet) \gets \texttt{nowait } \text{WaitOpen}\_k(\\{j\\})
   \cr
   &\enspace
-    \texttt{wait}\_{(k, 3)} \forall j \in S.\ \pi\_{jk} \neq \bot
+    \texttt{wait}\_{(k, 3)} \forall j \in S.\ Z\_{jk}, \pi\_{jk} \neq \bot
   \cr
   &\enspace
-    \texttt{return } [\pi\_{jk} \mid j \in S]
+    \texttt{return } [(Z\_{jk}, \pi\_{jk}) \mid j \in S]
   \cr
 \cr
 &\underline{
-  \Lsh_k(S, 4):
+  \Lsh_k(S, 2):
 }\cr
   &\enspace
-    (\forall j \in \mathcal{H})\ (\bullet, \bullet, x\_{j k}) \gets \texttt{nowait } \text{WaitOpen}\_k(\\{j\\})
+    (\forall j \in \mathcal{H})\ (\bullet, \bullet, \bullet, x\_{j k}) \gets \texttt{nowait } \text{WaitOpen}\_k(\\{j\\})
   \cr
   &\enspace
     \texttt{wait}\_{(k, 3)} \forall j \in S.\ x\_{jk} \neq \bot
@@ -674,21 +745,49 @@ $$
   \text{WaitSync}_k(S):
 }\cr
   &\enspace
-    \text{open}\_{kj} \gets \texttt{nowait } \text{WaitOpen}_k(\\{j\\})
+    o\_{kj} \gets \texttt{nowait } \text{WaitOpen}_k(\\{j\\})\ (j \in S \cap \mathcal{H})
   \cr
   &\enspace
-    \texttt{wait}\_{(k, 1)} \forall j \in S.\ \text{sync}\_{kj} \lor \text{open}\_{kj}
+    o\_{kj} \gets \text{sync}\_{kj}\ (j \in S \cap \mathcal{M})
+  \cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)} \forall j \in S.\ o\_{kj}
+  \cr
+\cr
+&\underline{
+  \text{Open}_k(S):
+}\cr
+  &\enspace
+    \text{open}\_{kj} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{Open?}_k()
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_k(S):
+}\cr
+  &\enspace
+    (F_j, \bullet, \bullet, \bullet) \gets \text{WaitOpen}_k(S \cap \mathcal{H})\ (j \in S \cap \mathcal{H})
+  \cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)} \forall j \in S \cap \mathcal{M}.\ \text{open}\_{kj}
+  \cr
+  &\enspace
+    \texttt{return } [F_j \mid j \in S]
   \cr
 \cr
 &\underline{
   \text{Open?}_k():
 }\cr
   &\enspace
-    \texttt{for } j \in \mathcal{H}.\ \text{sync}\_{kj}, \pi\_{kj}, x\_{kj} \neq \bot:
+    \texttt{for } j \in \mathcal{H}.\ \text{open}\_{kj}, \text{sync}\_{kj}, Z\_{kj}, \pi\_{kj}, x\_{kj} \neq \bot:
   \cr
   &\enspace\enspace
-    \text{Open}_i(\\{j\\}, \pi\_{kj}, x\_{kj})
+    \text{Open}_i(\\{j\\}, Z\_{kj}, \pi\_{kj}, x\_{kj})
   \cr
+\cr
+\ldots
 \end{aligned}
 }
 }\cr
@@ -698,19 +797,20 @@ $$
   \circ
 \cr
 \boxed{
+\small{
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
-  $F_1$
+  $F^1$
 }\cr
 \cr
 &F_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
-&\pi\_{ij}, x\_{ij} \gets \bot\cr
+&Z\_{ij}, \pi\_{ij}, x\_{ij} \gets \bot\cr
 \cr
 &\ldots\cr
 \cr
 &\colorbox{bae6fd}{$
 \underline{
-  \text{Open}_i(S, \pi\_\bullet, x\_\bullet):
+  \text{Open}_i(S, Z\_\bullet, \pi\_\bullet, x\_\bullet):
 }$}\cr
   &\enspace
     \texttt{assert } F_i \neq \bot
@@ -719,31 +819,32 @@ $$
     \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
   \cr
   &\enspace
-    \texttt{for } j \in S.\ \pi\_{ij}, x\_{ij} = \bot:
+    \texttt{for } j \in S.\ Z\_{ij}, \pi\_{ij}, x\_{ij} = \bot:
   \cr
   &\enspace\enspace
-    \pi\_{ij}, x\_{ij} \gets \pi_j, x\_j
+    Z\_{ij}, \pi\_{ij}, x\_{ij} \gets Z_j, \pi_j, x\_j
   \cr
 \cr
 &\underline{
   \text{WaitOpen}_i(S):
 }\cr
   &\enspace
-    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
+    \text{wait}\_{(i, 1)} \forall j \in S.\ \text{open}\_{ji}
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{return } (F\_\bullet, \pi\_{\bullet i}, x\_{\bullet i})
+    \texttt{return } (F\_\bullet, Z\_{\bullet i}, \pi\_{\bullet i}, x\_{\bullet i})
   $}
   \cr
 \end{aligned}
+}
 }
 \otimes
 F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
-This is just a simulation of a protocol $\mathscr{P}_0$ where we need
+This is just a simulation of a protocol $\mathscr{P}_1$ where we need
 to open along with a proof and shares.
 
 Let's unroll again.
@@ -758,7 +859,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(x):
+  (1)\text{SetMask}_i():
 }\cr
 &\enspace
   \ldots
@@ -789,12 +890,12 @@ $$
 \cr
   \circ
 \cr
-F_1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
+F^1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
 Next, except with negligible probability, we can extract
-an $s_i$ value.
+a $z_i$ value.
 
 $$
 \begin{matrix}
@@ -806,7 +907,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(x):
+  (1)\text{SetMask}_i():
 }\cr
 &\enspace
   \ldots
@@ -826,33 +927,33 @@ $$
 \cr
 &\colorbox{bae6fd}{$
 \underline{
-  (1)\text{Prove}_k(B; b):
+  (1)\text{Prove}_k(Z; z):
 }$}\cr
   &\enspace
-    \pi \gets \text{Prove}_k(B; b)
+    \pi \gets \text{Prove}_k(Z; z)
   \cr
   &\enspace
-    \mu[\pi] \gets b
+    \mu[\pi] \gets z
   \cr
   &\enspace
     \texttt{return } \pi
   \cr
 \cr
 &\underline{
-  \text{Open}_k(S, (\pi\_\bullet, x\_\bullet)):
+  \text{Open}_k(S, Z\_\bullet, \pi\_\bullet, x\_\bullet):
 }\cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{for } j \in S \cap \mathcal{H}.\ \pi\_{j} \notin \mu:
+    \texttt{for } j \in S \cap \mathcal{H}.\ \mu[\pi_j] \cdot G \neq Z_j:
   $}
   \cr
   &\enspace\enspace
   \colorbox{bae6fd}{$
-    \texttt{stop }(\\{j\\}, 3)
+    \texttt{stop }(\\{j\\}, 1)
   $}
   \cr
   &\enspace
-    \text{Open}_k(S, (\pi\_\bullet, x\_\bullet))
+    \text{Open}_k(S, Z\_\bullet, \pi\_\bullet, x\_\bullet)
   \cr
 \end{aligned}
 }
@@ -860,7 +961,7 @@ $$
 \cr
   \circ
 \cr
-F_1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
+F^1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
@@ -876,24 +977,28 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  (1)\text{Share}_i(z_i):
 }\cr
   &\enspace
     \ldots
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \text{Open}_i(\star, f_i(0), f_i(\bullet))
+    \text{Open}_i(\star, z_i, z_i + f_i(\bullet))
+  $}
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
+  &\enspace
+  \colorbox{bae6fd}{$
+    (F\_\bullet, Z\_{\bullet i}, x\_{\bullet i}) \gets \text{WaitOpen}_i(\star)
   $}
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    (F\_\bullet, x\_{\bullet i}) \gets \text{WaitOpen}_i(\star)
-  $}
-  \cr
-  &\enspace
-  \colorbox{bae6fd}{$
-    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1:
+    \texttt{if } \exists j.\ \text{deg}(F_j) \neq t - 1 \lor F_j(0) \neq 0:
   $}
   \cr
   &\enspace
@@ -941,10 +1046,10 @@ $}\cr
 \cr
 &\colorbox{bae6fd}{$
 \underline{
-  \text{Open}_k(S, (\pi\_\bullet, x\_\bullet)):
+  \text{Open}_k(S, Z\_\bullet, \pi\_\bullet, x\_\bullet):
 }$}\cr
   &\enspace
-    \texttt{for } j \in S \cap \mathcal{H}.\ \mu[\pi\_{j}] \cdot G \notin \neq F_k(0):
+    \texttt{for } j \in S \cap \mathcal{H}.\ \mu[\pi_j] \cdot G \neq Z\_j:
   \cr
   &\enspace\enspace
     \texttt{stop }(\\{j\\}, 3)
@@ -953,7 +1058,7 @@ $}\cr
     \forall j \in S.\ m\_{kj} \gets \pi_j
   \cr
   &\enspace
-    \text{Open}_k(S, (\mu[\pi\_\bullet], x\_\bullet))
+    \text{Open}_k(S, \mu[\pi\_\bullet], x\_\bullet)
   \cr
 \cr
 &\colorbox{bae6fd}{$
@@ -961,7 +1066,7 @@ $}\cr
   \text{WaitOpen}_k(S):
 }$}\cr
   &\enspace
-    (F\_\bullet, x\_{\bullet k}) \gets \text{WaitOpen}_i(\star)
+    (F\_\bullet, Z\_{\bullet k}, x\_{\bullet k}) \gets \text{WaitOpen}_i(\star)
   \cr
   &\enspace
     \forall j \in S \cap \mathcal{H}.\ m_j \gets \pi_j
@@ -970,7 +1075,7 @@ $}\cr
     \forall j \in S \cap \mathcal{M}.\ m_j \gets m\_{j k}
   \cr
   &\enspace
-    \texttt{return } (F\_\bullet, m\_\bullet, x\_{\bullet k})
+    \texttt{return } (F\_\bullet, Z\_{\bullet k}, m\_\bullet, x\_{\bullet k})
   \cr
 \end{aligned}
 }
@@ -979,31 +1084,32 @@ $}\cr
   \circ
 \cr
 \boxed{
+\small{
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
-  $F_2$
+  $F^2$
 }\cr
 \cr
 &F_i, \text{com}\_{ij}, \text{open}\_{ij} \gets \bot\cr
-&x\_{ij} \gets \bot\cr
+&z\_{ij}, x\_{ij} \gets \bot\cr
 \cr
 &\ldots\cr
 \cr
 &\colorbox{bae6fd}{$
 \underline{
-  \text{Open}_i(S, s, x\_\bullet):
+  \text{Open}_i(S, z\_\bullet, x\_\bullet):
 }$}\cr
   &\enspace
-    \texttt{assert } F_i \neq \bot \land s \cdot G = F_i(0)
+    \texttt{assert } F_i \neq \bot
   \cr
   &\enspace
     \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
   \cr
   &\enspace
-    \texttt{for } j \in S.\ x\_{ij} = \bot:
+    \texttt{for } j \in S.\ z\_{ij}, x\_{ij} = \bot:
   \cr
   &\enspace\enspace
-    x\_{ij} \gets x\_j
+    z\_{ij}, x\_{ij} \gets z_j, x_j
   \cr
 \cr
 &\underline{
@@ -1014,15 +1120,16 @@ $}\cr
   \cr
   &\enspace
   \colorbox{bae6fd}{$
-    \texttt{return } (F\_\bullet, x\_{\bullet i})
+    \texttt{return } (F\_\bullet, z\_{\bullet i } \cdot G, x\_{\bullet i})
   $}
   \cr
 \end{aligned}
+}
 } \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
-At this point, we're simulating a protocol $\mathscr{P}_1$,
+At this point, we're simulating a protocol $\mathscr{P}^2$,
 and so we can reset and unroll again.
 
 $$
@@ -1035,7 +1142,7 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(x):
+  (1)\text{SetMask}_i():
 }\cr
 &\enspace
   \ldots
@@ -1064,51 +1171,47 @@ $$
 \cr
   \circ
 \cr
-F_2 \circledcirc F[\text{Stop}]
+F^2 \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
-Next we change things so that the functionality generates
-polynomials for honest parties.
+Now, this simulates the desired protocol:
 
 $$
 \begin{matrix}
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{bae6fd}{\large
-  $\Gamma^9_H$
+&\colorbox{FBCFE8}{\large
+  $P_i$
 }\cr
 \cr
 &\underline{
-  (1)\text{Run}_i(s):
+  (1)\text{SetMask}_i():
 }\cr
   &\enspace
-    \text{SetCommit}_i(s)
+    \text{SetMask}_i(\star)
   \cr
+\cr
+&\underline{
+  \text{WaitMask}_i():
+}\cr
   &\enspace
-    \text{Commit}_i(\star)
+    \text{WaitMask}_i(\star)
   \cr
+\cr
+&\underline{
+  (1)\text{Share}_i(z):
+}\cr
   &\enspace
-    \text{WaitCommit}_i(\star)
+    \text{Share}_i(\star, z)
   \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
   &\enspace
-    \text{Open}_i(\star, s, \bot)
-  \cr
-  &\enspace
-    (F\_\bullet, x\_{\bullet i}) \gets \text{WaitOpen}_i(\star)
-  \cr
-  &\enspace
-    x_i \gets \sum_j x\_{ji}, \enspace F \gets \sum_j F_j(0)
-  \cr
-  &\enspace
-    \texttt{if } x_i \cdot G \neq F(i):
-  \cr
-  &\enspace\enspace
-    \texttt{stop}(\star, 4)
-  \cr
-  &\enspace
-    \texttt{return } (x_i, F(0))
+    \texttt{return } \text{WaitShare}_i(\star)
   \cr
 \end{aligned}
 }
@@ -1117,171 +1220,68 @@ $$
 \boxed{
 \small{
 \begin{aligned}
-&\colorbox{FBCFE8}{\large
-  $\Gamma^9_H$
+&\colorbox{bae6fd}{\large
+  $S$
 }\cr
 \cr
-&\ldots\cr
-&\colorbox{bae6fd}{$
-\text{badF}_k \gets \bot
-$}\cr
-&\colorbox{bae6fd}{$
-\underline{
+&\underline{
   (1)\text{SetCommit}_k(F):
-}$}\cr
+}\cr
   &\enspace
-    \texttt{if } \text{deg}(F) \neq t - 1:
+    F_k \gets F
+  \cr
+  &\enspace
+    \text{bad}_k \gets \text{deg}(F) \neq t - 1 \lor F(0) \neq 0
+  \cr
+  &\enspace
+    \texttt{if } \forall k \in \mathcal{M}.\ F_k \neq \bot \land F^h = \bot:
   \cr
   &\enspace\enspace
-    \text{badF}_k \gets \texttt{true}
+    F^m \gets \sum_k F_k
   \cr
-  &\enspace
-    \text{SetCommit}_i(\bot, F)
+  &\enspace\enspace
+    F^h \gets \text{Cheat}(F^m)
   \cr
+\cr
 &\underline{
   \text{Commit}_k(S):
 }\cr
   &\enspace
-    \texttt{if } \text{badF}_k:
-  \cr
-  &\enspace\enspace
-    \texttt{stop}(S \cap \mathcal{H}, 3)
+    \texttt{assert } F_k \neq \bot
   \cr
   &\enspace
-    \text{Commit}_k(S)
+    \text{SetMask}_k(S)
   \cr
+\cr
+&\underline{
+  \text{WaitCommit}_k(S):
+}\cr
+\cr
+&\underline{
+  \text{Open}_k(S, z\_\bullet, x\_\bullet):
+}\cr
+  &\enspace
+    \texttt{if } \text{bad}_k:\ \texttt{stop}(S \cap \mathcal{H}, 1)
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}.\ \forall k.\ x\_{kj} \neq \bot \land \sum_k x\_{kj} \cdot G \neq F^m(j):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\\{j\\}, 1)
+  \cr
+\cr
+&\underline{
+  \text{WaitOpen}_k(S):
+}\cr
+\cr
+&\ldots
 \end{aligned}
 }
 }
 \cr
   \circ
 \cr
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{bae6fd}{\large
-  $F_3$
-}\cr
-\cr
-&\text{com}\_{ij}, \text{open}\_{ij}, f_i, F_i, x\_{ij} \gets \bot\cr
-\cr
-&\underline{
-  (1)\text{SetCommit}_i(s, F):
-}\cr
-  &\enspace
-    \texttt{assert } s \neq \bot \lor (F \neq \bot \land \text{deg}(F) \leq t - 1)
-  \cr
-  &\enspace
-    \texttt{if } s \neq \bot:
-  \cr
-  &\enspace\enspace
-    f_i \xleftarrow{\\$} \\{ f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = s\\}
-  \cr
-  &\enspace\enspace
-    F_i \gets f_i \cdot G
-  \cr
-  &\enspace
-    \texttt{else}:
-  \cr
-  &\enspace\enspace
-    F_i \gets F
-  \cr
-\cr
-&\underline{
-  \text{Commit}_i(S):
-}\cr
-  &\enspace
-    \forall j \in S.\ \text{com}\_{ij} \gets \texttt{true}
-  \cr
-\cr
-&\underline{
-  \text{WaitCommit}_i(S):
-}\cr
-  &\enspace
-    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{com}\_{ji}
-  \cr
-\cr
-&\underline{
-  \text{Open}_i(S, s, x\_\bullet):
-}\cr
-  &\enspace
-    \texttt{assert } F_i \neq \bot \land s \cdot G = F_i(0)
-  \cr
-  &\enspace
-    \text{open}\_{ij} \gets \texttt{true} (\forall j \in S)
-  \cr
-  &\enspace
-    \texttt{if } f_i \neq \bot:
-  \cr
-  &\enspace\enspace
-    \forall j \in S, x\_{ij} = \bot.\ x\_{ij} \gets f_i(j)
-  \cr
-  &\enspace
-    \texttt{else}:
-  \cr
-  &\enspace\enspace
-    \forall j \in S, x\_{ij} = \bot.\ x\_{ij} \gets x_j
-  \cr
-\cr
-&\underline{
-  \text{WaitOpen}_i(S):
-}\cr
-  &\enspace
-    \text{wait}\_{(i, 2)} \forall j \in S.\ \text{open}\_{ji}
-  \cr
-  &\enspace
-    \texttt{return } (F\_\bullet, x\_{\bullet i})
-  \cr
-\end{aligned}
-}
-}
-\circledcirc F[\text{Stop}]
-\end{matrix}
-$$
-
-Now, $\Gamma^9_H$ acts as a simulator for a protocol $\mathscr{P}_2$,
-and so we can reset again.
-
-$$
-\begin{matrix}
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{FBCFE8}{\large
-  $\Gamma^{10}_H$
-}\cr
-\cr
-&\underline{
-  (1)\text{Run}_i(x):
-}\cr
-&\enspace
-  \ldots
-\cr
-\end{aligned}
-}
-}
-\otimes
-\boxed{\colorbox{FBCFE8}{\large
-  $\Gamma^{10}_M$
-} = 1
-\begin{pmatrix}
-    \text{SetCommit}_k
-  ,\cr
-    \text{Commit}_k
-  ,\cr
-    \text{WaitCommit}_k
-  ,\cr
-    \text{Open}_k
-  ,\cr
-    \text{WaitOpen}_k
-  ,\cr
-    \texttt{stop}
-\end{pmatrix}
-}
-\cr
-  \circ
-\cr
-F_3 \circledcirc F[\text{Stop}]
+F[\text{Convert}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
