@@ -35,7 +35,7 @@ $$
   \text{WaitMask}_i():
 }\cr
   &\enspace
-    \text{WaitMask}_i(\star)
+    \text{WaitMask}_i(\star, \texttt{true})
   \cr
 \cr
 &\underline{
@@ -49,7 +49,7 @@ $$
   \text{WaitShare}_i():
 }\cr
   &\enspace
-    \texttt{return } \text{WaitShare}_i(\star)
+    \texttt{return } \text{WaitShare}_i(\texttt{true})
   \cr
 \end{aligned}
 }
@@ -89,10 +89,10 @@ $$
   \cr
 \cr
 &\underline{
-  \text{WaitMask}_i(S):
+  \text{WaitMask}_i(S, m):
 }\cr
   &\enspace
-    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{ready}\_{ji} \land F^m \neq \bot
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{ready}\_{ji} \land (m \to F^m \neq \bot)
   \cr
 \cr
 &\underline{
@@ -115,13 +115,25 @@ $$
   \cr
 \cr
 &\underline{
-  \text{WaitShare}_i(S):
+  \text{WaitShare}_i(h):
 }\cr
   &\enspace
-    \texttt{wait}\_{(i, 1)} \forall j \in S.\ x_j \neq \bot \land z\_{ji} \neq \bot
+    \texttt{if } h:
+  \cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} x_i \neq \bot \land \forall j. \land z\_{ji} \neq \bot
+  \cr
+  &\enspace\enspace
+    \texttt{return } \sum\_j z\_{ji} + f^h(i) + x_i
   \cr
   &\enspace
-    \texttt{return } \sum_j z\_{ji} + f^h(i) + x_i
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{H}. z\_{ji} \neq \bot
+  \cr
+  &\enspace\enspace
+    \texttt{return } \sum\_{j \in \mathcal{H}} z\_{ji} + f^h(i)
   \cr
 &\underline{
 \textcolor{ef4444}{
@@ -1197,7 +1209,7 @@ $$
   \text{WaitMask}_i():
 }\cr
   &\enspace
-    \text{WaitMask}_i(\star)
+    \text{WaitMask}_i(\star, \texttt{true})
   \cr
 \cr
 &\underline{
@@ -1211,7 +1223,7 @@ $$
   \text{WaitShare}_i():
 }\cr
   &\enspace
-    \texttt{return } \text{WaitShare}_i(\star)
+    \texttt{return } \text{WaitShare}_i(\texttt{true})
   \cr
 \end{aligned}
 }
@@ -1223,6 +1235,10 @@ $$
 &\colorbox{bae6fd}{\large
   $S$
 }\cr
+\cr
+&\text{left} \gets \mathcal{H}\cr
+&\text{bad}_k, \text{sampled}_i \gets \texttt{false}\cr
+&F^m, F^h, F_i, \alpha\_{ik} \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetCommit}_k(F):
@@ -1256,6 +1272,9 @@ $$
 &\underline{
   \text{WaitCommit}_k(S):
 }\cr
+  &\enspace
+    \text{WaitMask}_k(S, \texttt{false})
+  \cr
 \cr
 &\underline{
   \text{Open}_k(S, z\_\bullet, x\_\bullet):
@@ -1273,6 +1292,77 @@ $$
 &\underline{
   \text{WaitOpen}_k(S):
 }\cr
+  &\enspace
+   r_j \gets (F_j, z\_{kj} \cdot G, x\_{kj})\ (j \in S \cap \mathcal{M})
+  \cr
+  &\enspace
+    r_j \gets \text{Sim}_k(j)\ (j \in S \cap \mathcal{H})
+  \cr
+  &\enspace
+    \texttt{return } [r_j \mid j \in S]
+  \cr
+\cr
+&\underline{
+  \text{Sim}_k(j):
+}\cr
+  &\enspace
+     \texttt{wait}\_{(k, 1)} \text{Leak}(j) \neq \bot
+  \cr
+  &\enspace
+    \text{left} \gets \text{left} / \\{j\\}
+  \cr
+  &\enspace
+    \texttt{if } |\text{left}| = 0:
+  \cr
+  &\enspace\enspace
+    Z \gets \sum\_{i \in \mathcal{H}} \text{Leak}(i)
+  \cr
+  &\enspace\enspace
+    F \gets F^h - \sum\_{i \in \mathcal{H} / \\{j\\}} F_j
+  \cr
+  &\enspace\enspace
+    x_k \gets \text{WaitShare}_k(\texttt{false}) - \sum\_{i \in \mathcal{H} / \\{j \\}} \alpha\_{ik}
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    (Z, F, x\_\bullet) \gets \text{Sample}()
+  \cr
+  &\enspace
+    \texttt{return } (Z, F(k), x_k)
+  \cr
+\cr
+&\underline{
+  \text{Sample}(j)
+}\cr
+  &\enspace
+    \texttt{if } \neg \text{sampled}_j:
+  \cr
+  &\enspace\enspace
+    \text{sampled}_j \gets \texttt{true}
+  \cr
+  &\enspace\enspace
+    Z_j \gets \text{Leak}(j)
+  \cr
+  &\enspace\enspace
+    f \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}
+  \cr
+  &\enspace\enspace
+    F_j \gets f \cdot G
+  \cr
+  &\enspace\enspace
+    F_j(0) \gets 0
+  \cr
+  &\enspace\enspace
+    \alpha\_{jk} \xleftarrow{\\$} \mathbb{F}_q \ (\forall k \in \mathcal{M})
+  \cr
+  &\enspace\enspace
+    F_j(k) \gets \alpha\_{jk} \cdot G - Z_j\ (\forall k \in \mathcal{M})
+  \cr
+  &\enspace
+    \texttt{return } (Z_j, F_j, \alpha\_{j \bullet})
+  \cr
 \cr
 &\ldots
 \end{aligned}
