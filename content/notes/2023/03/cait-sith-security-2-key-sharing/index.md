@@ -1993,3 +1993,40 @@ F[\text{Convert}] \circledcirc F[\text{Stop}]
 $$
 
 $\blacksquare$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{KeyShare}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Share}_i(z):
+}\cr
+  &\enspace
+    \text{Set}_i(\star, z, \bot)
+  \cr
+  &\enspace
+    \text{WaitSet}_i(\star, \texttt{true})
+  \cr
+  &\enspace
+    \text{Share}_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } \text{WaitShare}_i(\texttt{true})
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+\lhd \mathscr{P}[\text{SplitShare}]
+$$
