@@ -176,7 +176,7 @@ $$
   $P_i$
 }\cr
 \cr
-&f_i \gets \bot\cr
+&Z\_{j i}, f_i \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetMask}_i():
@@ -249,6 +249,13 @@ $$
   \cr
   &\enspace
     \texttt{return } (x_i, Z)
+  \cr
+\cr
+&\underline{
+  \text{Z}_i(j):
+}\cr
+  &\enspace
+    \texttt{return } Z\_{ji}
   \cr
 \end{aligned}
 }
