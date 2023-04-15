@@ -114,14 +114,14 @@ $$
 \cr
 &\underline{
 \textcolor{ef4444}{
-  \text{CheatShare}(S, x\_\bullet):
+  \text{CheatShare}(S, \hat{x}\_\bullet):
 }
 }\cr
   &\enspace
-    \texttt{assert } F^m \neq \bot \land \forall j \in S.\ x_j \cdot G = F^m(j)
+    \texttt{assert } F^m \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^m(j)
   \cr
   &\enspace
-    x_j \gets x_j
+    \texttt{for } j. x_j = \bot: x_j \gets \hat{x}_j
   \cr
 \cr
 &\underline{
@@ -150,6 +150,18 @@ $$
 }\cr
   &\enspace
     \texttt{return } z\_{ij} \cdot G
+  \cr
+\cr
+&\underline{
+\textcolor{ef4444}{
+  \text{F}^h():
+}
+}\cr
+  &\enspace
+    \texttt{wait } F^m \neq \bot \land \forall i. \exists j. \text{ready}\_{ij}
+  \cr
+  &\enspace
+    \texttt{return } f^h \cdot G
   \cr
 \end{aligned}
 }
@@ -1244,7 +1256,7 @@ $$
 \cr
 &\text{left} \gets \mathcal{H}\cr
 &\text{bad}_k, \text{sampled}_i \gets \texttt{false}\cr
-&F^m, F^h, F_i, \alpha\_{ik} \gets \bot\cr
+&F^m, F_i, \alpha\_{ik} \gets \bot\cr
 \cr
 &\underline{
   (1)\text{SetCommit}_k(F):
@@ -1262,7 +1274,7 @@ $$
     F^m \gets \sum_k F_k
   \cr
   &\enspace\enspace
-    F^h \gets \text{Cheat}(F^m)
+    \text{Cheat}(F^m)
   \cr
 \cr
 &\underline{
@@ -1330,7 +1342,7 @@ $$
     Z \gets \sum\_{i \in \mathcal{H}} \text{Z}_k(i)
   \cr
   &\enspace\enspace
-    F \gets F^h - \sum\_{i \in \mathcal{H} / \\{j\\}} F_j
+    F \gets \text{F}^h() - \sum\_{i \in \mathcal{H} / \\{j\\}} F_j
   \cr
   &\enspace\enspace
     x_k \gets \text{WaitShare}_k(\texttt{false}) - \sum\_{i \in \mathcal{H} / \\{j \\}} \alpha\_{ik}
@@ -1566,13 +1578,10 @@ $$
 }
 }\cr
   &\enspace
-    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
+    \texttt{assert } \forall ij.\ \text{ready}\_{ij} \land F(0) = 0 \land \text{deg}(F) = t - 1
   \cr
   &\enspace
     F^m \gets F
-  \cr
-  &\enspace
-    \texttt{return } f^h \cdot G
   \cr
 \cr
 &\underline{
@@ -1600,14 +1609,14 @@ $$
 \cr
 &\underline{
 \textcolor{ef4444}{
-  \text{CheatShare}(S, x\_\bullet):
+  \text{CheatShare}(S, \hat{x}\_\bullet):
 }
 }\cr
   &\enspace
-    \texttt{assert } F^m \neq \bot \land \forall j \in S.\ x_j \cdot G = F^m(j)
+    \texttt{assert } F^m \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^m(j)
   \cr
   &\enspace
-    x_j \gets x_j
+    \texttt{for } j. x_j = \bot: x_j \gets \hat{x}_j
   \cr
 \cr
 &\underline{
@@ -1636,6 +1645,17 @@ $$
 }\cr
   &\enspace
     \texttt{return } z_i \cdot G
+  \cr
+&\underline{
+\textcolor{ef4444}{
+  \text{F}^h():
+}
+}\cr
+  &\enspace
+    \texttt{wait } F^m \neq \bot \land \forall i. \exists j. \text{ready}\_{ij}
+  \cr
+  &\enspace
+    \texttt{return } f^h \cdot G
   \cr
 \end{aligned}
 }
@@ -1991,6 +2011,377 @@ $$
 F[\text{Convert}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
+
+$\blacksquare$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{SplitGen}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Set}_i():
+}\cr
+  &\enspace
+    z \xleftarrow{\\$} \mathbb{F}_q
+  \cr
+  &\enspace
+    \text{Set}_i(\star, z, \bot)
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_i():
+}\cr
+  &\enspace
+    \text{WaitSet}_i(\star, \texttt{true})
+  \cr
+\cr
+&\underline{
+  (1)\text{Share}_i():
+}\cr
+  &\enspace
+    \text{Share}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
+  &\enspace
+    \texttt{return } \text{WaitShare}_i(\texttt{true})
+  \cr
+\cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+\lhd \mathscr{P}[\text{SplitShare}]
+$$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{IdealSplitGen}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Set}_i(z):
+}\cr
+  &\enspace
+    \text{Set}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_i():
+}\cr
+  &\enspace
+    \text{WaitSet}_i(\star, \texttt{true})
+  \cr
+\cr
+&\underline{
+  (1)\text{Share}_i():
+}\cr
+  &\enspace
+    \text{Share}_i(\star)
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
+  &\enspace
+    \texttt{return } \text{WaitShare}_i(\texttt{true})
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Convert}]$
+}\cr
+\cr
+&f^h \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}\cr
+&F^m, \text{ready}\_{ij}, x_j \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{Set}_i(S):
+}\cr
+  &\enspace
+    \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+\textcolor{ef4444}{
+  (1)\text{Cheat}(F):
+}
+}\cr
+  &\enspace
+    \texttt{assert } \text{deg}(F) = t - 1
+  \cr
+  &\enspace
+    F^m \gets F
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_i(S, m):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{ready}\_{ji} \land (m \to F^m \neq \bot)
+  \cr
+\cr
+&\underline{
+  \text{Share}_i(S):
+}\cr
+  &\enspace
+    \text{shared}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+\textcolor{ef4444}{
+  \text{CheatShare}(S, z, \hat{x}\_\bullet):
+}
+}\cr
+  &\enspace
+    \texttt{assert } F^m \neq \bot
+  \cr
+  &\enspace
+    \texttt{assert } z \cdot G = F^m(0)
+  \cr
+  &\enspace
+    \texttt{assert } \forall j \in S.\ \hat{x}_j \cdot G = F^m(j)
+  \cr
+  &\enspace
+    \texttt{for } j \in S.\ x_j = \bot: x_j \gets \hat{x}_j
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i(h):
+}\cr
+  &\enspace
+    \texttt{if } h:
+  \cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} x_i \neq \bot \land \forall j. \text{shared}\_{ji}
+  \cr
+  &\enspace\enspace
+    \texttt{return } f^h(i) + x_i
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{H}. \text{shared}\_{ji}
+  \cr
+  &\enspace\enspace
+    \texttt{return } f^h(i)
+  \cr
+\cr
+&\underline{
+\textcolor{ef4444}{
+  \text{F}^h():
+}
+}\cr
+  &\enspace
+    \texttt{wait } F^m \neq \bot \land \forall i.\ \exists j.\ \text{ready}\_{ij}
+  \cr
+  &\enspace
+    \texttt{return } f^h \cdot G
+  \cr
+\end{aligned}
+}
+}\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+$$
+
+**Lemma**
+
+$$
+\mathscr{P}[\text{SplitGen}] \lhd \mathcal{P}[\text{SplitShare}] \leadsto \mathscr{P}[\text{IdealSplitGen}]
+$$
+
+**Proof**
+
+First, appeal swap $\mathcal{P}[\text{SplitShare}]$ with $\mathcal{P}[\text{IdealSplitShare}]$, and then appeal to a direct simulation:
+
+$$
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^0_H$
+}
+\ldots
+\end{aligned}
+}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $S$
+}\cr
+\cr
+&\hat{Z}_i \xleftarrow{\\$} \mathbb{G}\cr
+&F^m, Z_k, z_k, x_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{Set}_k(S, z, Z):
+}\cr
+  &\enspace
+    \text{Set}_k(S)
+  \cr
+  &\enspace
+    \texttt{assert } z\neq \bot \lor Z \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } z \neq \bot:
+  \cr
+  &\enspace\enspace
+    z_k \gets z
+  \cr
+  &\enspace\enspace
+    Z_k \gets z \cdot G
+  \cr
+  &\enspace
+    \texttt{elif } Z \neq \bot:\ Z_k \gets Z
+  \cr
+  &\enspace
+    \text{Cheat?}()
+  \cr
+\cr
+&\underline{
+  (1)\text{Cheat}(F):
+}\cr
+  &\enspace
+    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
+  \cr
+  &\enspace
+    F^m \gets F
+  \cr
+  &\enspace
+    \text{Cheat?}()
+  \cr
+\cr
+&\underline{
+  \text{Cheat?}()
+}\cr
+  &\enspace
+    \texttt{if } \forall k.\ Z_k, F^m \neq \bot:
+  \cr
+  &\enspace\enspace
+    \text{Cheat}(F^m + \sum\_{k \in \mathcal{M}} Z_k)
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_k(S, m):
+}\cr
+  &\enspace
+    \text{WaitSet}_k(S, m)
+  \cr
+\cr
+&\underline{
+  \text{Share}_k(S, z):
+}\cr
+  &\enspace
+    \texttt{assert } Z_k \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } z_k = \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } z \cdot G = Z_k
+  \cr
+  &\enspace\enspace
+    z_k \gets z
+  \cr
+  &\enspace
+    \text{CheatShare?}()
+  \cr
+\cr
+&\underline{
+  \text{CheatShare}_k(S, \hat{x}\_\bullet):
+}\cr
+  &\enspace
+    \texttt{assert }  F^m \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^m(j)
+  \cr
+  &\enspace
+    \texttt{for } j.\ x_j = \bot:\ x_j \gets \hat{x}_j
+  \cr
+  &\enspace
+    \text{CheatShare?}()
+  \cr
+\cr
+&\underline{
+  \text{CheatShare?}():
+}\cr
+  &\enspace
+    \texttt{if } \forall k \in \mathcal{M}.\ z_k \neq \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{for } j.\ x_j \neq \bot:
+  \cr
+  &\enspace\enspace\enspace
+    \text{CheatShare}(\\{j\\}, \sum_k z_k, x\_\bullet)
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_k(h):
+}\cr
+  &\enspace
+    \text{WaitShare}_k(h)
+  \cr
+\cr
+&\underline{
+  \text{Z}(i):
+}\cr
+  &\enspace
+    \texttt{nowait } \text{F}^h(0) - \sum\_{i \in \mathcal{H}} \hat{Z}_i \texttt{ if } i = 1 \texttt{ else } \hat{Z}_i
+  \cr
+\cr
+&\underline{
+  \text{F}^h():
+}\cr
+  &\enspace
+    \texttt{return } \text{F}^h()
+  \cr
+\end{aligned}
+}
+}
+\cr
+  \circ
+\cr
+F[\text{Convert}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
 
 $\blacksquare$
 

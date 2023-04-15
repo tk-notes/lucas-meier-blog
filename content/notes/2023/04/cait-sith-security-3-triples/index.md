@@ -500,3 +500,185 @@ F[\text{Multiply}]
 $$
 
 $\blacksquare$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{IdealTriple}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Triple}_i(z):
+}\cr
+  &\enspace
+    \text{Set}_i(\star, z, \bot)
+  \cr
+  &\enspace
+    \text{WaitSet}_i(\star, \texttt{true})
+  \cr
+  &\enspace
+    \text{Share}_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } \text{WaitShare}_i(\texttt{true})
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Convert}]$
+}\cr
+\cr
+&f^{A,h}, f^{B,h}, f^{C,h} \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = 0\\}\cr
+&F^{A,m}, F^{B,m}, F^{C,m}, \text{ready}\_{ij}, a\_{i}, b\_{i}, c\_{i}, x^A_i, x^B_i, x^C_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{Set}_i(S, (a, A), (b, B), (c, C)):
+}\cr
+  &\enspace
+    \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{for } (y, Y) \in \\{(a, A), (b, B), (c, C)\\}:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } y \neq \bot \lor Y \neq \bot
+  \cr
+  &\enspace\enspace
+    \texttt{if } y_i \neq \bot:\ y_i \gets y, Y_i \gets y_i \cdot G
+  \cr
+  &\enspace\enspace
+    \texttt{if } y_i = \bot \land Y_i \neq \bot :\ Y_i \gets y
+  \cr
+\cr
+&\underline{
+\textcolor{ef4444}{
+  (1)\text{Cheat}(F^A, F^B, F^C):
+}
+}\cr
+  &\enspace
+    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
+  \cr
+  &\enspace
+    F^{A, m}, F^{B, m}, F^{C, m} \gets F^A, F^B, F^C
+  \cr
+  &\enspace
+    \texttt{return } (f^{A,h} \cdot G, f^{B,h} \cdot G,f^{C, h} \cdot G)
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_i(S, m):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j \in S.\ \text{ready}\_{ji} \land (m \to F^{\bullet, m} \neq \bot)
+  \cr
+\cr
+&\underline{
+  \text{Share}_i(S, a, b):
+}\cr
+  &\enspace
+    \texttt{assert } A_i, B_i \neq \bot
+  \cr
+  &\enspace
+    \texttt{for } (y, Y) \in \\{(a, A), (b, B)\\}:
+  \cr
+  &\enspace\enspace
+    \texttt{if } y_i = \bot:
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{assert } y \cdot G = Y_i
+  \cr
+  &\enspace\enspace\enspace
+    y_i \gets y
+  \cr
+\cr
+&\underline{
+\textcolor{ef4444}{
+  \text{CheatShare}(S, x^A\_\bullet, x^B\_\bullet, x^C\_\bullet):
+}
+}\cr
+  &\enspace
+    \texttt{for } Y \in \\{A, B, C\\}:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } F^{Y,m} \neq \bot \land \forall j \in S.\ x^Y_j \cdot G = F^{Y, m}(j)
+  \cr
+  &\enspace\enspace
+    x^Y_j \gets x^Y_j
+  \cr
+\cr
+&\underline{
+  \text{WaitShares}_i^{(y, Y) \in \\{(a, A),(b, B)\\}}(h):
+}\cr
+  &\enspace
+    \texttt{if } h:
+  \cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} x^Y_i \neq \bot \land \forall j. \land y_j \neq \bot
+  \cr
+  &\enspace\enspace
+    \texttt{return } \sum\_j y_j + f^{Y,h}(i) + x^Y_i
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{H}. y_j \neq \bot
+  \cr
+  &\enspace\enspace
+    \texttt{return } \sum\_{j \in \mathcal{H}} y_j + f^{Y, h}(i)
+  \cr
+&\underline{
+  \text{A}(i):
+}\cr
+  &\enspace
+    \texttt{return } a_i \cdot G
+  \cr
+&\underline{
+  \text{B}(i):
+}\cr
+  &\enspace
+    \texttt{return } b_i \cdot G
+  \cr
+&\underline{
+  \text{C}(i):
+}\cr
+  &\enspace
+    \texttt{return } a_i \cdot (\sum_j b_j \cdot G)
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+F[\text{Sync}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+$$
+
+**Lemma**
+
+$$
+\mathscr{P}[\text{Triple}] \leadsto \mathscr{P}[\text{IdealTriple}]
+$$
+
+**Proof**
+
+$\blacksquare$
