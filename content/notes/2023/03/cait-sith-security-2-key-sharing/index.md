@@ -1550,7 +1550,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
-  $F[\text{Convert}]$
+  $F[\text{SplitShare}]$
 }\cr
 \cr
 &f^h \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = 0\\}\cr
@@ -2008,7 +2008,7 @@ $$
 \cr
   \circ
 \cr
-F[\text{Convert}] \circledcirc F[\text{Stop}]
+F[\text{SplitShare}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
@@ -2117,7 +2117,7 @@ $$
 \small{
 \begin{aligned}
 &\colorbox{FBCFE8}{\large
-  $F[\text{Convert}]$
+  $F[\text{SplitGen}]$
 }\cr
 \cr
 &f^h \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}\cr
@@ -2378,7 +2378,7 @@ $$
 \cr
   \circ
 \cr
-F[\text{Convert}] \circledcirc F[\text{Stop}]
+F[\text{SplitGen}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 

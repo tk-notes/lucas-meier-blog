@@ -516,19 +516,32 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Triple}_i(z):
+  (1)\text{Triple}_i():
 }\cr
   &\enspace
-    \text{Set}_i(\star, z, \bot)
+    \text{Set}_i(\star)
   \cr
   &\enspace
     \text{WaitSet}_i(\star, \texttt{true})
   \cr
   &\enspace
-    \text{Share}_i(\star)
+    \text{Share}^0_i(\star)
   \cr
   &\enspace
-    \texttt{return } \text{WaitShare}_i(\texttt{true})
+    (a_i, b_i) \gets \text{WaitShares}^0_i(\texttt{true})
+  \cr
+  &\enspace
+    \text{Share}^1_i(\star)
+  \cr
+  &\enspace
+    c_i \gets \text{WaitShares}^1_i(\texttt{true})
+  \cr
+  &\enspace
+    (A, B, C) \gets
+    (\text{F}^{A,h}()(0), \text{F}^{B,h}()(0), \text{F}^{C,h}()(0))
+  \cr
+  &\enspace
+    \texttt{return } (a_i, b_i, c_i, A, B, C)
   \cr
 \end{aligned}
 }
@@ -542,26 +555,15 @@ $$
   $F[\text{Convert}]$
 }\cr
 \cr
-&f^{A,h}, f^{B,h}, f^{C,h} \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = 0\\}\cr
-&F^{A,m}, F^{B,m}, F^{C,m}, \text{ready}\_{ij}, a\_{i}, b\_{i}, c\_{i}, x^A_i, x^B_i, x^C_i \gets \bot\cr
+&f^{A,h}, f^{B,h}, \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}\cr
+&f^{A,h}, f^{B,h}, \xleftarrow{\\$} \\{f \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f(0) = f^{A, h}(0) \cdot f^{B, h}(0)\\}\cr
+&F^{A,m}, F^{B,m}, F^{C,m}, \text{ready}\_{ij}, \text{shared}^{\\{0, 1\\}}\_{ij}, a\_{i}, b\_{i}, c\_{i}, x^A_i, x^B_i, x^C_i \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{Set}_i(S, (a, A), (b, B), (c, C)):
+  (1)\text{Set}_i(S):
 }\cr
   &\enspace
     \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
-  \cr
-  &\enspace
-    \texttt{for } (y, Y) \in \\{(a, A), (b, B), (c, C)\\}:
-  \cr
-  &\enspace\enspace
-    \texttt{assert } y \neq \bot \lor Y \neq \bot
-  \cr
-  &\enspace\enspace
-    \texttt{if } y_i \neq \bot:\ y_i \gets y, Y_i \gets y_i \cdot G
-  \cr
-  &\enspace\enspace
-    \texttt{if } y_i = \bot \land Y_i \neq \bot :\ Y_i \gets y
   \cr
 \cr
 &\underline{
@@ -575,9 +577,6 @@ $$
   &\enspace
     F^{A, m}, F^{B, m}, F^{C, m} \gets F^A, F^B, F^C
   \cr
-  &\enspace
-    \texttt{return } (f^{A,h} \cdot G, f^{B,h} \cdot G,f^{C, h} \cdot G)
-  \cr
 \cr
 &\underline{
   \text{WaitSet}_i(S, m):
@@ -587,77 +586,86 @@ $$
   \cr
 \cr
 &\underline{
-  \text{Share}_i(S, a, b):
+  \text{Share}^0_i(S):
 }\cr
   &\enspace
-    \texttt{assert } A_i, B_i \neq \bot
-  \cr
-  &\enspace
-    \texttt{for } (y, Y) \in \\{(a, A), (b, B)\\}:
-  \cr
-  &\enspace\enspace
-    \texttt{if } y_i = \bot:
-  \cr
-  &\enspace\enspace\enspace
-    \texttt{assert } y \cdot G = Y_i
-  \cr
-  &\enspace\enspace\enspace
-    y_i \gets y
+    \text{shared}^0\_{ij} \gets \texttt{true}\ (\forall j \in S)
   \cr
 \cr
 &\underline{
 \textcolor{ef4444}{
-  \text{CheatShare}(S, x^A\_\bullet, x^B\_\bullet, x^C\_\bullet):
+  \text{CheatShare}^0(S, \hat{x}^A\_\bullet, \hat{x}^B\_\bullet):
 }
 }\cr
   &\enspace
-    \texttt{for } Y \in \\{A, B, C\\}:
+    \texttt{for } Y \in \\{A, B\\}:
   \cr
   &\enspace\enspace
-    \texttt{assert } F^{Y,m} \neq \bot \land \forall j \in S.\ x^Y_j \cdot G = F^{Y, m}(j)
+    \texttt{assert } F^{Y,m} \neq \bot \land \forall j \in S.\ \hat{x}^Y_j \cdot G = F^{Y, m}(j)
   \cr
   &\enspace\enspace
-    x^Y_j \gets x^Y_j
+    \texttt{for } j.\ x^Y_j \neq \bot: x^Y_j \gets \hat{x}^Y_j
   \cr
 \cr
 &\underline{
-  \text{WaitShares}_i^{(y, Y) \in \\{(a, A),(b, B)\\}}(h):
+  \text{WaitShares}^0_i(h):
 }\cr
   &\enspace
     \texttt{if } h:
   \cr
   &\enspace\enspace
-    \texttt{wait}\_{(i, 1)} x^Y_i \neq \bot \land \forall j. \land y_j \neq \bot
+    \texttt{wait}\_{(i, 1)} x^A_i, x^B_i \neq \bot \land \forall j. \land \forall j. \text{shared}^0\_{ji}
   \cr
   &\enspace\enspace
-    \texttt{return } \sum\_j y_j + f^{Y,h}(i) + x^Y_i
+    \texttt{return } (f^{A,h}(i) + x^A_i, f^{B,h}(i) + x^B_i)
   \cr
   &\enspace
     \texttt{else}:
   \cr
   &\enspace\enspace
-    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{H}. y_j \neq \bot
+    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{H}. \text{shared}^0\_{ji} \neq \bot
   \cr
   &\enspace\enspace
-    \texttt{return } \sum\_{j \in \mathcal{H}} y_j + f^{Y, h}(i)
+    \texttt{return } (f^{A,h}(i), f^{B,h}(i))
   \cr
+\cr
 &\underline{
-  \text{A}(i):
+  \text{Share}^1_i(S):
 }\cr
   &\enspace
-    \texttt{return } a_i \cdot G
+    \text{shared}^1\_{ij} \gets \texttt{true}\ (\forall j \in S)
   \cr
+\cr
 &\underline{
-  \text{B}(i):
+\textcolor{ef4444}{
+  \text{CheatShare}^1(S, \hat{x}^C\_\bullet):
+}
 }\cr
   &\enspace
-    \texttt{return } b_i \cdot G
+    \texttt{assert } F^{C,m} \neq \bot \land \forall j \in S.\ \hat{x}^C_j \cdot G = F^{C, m}(j)
   \cr
+  &\enspace
+    \texttt{for } j.\ x^C_j \neq \bot: x^C_j \gets \hat{x}^C_j
+  \cr
+\cr
 &\underline{
-  \text{C}(i):
+  \text{WaitShares}^1_i():
+}\cr
+  &\enspace\enspace
+    \texttt{wait}\_{(i, 1)} x^C_i, \neq \bot \land \forall j. \land \forall j. \text{shared}^1\_{ji}
+  \cr
+  &\enspace\enspace
+    \texttt{return } f^{C, h}(i) + x^C_i
+  \cr
+\cr
+&\underline{
+  \text{F}^{Y \in \\{A, B, C\\}, h}():
 }\cr
   &\enspace
-    \texttt{return } a_i \cdot (\sum_j b_j \cdot G)
+    \texttt{wait } F^{Y, m} \neq \bot \land \forall i.\ \exists j.\ \text{ready}\_{ij}
+  \cr
+  &\enspace
+    \texttt{return } f^{Y, h} \cdot G
   \cr
 \end{aligned}
 }
