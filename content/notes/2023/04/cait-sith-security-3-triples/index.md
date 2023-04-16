@@ -689,4 +689,115 @@ $$
 
 **Proof**
 
+Clearly, $\mathscr{P}[\text{Triple}]$ is simulated by the following
+protocol making use of $\mathscr{P}[\text{SplitShare}]$ twice:
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}^0$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Triple}_i():
+}\cr
+  &\enspace
+    z^A_i, z^B_i \xleftarrow{\\$} \mathbb{F}_q
+  \cr
+  &\enspace
+    \text{Set}^0_i(z^A_i), \text{Set}^1_i(z^B_i)
+  \cr
+  &\enspace
+    \text{SetMask}_i()
+  \cr
+  \cr
+  &\enspace
+    \text{WaitSet}^0_i(), \text{WaitSet}^1_i()
+  \cr
+  &\enspace
+    \text{WaitMask}_i()
+  \cr
+  &\enspace
+    \text{Share}^0_i(), \text{Share}^1_i
+  \cr
+  \cr
+  &\enspace
+    a_i \gets \text{WaitShare}^0_i(), b_i \gets \text{WaitShare}^1_i()
+  \cr
+  &\enspace
+    \text{Multiply}_i(z^A_i, z^B_i)
+  \cr
+  &\enspace
+    \text{A} \gets \sum_i \text{Z}^{0}(i),
+    \text{B} \gets \sum_i \text{Z}^{1}(i)
+  \cr
+  &\enspace
+    C_i \gets z^B_i \cdot \text{F}^{0,h}(0)
+  \cr
+  &\enspace
+    \pi^2_i \gets \text{Prove}^\psi(\text{Z}^{1}(i), A, C_i; z^B_i)
+  \cr
+  &\enspace
+    \Rsh_i(\star, (C_i, \pi_i), 1)
+  \cr
+  &\enspace\cr
+  &\enspace
+    (C\_\bullet, \pi^2\_\bullet) \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(\pi^2_j, (\text{Z}^{1}(j), \text{F}^{0,h}(0)))
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+  &\enspace
+    z^C_i \gets \text{WaitMultiply}_i()
+  \cr
+  &\enspace
+    \text{Share}_i(z^C_i)
+  \cr
+  &\enspace
+    c_i \gets \text{WaitShare}_i()
+  \cr
+  &\enspace
+    C \gets \sum_i C_i
+  \cr
+  &\enspace
+    \texttt{if } \sum_i \text{Z}^{2}(i) \neq C
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 2)
+  \cr
+  &\enspace
+    \texttt{return } (a_i, b_i, c_i, A, B, C)
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{SplitShare}]\cr
+\otimes\cr
+\mathscr{P}[\text{SplitShare}]\cr
+\otimes\cr
+\mathscr{P}[\text{Convert}]\cr
+\otimes\cr
+\mathscr{P}[\text{Multiply}]\cr
+\end{matrix}
+$$
+
+This simulates the desired protocol.
+
+TODO
+
 $\blacksquare$

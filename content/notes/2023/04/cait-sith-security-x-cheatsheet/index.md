@@ -670,14 +670,26 @@ $$
     \text{Open}_i()
   \cr
   &\enspace
-    \Rsh_i(\star, [(f_i(j), e_i(j)) \mid j \in [n]], 0)
+    \pi^0_i \gets \text{Prove}^\varphi(F_i(0); f_i(0))
+  \cr
+  &\enspace
+    \pi^1_i \gets \text{Prove}^\varphi(E_i(0); e_i(0))
+  \cr
+  &\enspace
+    \Rsh_i(\star, (\pi^0_i, \pi^1_i), 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, [(f_i(j), e_i(j)) \mid j \in [n]], 1)
   \cr
   &\enspace\cr
   &\enspace
     (F\_\bullet, E\_\bullet) \gets \text{WaitOpen}_i()
   \cr
   &\enspace
-    (a\_{\bullet i}, b\_{\bullet i}) \gets \Lsh_i(\star, 0)
+    (\pi^0\_{\bullet i}, \pi^1\_{\bullet i}) \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    (a\_{\bullet i}, b\_{\bullet i}) \gets \Lsh_i(\star, 1)
   \cr
   &\enspace
     a_i \gets \sum_j a\_{ji}, \enspace F \gets \sum_j F_j(0)
@@ -686,7 +698,15 @@ $$
     b_i \gets \sum_j a\_{ji}, \enspace E \gets \sum_j E_j(0)
   \cr
   &\enspace
-    \texttt{if } a_i \cdot G \neq E(i) \lor b_i \cdot G \neq F(i):
+    \text{bad}^0 \gets
+    \exists j. \neg \text{Verify}^\varphi(\pi^0_j, F_j(0))
+  \cr
+  &\enspace
+    \text{bad}^1 \gets
+    \exists j. \neg \text{Verify}^\varphi(\pi^1_j, E_j(0))
+  \cr
+  &\enspace
+    \texttt{if } a_i \cdot G \neq E(i) \lor b_i \cdot G \neq F(i) \lor \text{bad}^0 \lor \text{bad}^1
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 0)
@@ -698,17 +718,17 @@ $$
     C_i \gets e_i(0) \cdot F(0)
   \cr
   &\enspace
-    \pi_i \gets \text{Prove}^\psi(E_i(0), F(0), C_i; e_i(0))
+    \pi^2_i \gets \text{Prove}^\psi(E_i(0), F(0), C_i; e_i(0))
   \cr
   &\enspace
     \Rsh_i(\star, (C_i, \pi_i), 1)
   \cr
   &\enspace\cr
   &\enspace
-    (C\_\bullet, \pi\_\bullet) \Lsh_i(\star, 1)
+    (C\_\bullet, \pi^2\_\bullet) \Lsh_i(\star, 1)
   \cr
   &\enspace
-    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(E_j(0), F(0), C_j)
+    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(\pi^2_j, (E_j(0), F(0), C_j))
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
@@ -747,8 +767,6 @@ F[\text{Stop}]
 \mathscr{P}[\text{Convert}]\cr
 \otimes\cr
 \mathscr{P}[\text{Multiply}]\cr
-\otimes\cr
-\mathscr{P}[\text{Convert}]\cr
 \end{matrix}
 $$
 
