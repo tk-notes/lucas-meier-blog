@@ -409,7 +409,7 @@ $$
 }
 \cr
 \circ\cr
-F[\text{Presign}]
+F[\text{Presign}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
@@ -430,19 +430,22 @@ $$
 }\cr
 \cr
 &\underline{
-  (1)\text{Sign}_i^\tau(m):
+  (1)\text{Sign}_i^\tau():
 }\cr
   &\enspace
     (X, \bullet, R, k_i, \sigma_i) \gets \text{Presign}_i^\tau()
   \cr
   &\enspace
+    m \gets \text{GetMessage}^\tau()
+  \cr
+  &\enspace
     s_i \gets \text{Hash}(m) \cdot k_i + x(R) \cdot \sigma_i
   \cr
   &\enspace
-    \Rsh_i(\star, s_i, 4)
+    \Rsh_i(\star, s_i, 1)
   \cr
   &\enspace
-    s\_\bullet \gets \Lsh_i(\star, 4)
+    s\_\bullet \gets \Lsh_i(\star, 1)
   \cr
   &\enspace
     s \gets \sum_j s_j
@@ -451,7 +454,7 @@ $$
     \texttt{if } \neg \text{ECDSA}.\text{Verify}(X, m, (R, s)):
   \cr
   &\enspace\enspace
-    \texttt{stop}(\star, 4)
+    \texttt{stop}(\star, 1)
   \cr
   &\enspace
     \texttt{return } s
@@ -461,13 +464,272 @@ $$
 }
 \quad
 \begin{matrix}
-F[\text{Sync}(0)]\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Messages}]$
+}\cr
+\cr
+&m^\tau \gets \bot
+\cr
+&\underline{
+  \text{SetMessage}^\tau(m):
+}\cr
+  &\enspace
+    \texttt{if } m^\tau = \bot: m^\tau \gets m
+  \cr
+\cr
+&\underline{
+  \text{GetMessage}^\tau():
+}\cr
+  &\enspace
+    \texttt{wait } m^\tau \neq \bot
+  \cr
+  &\enspace
+    \texttt{return } m^\tau
+  \cr
+\end{aligned}
+}
+}\cr
+\otimes\cr
+F[\text{SyncComm}]^\mathbb{N}\cr
 \circledcirc \cr
 F[\text{Stop}]
 \end{matrix}\cr
 \cr
-\text{Leakage} := \\{\texttt{stop}\\}
+\text{Leakage} := \\{\texttt{stop}, \text{SetMessage}^\tau\\}
 \end{matrix}
 }
 \lhd \mathscr{P}[\text{Presign}]
 $$
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{IdealSign}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Sign}_i^\tau():
+}\cr
+  &\enspace
+    \text{Sync}^\tau_i(\star, 0)
+  \cr
+  &\enspace
+    \text{WaitSync}^\tau_i(\star, 0)
+  \cr
+  &\enspace
+    \text{Ready}^\tau_i(\star)
+  \cr
+  &\enspace
+    \texttt{return } \text{Sig}^\tau_i()
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Sign}]$
+}\cr
+\cr
+&\text{ready}\_{ij}^\tau \gets \texttt{false}\cr
+&x, k^\tau \xleftarrow{\\$} \mathbb{F}_q\cr
+\cr
+&\underline{
+  \text{Ready}^\tau_i(S):
+}\cr
+  &\enspace
+    \text{ready}^\tau\_{ij} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \text{WaitReady}^\tau_i(S):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{S}.\ \text{ready}^\tau\_{ji}
+  \cr
+\cr
+&\underline{
+  \text{Sig}^\tau_i():
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 1)} \forall j \in \mathcal{P}. \exists i.\ \text{ready}^\tau\_{ji}
+  \cr
+  &\enspace
+    m \gets \text{GetMessage}^\tau()
+  \cr
+  &\enspace
+    R \gets \frac{1}{k^\tau} \cdot G
+  \cr
+  &\enspace
+    s \gets k \cdot (\text{Hash}(m) + x(R) \cdot x)
+  \cr
+  &\enspace
+    \texttt{return } (R, s)
+  \cr
+\cr
+&\underline{
+  \text{Leak}^\tau():
+}\cr
+  &\enspace
+    \texttt{return } (x \cdot G, k^\tau \cdot G, \frac{1}{k^\tau} \cdot G)
+  \cr
+\end{aligned}
+}
+}\cr
+\circledcirc\cr
+F[\text{Messages}]\cr
+\otimes\cr
+F[\text{Sync}]^\mathbb{N}\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}, \text{SetMessage}^\tau, \text{GetMessage}^\tau, \text{Leak}^\tau\\}
+\end{matrix}
+}
+\lhd \mathscr{P}[\text{Presign}]
+$$
+
+**Lemma:**
+
+$$
+\mathscr{P}[\text{Sign}] \leadsto \mathscr{P}[\text{IdealSign}]
+$$
+
+**Proof:**
+
+First, we can replace $\mathscr{P}[\text{Presign}]$ with $\mathscr{P}[\text{IdealPresign}]$.
+
+$$
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+&\ldots
+\end{aligned}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $S$
+}\cr
+&x_i, k^\tau\_i, \sigma^\tau\_i \xleftarrow{\\$} \mathbb{F}_q\ (i \in \mathcal{M})\cr
+&k^\tau\_i, \sigma^\tau\_i \gets \bot\ (i \in \mathcal{H})\cr
+&s\_{ij} \gets \bot\cr
+&(X, K^\tau, R^\tau) \gets \text{Leak}^\tau()\cr
+\cr
+&\underline{
+  \text{Presign}^\tau_k():
+}\cr
+  &\enspace
+    \text{Ready}^\tau_k(\mathcal{M})
+  \cr
+  &\enspace
+    \texttt{return } (X, x_i, K^\tau, R^\tau, k^\tau_k, \sigma^\tau_k)
+  \cr
+\cr
+&\underline{
+  \text{K}^\tau():
+}\cr
+  &\enspace
+    (X, K, R) \gets \text{Leak}^\tau()
+  \cr
+  &\enspace
+    \texttt{return } K
+  \cr
+\cr
+&\underline{
+  \Lsh^\tau_k(S, m\_\bullet, 1):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)} \forall j \in S \cap \mathcal{M}.\ s\_{jk} \neq \bot
+  \cr
+  &\enspace
+    r\_\bullet \gets \bot
+  \cr
+  &\enspace
+    r_j \gets s\_{jk}\ (j \in S \cap \mathcal{M})
+  \cr
+  &\enspace
+    \text{WaitReady}^\tau_k(S \cap \mathcal{H})
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    m \gets \text{GetMessage}^\tau()
+  \cr
+  &\enspace\enspace
+    \texttt{if } |\\{ i \in \mathcal{H} \mid k^\tau_i = \bot \\}| = 1:
+  \cr
+  &\enspace\enspace\enspace
+    k^\tau_j \xleftarrow{\\$} \mathbb{F}_q
+  \cr
+  &\enspace\enspace\enspace
+    s \gets \text{Sig}^\tau_k()
+  \cr
+  &\enspace\enspace\enspace
+    \sigma^\tau_j \gets \frac{1}{x(R)}\cdot \left(
+      s - \text{Hash}(m) \cdot \sum_i k^\tau_i - x(R) \cdot \sum\_{i \neq j} \sigma^\tau_j
+    \right)
+  \cr
+  &\enspace\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace\enspace
+    k^\tau_j, \sigma^\tau_j \xleftarrow{\\$} \mathbb{F}_q
+  \cr
+  &\enspace\enspace
+    r_j \gets \text{Hash}(m) \cdot k^\tau_j + x(R) \cdot \sigma^\tau_j
+  \cr
+  &\enspace
+    \texttt{return } r\_\bullet
+  \cr
+\cr
+&\underline{
+  \Rsh^\tau_k(S, m\_\bullet, 1):
+}\cr
+  &\enspace
+    \text{Ready}^\tau_k(S)
+  \cr
+  &\enspace
+    \texttt{for } j \in S.\ s\_{kj} = \bot:\ s\_{kj} \gets m_j
+  \cr
+  &\enspace
+    \texttt{for } j \in \mathcal{H}. \forall k \in \mathcal{M}. s\_{kj} \neq \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{if } \sum\_{k \in \mathcal{M}} s\_{kj} \neq \text{Hash}(m^\tau) \cdot \sum_k k^\tau_k + x(R^\tau) \cdot \sum_k \sigma^\tau_k:
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{stop}(\\{j\\}, 1)
+  \cr
+&\ldots\cr
+\end{aligned}
+}
+}
+\cr
+\circ\cr
+F[\text{Messages}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
+
+$\blacksquare$
