@@ -560,7 +560,7 @@ $$
 &F^{A,m}, F^{B,m}, F^{C,m}, \text{ready}\_{ij}, \text{shared}^{\\{0, 1\\}}\_{ij}, a\_{i}, b\_{i}, c\_{i}, x^A_i, x^B_i, x^C_i \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{Set}_i(S):
+  \text{Set}_i(S):
 }\cr
   &\enspace
     \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
@@ -645,7 +645,7 @@ $$
     \texttt{assert } F^{C,m} \neq \bot \land \forall j \in S.\ \hat{x}^C_j \cdot G = F^{C, m}(j)
   \cr
   &\enspace
-    \texttt{for } j.\ x^C_j \neq \bot: x^C_j \gets \hat{x}^C_j
+    \texttt{for } j.\ x^C_j = \bot: x^C_j \gets \hat{x}^C_j
   \cr
 \cr
 &\underline{
@@ -733,14 +733,14 @@ $$
     a_i \gets \text{WaitShare}^0_i(), b_i \gets \text{WaitShare}^1_i()
   \cr
   &\enspace
-    \text{Multiply}_i(z^A_i, z^B_i)
+    \text{StartMultiply}_i(z^A_i, z^B_i)
   \cr
   &\enspace
     \text{A} \gets \sum_i \text{Z}^{0}(i),
     \text{B} \gets \sum_i \text{Z}^{1}(i)
   \cr
   &\enspace
-    C_i \gets z^B_i \cdot \text{F}^{0,h}(0)
+    C_i \gets z^B_i \cdot A
   \cr
   &\enspace
     \pi^2_i \gets \text{Prove}^\psi(\text{Z}^{1}(i), A, C_i; z^B_i)
@@ -753,13 +753,13 @@ $$
     (C\_\bullet, \pi^2\_\bullet) \Lsh_i(\star, 1)
   \cr
   &\enspace
-    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(\pi^2_j, (\text{Z}^{1}(j), \text{F}^{0,h}(0)))
+    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(\pi^2_j, (\text{Z}^{1}(j), A, C_j))
   \cr
   &\enspace\enspace
     \texttt{stop}(\star, 1)
   \cr
   &\enspace
-    z^C_i \gets \text{WaitMultiply}_i()
+    z^C_i \gets \text{EndMultiply}_i()
   \cr
   &\enspace
     \text{Share}_i(z^C_i)
@@ -798,6 +798,418 @@ $$
 
 This simulates the desired protocol.
 
-TODO
+$$
+\begin{matrix}
+\boxed{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $\Gamma^0_H$
+}\cr
+&\ldots
+\end{aligned}
+}
+\otimes
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{bae6fd}{\large
+  $S$
+}\cr
+&z^A_i, z^B_i \xleftarrow{\\$} \mathbb{F}_q\ (\forall i \in \mathcal{H} / \\{1\\})\cr
+&Z^A_i, Z^B_i \gets z^A_i \cdot G, z^B_i \cdot G\ (\forall i \in \mathcal{H} / \\{1\\})\cr
+&z^A_i, z^B_i, Z^A_i, Z^B_i \gets \bot\ (\forall i \in \mathcal{M})\cr
+&\gamma_i \xleftarrow{\\$} \mathbb{F}_q\ (\forall i \neq 1)\cr
+\cr
+&\underline{
+  \text{Set}_k^0(S, z, Z):
+}\cr
+  &\enspace
+    \texttt{assert } z \neq \bot \lor Z \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } z^A_k, Z^A_k = \bot \land z \neq \bot: z^A_k \gets z, Z^A_k \gets z \cdot G
+  \cr
+  &\enspace
+    \texttt{elif } Z^A_k = \bot \land Z \neq \bot : Z^A_k \gets Z
+  \cr
+  &\enspace
+    \text{ready}^A\_{kj} \gets \texttt{true }\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{Set?}_k()
+  \cr
+\cr
+&\underline{
+  \text{Set}_k^1(S, z, Z):
+}\cr
+  &\enspace
+    \texttt{assert } z \neq \bot \lor Z \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } z^B_k, Z^B_k = \bot \land z \neq \bot: z^B_k \gets z, Z^B_k \gets z \cdot G
+  \cr
+  &\enspace
+    \texttt{elif } Z^B_k = \bot \land Z \neq \bot : Z^B_k \gets Z
+  \cr
+  &\enspace
+    \text{ready}^A\_{kj} \gets \texttt{true }\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{ready}^B\_{kj} \gets \texttt{true }\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{Set?}_k()
+  \cr
+\cr
+&\underline{
+  \text{SetMask}_k(S):
+}\cr
+  &\enspace
+    \text{ready}^C\_{kj} \gets \texttt{true }\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{Set?}_k()
+  \cr
+\cr
+&\underline{
+  \text{Set?}_k():
+}\cr
+  &\enspace
+    \texttt{for } j.\ \forall Y \in \\{A, B, C\\}. \text{ready}^Y\_{kj}:
+  \cr
+  &\enspace\enspace
+    \texttt{super}.\text{Set}_k(\\{j\\})
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_k^0(S, m):
+}\cr
+  &\enspace
+    \texttt{wait } \forall j \in S \cap \mathcal{M}.\ \text{ready}^A\_{jk}
+  \cr
+  &\enspace
+    \texttt{super}.\text{WaitSet}_k(S \cap \mathcal{H})
+  \cr
+\cr
+&\underline{
+  \text{WaitSet}_k^1(S, m):
+}\cr
+  &\enspace
+    \texttt{wait } \forall j \in S \cap \mathcal{M}.\ \text{ready}^B\_{jk}
+  \cr
+  &\enspace
+    \texttt{super}.\text{WaitSet}_k(S \cap \mathcal{H})
+  \cr
+\cr
+&\underline{
+  \text{WaitMask}_k(S, m):
+}\cr
+  &\enspace
+    \texttt{wait } \forall j \in S \cap \mathcal{M}.\ \text{ready}^C\_{jk}
+  \cr
+  &\enspace
+    \texttt{super}.\text{WaitSet}_k(S \cap \mathcal{H})
+  \cr
+\cr
+&\underline{
+  \text{Share}^0_k(S, z):
+}\cr
+  &\enspace
+    \texttt{assert } Z^A_k \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } z^A_k = \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } z \cdot G = Z^A_k
+  \cr
+  &\enspace\enspace
+    z^A_k \gets z
+  \cr
+  &\enspace
+    \text{Share?}^0()
+  \cr
+\cr
+&\underline{
+  \text{Share}^1_k(S, z):
+}\cr
+  &\enspace
+    \texttt{assert } Z^B_k \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } z^B_k = \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{assert } z \cdot G = Z^B_k
+  \cr
+  &\enspace\enspace
+    z^B_k \gets z
+  \cr
+  &\enspace
+    \text{Share?}^0()
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}^0_k(h):
+}\cr
+  &\enspace
+    (a_k, b_k) \gets \text{WaitShares}^0_k()
+  \cr
+  &\enspace
+    \texttt{return } a_k
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}^1_k(h):
+}\cr
+  &\enspace
+    (a_k, b_k) \gets \text{WaitShares}^0_k()
+  \cr
+  &\enspace
+    \texttt{return } b_k
+  \cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_k(a\_\bullet, b\_\bullet):
+}\cr
+  &\enspace
+    a\_{kj} \gets a_j, b\_{kj} \gets b_j
+  \cr
+\cr
+&\underline{
+  (1)\text{Cheat}^{\tiny \text{F[Multiply]}}_k(\Delta):
+}\cr
+  &\enspace
+    \Delta \gets \Delta
+  \cr
+\cr
+&\underline{
+  \text{EndMultiply}_k():
+}\cr
+  &\enspace
+    \texttt{return } \alpha_k
+  \cr
+\cr
+&\underline{
+  \text{Share}_k(S, z\_\bullet):
+}\cr
+  &\enspace
+    \texttt{for } j \in S.\ \hat{z}^C\_{kj} = \bot:
+  \cr
+  &\enspace
+    \hat{z}^C\_{kj} \gets z_j
+  \cr
+  &\enspace
+    \text{Share?}^1()
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_k(h):
+}\cr
+  &\enspace
+    \text{WaitShare}^1_k()
+  \cr
+\cr
+&\underline{
+  \text{Prove}^\psi(W, P, Q; w):
+}\cr
+  &\enspace
+    \texttt{assert } w \cdot G = W \land w \cdot P = Q
+  \cr
+  &\enspace
+    \pi \xleftarrow{\\$} \texttt{01}^{2 \lambda}
+  \cr
+  &\enspace
+    \mu[\pi] \gets (W, P, Q)
+  \cr
+\cr
+&\underline{
+  \text{Verify}^\psi(\pi, (W, P, Q)):
+}\cr
+  &\enspace
+    \texttt{return } \mu[\pi] \overset{?}{=} (W, P, Q)
+  \cr
+\cr
+&\underline{
+  \Rsh_k(S, m\_\bullet, 1)
+}\cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}:
+  \cr
+  &\enspace\enspace
+    (C_k, \pi) \gets m_j
+  \cr
+  &\enspace\enspace
+    \texttt{if } \mu[\pi] \neq (Z^B_k(), \text{F}^{A, h}(0), C_k):
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{stop}(\\{j\\})
+  \cr
+  &\enspace
+    \hat{m}\_{kj} \gets m_j\ (\forall j \in S)
+  \cr
+\cr
+&\underline{
+  \Lsh_k(S, 1):
+}\cr
+  &\enspace
+    \texttt{wait}\_{(k, 1)} \forall j \in S \cap \mathcal{M}.\ \hat{m}\_{kj} \neq \bot
+  \cr
+  &\enspace
+    r\_\bullet \gets \bot
+  \cr
+  &\enspace
+    \texttt{for } j \in S \cap \mathcal{H}. \nexists i.\ \hat{m}\_{ij} \neq \bot:
+  \cr
+  &\enspace\enspace
+    \pi \xleftarrow{\\$} \texttt{01}^{2 \lambda}
+  \cr
+  &\enspace
+    \mu[\pi] \gets (\text{Z}^1(j), F^{A, h}(0), \text{C}(j))
+  \cr
+  &\enspace
+    r_j \gets (C_j, \pi)
+  \cr
+  &\enspace
+    r_j \gets \hat{m}\_{kj}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \texttt{return } r\_\bullet
+  \cr
+&\underline{
+  (1)\text{Cheat}^0(F):
+}\cr
+  &\enspace
+    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
+  \cr
+  &\enspace
+    F^{A, m} \gets F
+  \cr
+  &\enspace
+    \text{Cheat?}()
+  \cr
+\cr
+&\underline{
+  \text{CheatShare}^0(S, \hat{x}\_\bullet):
+}\cr
+&\underline{
+  \text{F}^{0, h}():
+}\cr
+&\underline{
+  (1)\text{Cheat}^1(F):
+}\cr
+  &\enspace
+    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
+  \cr
+  &\enspace
+    F^{B, m} \gets F
+  \cr
+  &\enspace
+    \text{Cheat?}()
+  \cr
+\cr
+&\underline{
+  \text{CheatShare}^1(S, \hat{x}\_\bullet):
+}\cr
+&\underline{
+  \text{F}^{1, h}():
+}\cr
+&\underline{
+  (1)\text{Cheat}^{\tiny \text{F[Convert]}}(F):
+}\cr
+  &\enspace
+    \texttt{assert } F(0) = 0 \land \text{deg}(F) = t - 1
+  \cr
+  &\enspace
+    F^{C, m} \gets F
+  \cr
+  &\enspace
+    \text{Cheat?}()
+  \cr
+\cr
+&\underline{
+  \text{Cheat?}()
+}\cr
+  &\enspace
+    \texttt{if } F^{A, m}, F^{B, m}, F^{C, m} \neq \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{super}.\text{Cheat}(F^{A, m}, F^{B, m}, F^{C, m})
+  \cr
+\cr
+&\underline{
+  \text{CheatShare}^1(S, z, \hat{x}\_\bullet):
+}\cr
+&\underline{
+  \text{F}^h():
+}\cr
+&\underline{
+  \text{Z}^0(i):
+}\cr
+  &\enspace
+    \texttt{return } \text{F}^{A, h}(0) - \sum_j Z^A_j \texttt{ if } i = 1 \texttt{ else } Z^A_i
+  \cr
+\cr
+&\underline{
+  \text{Z}^1(i):
+}\cr
+  &\enspace
+    \texttt{return } \text{F}^{B, h}(0) - \sum_j Z^B_j \texttt{ if } i = 1 \texttt{ else } Z^B_i
+  \cr
+\cr
+&\underline{
+  \text{C}(i):
+}\cr
+  &\enspace
+    \texttt{return } \text{F}^{C, h}(0) - \sum_j z^A_j \cdot \text{F}^{B, h}(0) \texttt{ if } i = 1 \texttt{ else } z^A_i \cdot \text{F}^{B, h}(0)
+  \cr
+\cr
+&\underline{
+  \text{Z}(i):
+}\cr
+  &\enspace
+    \texttt{return } \hat{C}() - \sum_i \gamma_i \cdot G \texttt{ if } i = 1 \texttt{ else } \gamma_i \cdot \text{F}^{B, h}(0)
+  \cr
+\cr
+&\underline{
+  \hat{C}():
+}\cr
+  &\enspace
+    \texttt{wait } \text{for all variables used below}
+  \cr
+  &\enspace
+    O\_{11} = \text{F}^{C, h}(0) - \sum\_{i \in \mathcal{H} / \\{1\\}} z^B_i \cdot \text{F}^{A, h}(0) - \sum\_{i \in \mathcal{H} / \\{1\\}} z^A_i \cdot \text{F}^{B, h}(0) - O\_{hh}
+  \cr
+  &\enspace
+    O\_{h1} = \sum\_{i \in \mathcal{H},j \in \mathcal{H} / \\{1\\}} z^B_j \cdot Z^A_i \cdot G
+  \cr
+  &\enspace
+    O\_{h1} = \sum\_{i \in \mathcal{H} / \\{1\\},j \in \mathcal{H}} z^A_i \cdot Z^B_j \cdot G
+  \cr
+  &\enspace
+    O\_{hh} = \sum\_{i,j \in \mathcal{H} / \\{1\\}} z^A_i \cdot z^B_j \cdot G
+  \cr
+  &\enspace
+    O\_{hm} = \sum\_{i \in \mathcal{H}, j \in \mathcal{M}} \text{Z}^0(i) \cdot b\_{ji}
+  \cr
+  &\enspace
+    O\_{mh} = \sum\_{i \in \mathcal{M}, j \in \mathcal{H}} a\_{ij} \cdot \text{Z}^1(j)
+  \cr
+  &\enspace
+    O\_{mm} = \sum\_{i, j \in \mathcal{M}} a\_{ij} \cdot b\_{ji} \cdot G
+  \cr
+  &\enspace
+    \texttt{return } O\_{11} + O\_{1h} + O\_{h1} + O\_{hh} + O\_{hm} + O\_{mh} + O\_{mm} + \Delta \cdot G
+  \cr
+\cr
+&\ldots\cr
+\end{aligned}
+}
+}
+\cr
+\circ\cr
+F[\text{Messages}] \circledcirc F[\text{Stop}]
+\end{matrix}
+$$
 
 $\blacksquare$

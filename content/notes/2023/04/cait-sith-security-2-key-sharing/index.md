@@ -74,7 +74,7 @@ $$
 &F^m, \text{ready}\_{ij}, z\_{ij}, x_j \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{SetMask}_i(S):
+  \text{SetMask}_i(S):
 }\cr
   &\enspace
     \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
@@ -90,9 +90,6 @@ $$
   \cr
   &\enspace
     F^m \gets F
-  \cr
-  &\enspace
-    \texttt{return } f^h \cdot G
   \cr
 \cr
 &\underline{
@@ -522,7 +519,7 @@ $}\cr
   \cr
 \cr
 &\underline{
-  (1)\text{Prove}_k(Z;z):
+  \text{Prove}_k(Z;z):
 }\cr
   &\enspace
   \colorbox{bae6fd}{$
@@ -567,7 +564,8 @@ $}\cr
 \end{aligned}
 }
 }\cr
-\otimes\cr1(\ldots)
+\otimes\cr
+1(\ldots)
 \end{matrix}
 \cr
   \circ
@@ -1557,7 +1555,7 @@ $$
 &F^m, \text{ready}\_{ij}, z\_{ij}, x_j \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{Set}_i(S, z, Z):
+  \text{Set}_i(S, z, Z):
 }\cr
   &\enspace
     \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
@@ -1566,10 +1564,10 @@ $$
     \texttt{assert } z \neq \bot \lor Z \neq \bot
   \cr
   &\enspace
-    \texttt{if } z_i \neq \bot:\ z_i \gets z, Z_i \gets z_i \cdot G
+    \texttt{if } z_i, Z_i = \bot \land z \neq \bot:\ z_i \gets z, Z_i \gets z_i \cdot G
   \cr
   &\enspace
-    \texttt{if } z_i = \bot \land Z_i \neq \bot :\ Z_i \gets Z
+    \texttt{if } Z_i = \bot \land z = \bot = :\ Z_i \gets Z
   \cr
 \cr
 &\underline{
@@ -1598,7 +1596,7 @@ $$
     \texttt{assert } Z_i \neq \bot
   \cr
   &\enspace
-    \texttt{if } z_i = \bot
+    \texttt{if } z_i = \bot:
   \cr
   &\enspace\enspace
     \texttt{assert } z \cdot G = Z_i
@@ -2124,7 +2122,7 @@ $$
 &F^m, \text{ready}\_{ij}, x_j \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{Set}_i(S):
+  \text{Set}_i(S):
 }\cr
   &\enspace
     \text{ready}\_{ij} \gets \texttt{true}\ (\forall j \in S)
@@ -2253,7 +2251,7 @@ $$
 &F^m, Z_k, z_k, x_i \gets \bot\cr
 \cr
 &\underline{
-  (1)\text{Set}_k(S, z, Z):
+  \text{Set}_k(S, z, Z):
 }\cr
   &\enspace
     \text{Set}_k(S)
@@ -2262,7 +2260,7 @@ $$
     \texttt{assert } z\neq \bot \lor Z \neq \bot
   \cr
   &\enspace
-    \texttt{if } z \neq \bot:
+    \texttt{if } z_k, Z_k = \bot \land z \neq \bot:
   \cr
   &\enspace\enspace
     z_k \gets z
@@ -2271,7 +2269,7 @@ $$
     Z_k \gets z \cdot G
   \cr
   &\enspace
-    \texttt{elif } Z \neq \bot:\ Z_k \gets Z
+    \texttt{elif } Z_k \neq \bot \land Z \neq \bot :\ Z_k \gets Z
   \cr
   &\enspace
     \text{Cheat?}()
@@ -2349,7 +2347,10 @@ $$
     \texttt{for } j.\ x_j \neq \bot:
   \cr
   &\enspace\enspace\enspace
-    \text{CheatShare}(\\{j\\}, \sum_k z_k, x\_\bullet)
+    z \gets \sum_k z_k
+  \cr
+  &\enspace\enspace\enspace
+    \text{CheatShare}(\\{j\\}, z, x\_\bullet + z)
   \cr
 \cr
 &\underline{
@@ -2370,7 +2371,7 @@ $$
   \text{F}^h():
 }\cr
   &\enspace
-    \texttt{return } \text{F}^h()
+    \texttt{return } \text{F}^h() - \text{F}^h(0)
   \cr
 \end{aligned}
 }
