@@ -927,7 +927,10 @@ $$
     z^A_k \gets z
   \cr
   &\enspace
-    \text{Share?}^0()
+    \text{shared}^A\_{kj} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{Share?}^0_k()
   \cr
 \cr
 &\underline{
@@ -946,7 +949,10 @@ $$
     z^B_k \gets z
   \cr
   &\enspace
-    \text{Share?}^0()
+    \text{shared}^B\_{kj} \gets \texttt{true}\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{Share?}^0_k()
   \cr
 \cr
 &\underline{
@@ -987,7 +993,7 @@ $$
   \text{EndMultiply}_k():
 }\cr
   &\enspace
-    \texttt{return } \alpha_k
+    \texttt{return } \gamma_k - z^A_k \cdot z^B_k
   \cr
 \cr
 &\underline{
@@ -997,10 +1003,29 @@ $$
     \texttt{for } j \in S.\ \hat{z}^C\_{kj} = \bot:
   \cr
   &\enspace
-    \hat{z}^C\_{kj} \gets z_j
+    \texttt{for } j \in S.\ \hat{z}^C\_{kj} = \bot: \hat{z}^C\_{kj} \gets z_j
   \cr
   &\enspace
-    \text{Share?}^1()
+    \texttt{for } j \in \mathcal{H}.\ \forall i \in \mathcal{M}.\ \hat{z}^C\_{ij} \neq \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{if } \sum\_{i \in \mathcal{H}} \text{Z}(j) + \sum\_{i \in \mathcal{M}} \hat{z}^C\_{ij} \cdot G \neq F^{C, h}(0):
+  \cr
+  &\enspace\enspace\enspace
+    \texttt{stop}(\\{j\\})
+  \cr
+  &\enspace
+    \texttt{super}.\text{Share}^1_i(S)
+  \cr
+\cr
+&\underline{
+  \text{Share?}^0_k():
+}\cr
+  &\enspace
+    \texttt{for } j.\ \text{shared}^A\_{kj} \land \text{shared}^B\_{kj}:
+  \cr
+  &\enspace\enspace
+    \texttt{super}.\text{Share}^0_k(\\{j\\})
   \cr
 \cr
 &\underline{
@@ -1076,6 +1101,7 @@ $$
   &\enspace
     \texttt{return } r\_\bullet
   \cr
+\cr
 &\underline{
   (1)\text{Cheat}^0(F):
 }\cr
@@ -1092,9 +1118,23 @@ $$
 &\underline{
   \text{CheatShare}^0(S, \hat{x}\_\bullet):
 }\cr
+  &\enspace
+    \texttt{assert } F^{A, m} \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^{A, m}(j)
+  \cr
+  &\enspace
+    \hat{x}^A_j \gets \hat{x}_j\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{CheatShare?}()
+  \cr
+\cr
 &\underline{
   \text{F}^{0, h}():
 }\cr
+  &\enspace
+    \texttt{return } \text{F}^{A, h} - \text{F}^{A, h}(0)
+  \cr
+\cr
 &\underline{
   (1)\text{Cheat}^1(F):
 }\cr
@@ -1111,9 +1151,23 @@ $$
 &\underline{
   \text{CheatShare}^1(S, \hat{x}\_\bullet):
 }\cr
+  &\enspace
+    \texttt{assert } F^{B, m} \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^{B, m}(j)
+  \cr
+  &\enspace
+    \hat{x}^B_j \gets \hat{x}_j\ (\forall j \in S)
+  \cr
+  &\enspace
+    \text{CheatShare?}()
+  \cr
+\cr
 &\underline{
   \text{F}^{1, h}():
 }\cr
+  &\enspace
+    \texttt{return } \text{F}^{B, h} - \text{F}^{B, h}(0)
+  \cr
+\cr
 &\underline{
   (1)\text{Cheat}^{\tiny \text{F[Convert]}}(F):
 }\cr
@@ -1138,11 +1192,32 @@ $$
   \cr
 \cr
 &\underline{
-  \text{CheatShare}^1(S, z, \hat{x}\_\bullet):
+  \text{CheatShare?}():
 }\cr
+  &\enspace
+    \texttt{for } j. \hat{x}^A_j, \hat{x}^B_j \neq \bot:
+  \cr
+  &\enspace\enspace
+    \texttt{super}.\text{CheatShare}^0(\\{j\\}, \hat{x}^A\_\bullet, \hat{x}^B\_\bullet)
+  \cr
+\cr
+&\underline{
+  \text{CheatShare}(S, \hat{x}\_\bullet):
+}\cr
+  &\enspace
+    \texttt{assert } F^{C, m} \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^{C, m}(j)
+  \cr
+  &\enspace
+    \texttt{super}.\text{CheatShare}^1(S, \hat{x}\_\bullet)
+  \cr
+\cr
 &\underline{
   \text{F}^h():
 }\cr
+  &\enspace
+    \texttt{return } \text{F}^{C, h} - \text{F}^{C, h}(0)
+  \cr
+\cr
 &\underline{
   \text{Z}^0(i):
 }\cr
