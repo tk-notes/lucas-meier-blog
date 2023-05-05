@@ -10,7 +10,91 @@ note-tags:
 katex: true
 ---
 
-Consider:
+We basically start with the ideal
+functionality for multiplicative-to-additive conversion (MTA),
+from [HMRT21](https://eprint.iacr.org/2021/1373).
+We slightly simplify their functionality, by giving the adversary
+more power to corrupt the result.
+
+**Definition (MTA):**
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $F[\text{MTA}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&a_1, a_2, \beta_1, \beta_2 \gets \bot\cr
+&\Delta \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMTA}_i(a):
+}\cr
+  &\enspace
+    a_i \gets a
+  \cr
+\cr
+&\underline{
+  \text{Sample}():
+}\cr
+  &\enspace
+    \texttt{assert } a_1, a_2, \Delta \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } \beta_1, \beta_2 = \bot:
+  \cr
+  &\enspace\enspace
+    (\beta_1, \beta_2) \xleftarrow{\\$} \\{(\beta_1, \beta_2) \in \mathbb{F}_q^2 \mid \beta_1 + \beta_2 = a_1 \cdot a_2 + \Delta \\}
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMTA}_i():
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} a_1, a_2, \Delta \neq \bot
+  \cr
+  &\enspace
+    \text{Sample}()
+  \cr
+  &\enspace
+    \texttt{return } \beta_i
+  \cr
+\cr
+&\underline{
+  (1)\text{Cheat}(\Delta)
+}\cr
+  &\enspace
+    \Delta \gets \Delta
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+$$
+
+$\square$
+
+The basic idea is that we convert a secret $s = a \cdot b$ into shares
+$\alpha, \beta$ such that $\alpha + \beta = s$.
+But, the malicious party can cause the result
+to fail, by instead being a secret sharing of $s + \Delta$.
+
+# Multiplication
+
+Next, we consider multiplication using this functionality.
+
+First, we need to take a detour, to consider using two instances
+of the functionality together.
+
+Consider the following protocol:
 
 $$
 \boxed{
@@ -56,6 +140,8 @@ $$
 }
 \lhd \mathscr{P}[\text{MTA}]^2
 $$
+
+Well, it turns out that this implements the following functionality:
 
 $$
 \boxed{
@@ -127,13 +213,26 @@ $$
 }
 $$
 
+This is a bit of a simplification, in that there's only a single $\Delta$
+for the result, rather than 2.
+This will make our life a bit easier later.
+
 **Lemma:**
+
+For a negligible $\epsilon$, and any number of malicious corruptions, we have:
+
 $$
-\mathscr{P}[\text{MTA}^2] \leadsto F[\text{MTA}^2]
+\mathscr{P}[\text{MTA}^2] \overset{\epsilon}{\leadsto} F[\text{MTA}^2]
 $$
 
 **Proof:**
 
+First, the case of all corruptions is trivial, as with any protocol,
+and the protocol clearly functions in the case of no corruptions,
+so we consider the case where, without loss of generality, the second
+party is corrupt.
+
+We start, as usual, by unrolling things.
 $$
 \begin{matrix}
 \boxed{
@@ -170,41 +269,7 @@ F[\text{MTA}] \otimes F[\text{MTA}]
 \end{matrix}
 $$
 
-$$
-\begin{matrix}
-\boxed{
-\small{
-\begin{aligned}
-&\colorbox{FBCFE8}{\large
-  $\Gamma^0_H$
-}\cr
-\cr
-&\underline{
-  (1)\text{Start}_1(a, b):
-}\cr
-&\enspace
-  \ldots
-\cr
-\end{aligned}
-}
-}
-\otimes
-\boxed{\colorbox{FBCFE8}{\large
-  $\Gamma^0_M$
-} = 1
-\begin{pmatrix}
-    \text{StartMTA}^\tau_2
-  ,\cr
-    \text{EndMTA}^\tau_2
-  ,\cr
-    \text{Cheat}^\tau
-\end{pmatrix}
-}
-\cr
-\circ\cr
-F[\text{MTA}] \otimes F[\text{MTA}]
-\end{matrix}
-$$
+And from here, we can directly perform a simulation.
 
 $$
 \begin{matrix}
@@ -296,11 +361,204 @@ F[\text{MTA}^2]
 \end{matrix}
 $$
 
+The basic idea is that the adversary can only tell whether or not
+they've received correct shares of the MTA by summing everything
+together, from both the honest and malicious parties,
+because of this, we can give them junk until they get the second
+share, in which case we need to make it so that the sum is preserved.
+We can do this by cheating with $\Delta^1 + \Delta^2 - \alpha$,
+and using the result of the "double MTA" as their second share.
+When we sum everything up, we'll get the right share.
+
 $\blacksquare$
 
-**Lemma:**
+Next, let's look at the actual multiplication protocol.
+
+**Definition (Multiplication):**
 $$
-\mathscr{P}[\text{Multiply}] \leadsto \mathscr{P}[\text{IdealMultiply}]
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Multiply}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\text{start}_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a, b):
+}\cr
+  &\enspace
+    \text{start}_i \gets \texttt{true}
+  \cr
+  &\enspace
+    \forall j \neq i.\ \text{StartMTA}_i^{(0, ij)}(\text{Flip}_i(a, b))
+  \cr
+  &\enspace
+    \forall j \neq i.\ \text{StartMTA}_i^{(1, ij)}(\text{Flip}_i(b, a))
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{assert } \text{start}_i
+  \cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall j. (\gamma^0\_j, \gamma^1\_j) \gets (\text{EndMTA}_i^{(0, ij)}(), \text{EndMTA}_i^{(1, ij)}())
+  \cr
+  &\enspace
+    \texttt{return } a \cdot b + \sum_j (\gamma^0_j + \gamma^1\_j)
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+F[\text{MTA}]^{n^2}\cr
+\end{matrix}
+$$
+
+$\square$
+
+The basic idea is that you need to do MTAs between each pair
+of parties.
+One bit of notation we use is that we use $ij$ as indices,
+whereas in reality this only ranges of pairs such that $i \leq j$,
+to not repeat the same pair twice.
+We also use $\text{Flip}_i(a, b)$ to denote a process
+whereby for each pair $i, j$, one party uses $a$ and the other $b$.
+We assume some common convention for doing this flip.
+
+This gets us to the ideal functionality for multiplication:
+
+**Definition (Ideal Multiplication):**
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{IdealMultiply}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&a, b \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a, b):
+}\cr
+  &\enspace
+    a, b \gets a, b
+  \cr
+  &\enspace
+    a\_{\bullet} \gets a,\ b\_{\bullet} \gets b
+  \cr
+  &\enspace
+    \text{StartMultiply}_i(a\_{\bullet}, b\_{\bullet})
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{return } a \cdot b + \text{EndMultiply}_i()
+  \cr
+\end{aligned}
+}
+}
+\quad
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $F[\text{Multiply}]$
+}\cr
+\cr
+&a\_{ij}, b\_{ij}, \beta_i, \Delta \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{StartMultiply}_i(a\_\bullet, b\_\bullet):
+}\cr
+  &\enspace
+    a\_{i\bullet} \gets a\_\bullet,\ b\_{i \bullet} \gets b\_{\bullet}
+  \cr
+\cr
+&\underline{
+  (1)\text{EndMultiply}_i():
+}\cr
+  &\enspace
+    \texttt{wait}\_{(i, 0)} \forall i \neq j.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot \land a\_{ii} \neq \bot
+  \cr
+  &\enspace
+    \text{Sample}()
+  \cr
+  &\enspace
+    \texttt{return } \beta_i
+  \cr
+\cr
+&\underline{
+  \text{Sample}():
+}\cr
+  &\enspace
+    \texttt{assert } \forall i \neq j.\ a\_{ij}, b\_{ij} \neq \bot \land \Delta \neq \bot
+  \cr
+  &\enspace
+    \texttt{if } \forall i.\ \beta_i = \bot:
+  \cr
+  &\enspace\enspace
+    c \gets \sum\_{i \neq j} a\_{ij} \cdot b\_{ji}
+  \cr
+  &\enspace\enspace
+    (\beta_1, \ldots, \beta_n) \gets \\{\beta_i \xleftarrow{\\$} \mathbb{F}_q^n \mid \sum_i \beta_i = c + \Delta \\}
+  \cr
+\cr
+&\underline{
+  (1)\text{Cheat}(\Delta):
+}\cr
+  &\enspace
+    \Delta \gets \Delta
+  \cr
+\cr
+&\underline{
+  \text{Leak}(i, j):
+}\cr
+  &\enspace
+    \texttt{return } a\_{ij}, b\_{ij} \neq \bot
+  \cr
+\end{aligned}
+}
+}
+\end{matrix}
+}
+$$
+
+$\square$
+
+There are two ways the adversary can tamper with the result here.
+They can cheat via $\Delta$, as one might expect,
+or they can cheat by using inconsistent shares in the multiplication.
+This is reflected by using an entire vector $a\_\bullet, b\_\bullet$,
+rather than a single scalar.
+
+**Lemma:**
+
+For some negligible $\epsilon$, and any number of malicious corruptions, we have:
+$$
+\mathscr{P}[\text{Multiply}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealMultiply}]
 $$
 **Proof:**
 
@@ -499,8 +757,181 @@ F[\text{Multiply}]
 \end{matrix}
 $$
 
+In essence, this is just a more complicated variant of the simulator from the previous proof.
+All that matters is that the sum of all shares is correct,
+so we can just keep using junk up until the very last share,
+at which point we need to ensure that the result is correct.
+We also need to aggregate the cheating values used by all of the malicious
+parties,
+in order to get just a single bias in the end.
+
 $\blacksquare$
 
+# Triples
+
+**Definition (Triple Generation):**
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Triple}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&\underline{
+  (1)\text{Triple}_i():
+}\cr
+  &\enspace
+    f_i, e_i \xleftarrow{\\$} \mathbb{F}_q[X]\_{\leq t - 1}
+  \cr
+  &\enspace
+    F_i, E_i \gets f_i \cdot G, e_i \cdot G
+  \cr
+  &\enspace
+    \text{SetCommit}_i((F_i, E_i))
+  \cr
+  &\enspace
+    \text{Commit}_i()
+  \cr
+  &\enspace
+    \text{SetMask}_i()
+  \cr
+  \cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+  &\enspace
+    \text{WaitMask}_i()
+  \cr
+  &\enspace
+    \text{Open}_i()
+  \cr
+  &\enspace
+    \pi^0_i \gets \text{Prove}^\varphi(F_i(0); f_i(0))
+  \cr
+  &\enspace
+    \pi^1_i \gets \text{Prove}^\varphi(E_i(0); e_i(0))
+  \cr
+  &\enspace
+    \Rsh_i(\star, (\pi^0_i, \pi^1_i), 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, [(f_i(j), e_i(j)) \mid j \in [n]], 1)
+  \cr
+  &\enspace\cr
+  &\enspace
+    (F\_\bullet, E\_\bullet) \gets \text{WaitOpen}_i()
+  \cr
+  &\enspace
+    (\pi^0\_{\bullet i}, \pi^1\_{\bullet i}) \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    (a\_{\bullet i}, b\_{\bullet i}) \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    a_i \gets \sum_j a\_{ji}, \enspace F \gets \sum_j F_j(0)
+  \cr
+  &\enspace
+    b_i \gets \sum_j a\_{ji}, \enspace E \gets \sum_j E_j(0)
+  \cr
+  &\enspace
+    \text{bad}^0 \gets
+    \exists j. \neg \text{Verify}^\varphi(\pi^0_j, F_j(0))
+  \cr
+  &\enspace
+    \text{bad}^1 \gets
+    \exists j. \neg \text{Verify}^\varphi(\pi^1_j, E_j(0))
+  \cr
+  &\enspace
+    \texttt{if } a_i \cdot G \neq E(i) \lor b_i \cdot G \neq F(i) \lor \text{bad}^0 \lor \text{bad}^1
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 0)
+  \cr
+  &\enspace
+    \text{Multiply}_i(f_i(0), e_i(0))
+  \cr
+  &\enspace
+    C_i \gets e_i(0) \cdot F(0)
+  \cr
+  &\enspace
+    \pi^2_i \gets \text{Prove}^\psi(E_i(0), F(0), C_i; e_i(0))
+  \cr
+  &\enspace
+    \Rsh_i(\star, (C_i, \pi_i), 1)
+  \cr
+  &\enspace\cr
+  &\enspace
+    (C\_\bullet, \pi^2\_\bullet) \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \neg \text{Verify}^\psi(\pi^2_j, (E_j(0), F(0), C_j))
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+  &\enspace
+    z_i \gets \text{WaitMultiply}_i()
+  \cr
+  &\enspace
+    \text{Share}_i(z_i)
+  \cr
+  &\enspace
+    c_i \gets \text{WaitShare}_i(C)
+  \cr
+  &\enspace
+    \texttt{return } (a_i, b_i, c_i, E(0), F(0), C)
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{ZK}(\varphi)]\cr
+\otimes\cr
+F[\text{ZK}(\psi)]\cr
+\otimes\cr
+F[\text{SyncComm}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+\lhd
+\begin{matrix}
+\mathscr{P}[\text{Commit}]\cr
+\otimes\cr
+\mathscr{P}[\text{Convert}]\cr
+\otimes\cr
+\mathscr{P}[\text{Multiply}]\cr
+\end{matrix}
+$$
+
+$\square$
+
+This protocol is very long, but relatively straightforward.
+The idea is that you first generate $a$ and $b$, and commit
+to their sharings as polynomials.
+Then you prove that you know your secret share,
+and convert those to threshold shares.
+Concurrently,
+you also run multiplication to get a secret sharing of $a * b$,
+and run a little protocol to learn $a * b \cdot G$,
+using ZK proofs to make sure that this check value $C$ has been
+learned correctly.
+Finally, you can use this to verify your share of the multiplication,
+detecting cheating there, including inconsistent shares.
+
+**Definition (Ideal Triple Generation):**
 $$
 \boxed{
 \begin{matrix}
@@ -681,10 +1112,19 @@ F[\text{Stop}]
 }
 $$
 
+The ideal triple generation protocol is as you might expect,
+with the functionality itself doing the multiplication perfectly.
+However, we once again have the various tweaks to secret sharing
+induced by the commit reveal paradigm.
+See the key sharing document for some discussion about
+these artifacts, which naturally show up here again.
+
 **Lemma**
 
+For a negligible $\epsilon$, and up to $t - 1$ corrupt parties:
+
 $$
-\mathscr{P}[\text{Triple}] \leadsto \mathscr{P}[\text{IdealTriple}]
+\mathscr{P}[\text{Triple}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealTriple}]
 $$
 
 **Proof**
@@ -796,7 +1236,7 @@ $$
 \end{matrix}
 $$
 
-This simulates the desired protocol.
+From here, we can jump to the final protocol with an atrocious simulator:
 
 $$
 \begin{matrix}
@@ -819,6 +1259,9 @@ $$
 &Z^A_i, Z^B_i \gets z^A_i \cdot G, z^B_i \cdot G\ (\forall i \in \mathcal{H} / \\{1\\})\cr
 &z^A_i, z^B_i, Z^A_i, Z^B_i \gets \bot\ (\forall i \in \mathcal{M})\cr
 &\gamma_i \xleftarrow{\\$} \mathbb{F}_q\ (\forall i \neq 1)\cr
+&\hat{z}^C\_{ij}, x^A_i, x^B_i, x^C_i, F^{A, m}, F^{B, m}, F^{C, m}, \hat{m}\_{ij} \gets \bot\cr
+&\text{ready}^A\_{ij}, \text{ready}^B\_{ij}, \text{ready}^C\_{ij} \gets \bot\cr
+&\text{shared}^A\_{ij}, \text{shared}^B\_{ij}, \text{shared}^C\_{ij} \gets \bot\cr
 \cr
 &\underline{
   \text{Set}_k^0(S, z, Z):
@@ -1032,7 +1475,19 @@ $$
   \text{WaitShare}_k(h):
 }\cr
   &\enspace
-    \text{WaitShare}^1_k()
+    \texttt{if } h:
+  \cr
+  &\enspace\enspace
+    \texttt{return } \text{WaitShare}^1_k()
+  \cr
+  &\enspace
+    \texttt{else}:
+  \cr
+  &\enspace\enspace
+    \texttt{wait } x^C_k \neq \bot \land \forall i \in \mathcal{M}.\ z^C\_{ik} \neq \bot
+  \cr
+  &\enspace\enspace
+    \texttt{return } \text{WaitShare}^1_k() - \sum\_{i \in \mathcal{M}} z^C\_{ik} - x^C_k
   \cr
 \cr
 &\underline{
@@ -1122,7 +1577,7 @@ $$
     \texttt{assert } F^{A, m} \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^{A, m}(j)
   \cr
   &\enspace
-    \hat{x}^A_j \gets \hat{x}_j\ (\forall j \in S)
+    x^A_j \gets \hat{x}_j\ (\forall j \in S)
   \cr
   &\enspace
     \text{CheatShare?}()
@@ -1155,7 +1610,7 @@ $$
     \texttt{assert } F^{B, m} \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^{B, m}(j)
   \cr
   &\enspace
-    \hat{x}^B_j \gets \hat{x}_j\ (\forall j \in S)
+    x^B_j \gets \hat{x}_j\ (\forall j \in S)
   \cr
   &\enspace
     \text{CheatShare?}()
@@ -1206,6 +1661,9 @@ $$
 }\cr
   &\enspace
     \texttt{assert } F^{C, m} \neq \bot \land \forall j \in S.\ \hat{x}_j \cdot G = F^{C, m}(j)
+  \cr
+  &\enspace
+    \hat{x}^C_j \gets \hat{x}_j\ (\forall j \in S)
   \cr
   &\enspace
     \texttt{super}.\text{CheatShare}^1(S, \hat{x}\_\bullet)
@@ -1286,5 +1744,20 @@ $$
 F[\text{Messages}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
+
+The vast majority of this simulator is just mindless bookkeeping.
+The main part of interest is the $\hat{C}$ function,
+which basically simulates the expected
+result of the multiplication, based on the bad values used by the adversary.
+In essence, this reflects the fact that the adversary learns
+nothing about the other parties shares
+through the combination of the faulty multiplication protocol
+and share check phase,
+because they can calculate the results "in the exponent"
+already.
+
+That's the only real tricky part of the simulator,
+the rest is just adding in necessary checks ourselves,
+and coalescing contributions from adversaries, as we've done many times.
 
 $\blacksquare$

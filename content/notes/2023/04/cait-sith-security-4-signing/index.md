@@ -10,6 +10,14 @@ note-tags:
 katex: true
 ---
 
+For the sake of simplicity, we use a simpler key generation
+and triple protocol as ideal functionalities,
+to isolate the analysis of our presignature and signature protocols.
+
+# Presigning
+
+**Definition (Presignatures):**
+
 $$
 \boxed{
 \begin{matrix}
@@ -144,6 +152,23 @@ F[\text{Stop}]
 }
 $$
 
+$\square$
+
+The functionalities we use here are perfect, in essence.
+The idea behind the presignature functionality
+is relatively simple.
+One triple is used to help multiply $k$ and $x$,
+and the other contains $k$ itself, which we use to help invert $k$
+for the signature formula.
+
+For convenience, we make it so that the presignature gives us $X$ and $x$ (secret shared).
+
+Another convention is that the same key $x$ is used for an arbitrary
+number of signatures, hence $\mathbb{N}$ instances.
+We use $\tau$ as index to denote this instances.
+
+**Definition (Ideal Presignatures):**
+
 $$
 \boxed{
 \begin{matrix}
@@ -213,6 +238,12 @@ $$
   &\enspace
     \texttt{return } f^{K, \tau}(0) \cdot G
   \cr
+&\underline{
+  \text{XK}^\tau():
+}\cr
+  &\enspace
+    \texttt{return } f^{X}(0) \cdot f^{K, \tau}(0) \cdot G
+  \cr
 \end{aligned}
 }
 }\cr
@@ -227,9 +258,19 @@ F[\text{Stop}]
 }
 $$
 
+$\square$
+
+The ideal functionality basically spits out presignatures at will,
+all under the same key.
+We also get access to $k \cdot G$ and $kx \cdot G$, in addition to $k^{-1} \cdot G$.
+$kx \cdot G$ is actually something you learn from a signature anyhow,
+once it's completed.
+
 **Lemma:**
+For a negligible $\epsilon$, and up to $t - 1$ malicious corruptions, we have:
+
 $$
-\mathscr{P}[\text{Presign}] \leadsto \mathscr{P}[\text{IdealPresign}]
+\mathscr{P}[\text{Presign}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealPresign}]
 $$
 **Proof:**
 
@@ -413,7 +454,18 @@ F[\text{Presign}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
+The idea behind the simulator is that you generate random values
+for the messages you're going to receive,
+and then use those to reverse engineer what the large values
+like $A, B$ should be.
+
 $\blacksquare$
+
+# Signing
+
+Signatures are pretty straightforward once you have presignatures.
+
+**Definition (Signing):**
 
 $$
 \boxed{
@@ -504,6 +556,13 @@ F[\text{Stop}]
 \lhd \mathscr{P}[\text{Presign}]
 $$
 
+$\square$
+
+We assume that there's a separate functionality which provides consensus
+on the message to sign in each instance.
+
+**Definition (Ideal Signing):**
+
 $$
 \boxed{
 \begin{matrix}
@@ -585,7 +644,7 @@ $$
   \text{Leak}^\tau():
 }\cr
   &\enspace
-    \texttt{return } (x \cdot G, k^\tau \cdot G, \frac{1}{k^\tau} \cdot G)
+    \texttt{return } (x \cdot G, xk^\tau \cdot G, k^\tau \cdot G, \frac{1}{k^\tau} \cdot G)
   \cr
 \end{aligned}
 }
@@ -604,15 +663,22 @@ F[\text{Stop}]
 \lhd \mathscr{P}[\text{Presign}]
 $$
 
+The ideal functionality unfortunately has to reflect
+the round timing of the protocol itself.
+
 **Lemma:**
 
+For a negligible $\epsilon$, and up to $t - 1$ malicious corruptions, we have:
+
 $$
-\mathscr{P}[\text{Sign}] \leadsto \mathscr{P}[\text{IdealSign}]
+\mathscr{P}[\text{Sign}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealSign}]
 $$
 
 **Proof:**
 
 First, we can replace $\mathscr{P}[\text{Presign}]$ with $\mathscr{P}[\text{IdealPresign}]$.
+
+From there, we can use a similar simulator as last time:
 
 $$
 \begin{matrix}
@@ -634,7 +700,7 @@ $$
 &x_i, k^\tau\_i, \sigma^\tau\_i \xleftarrow{\\$} \mathbb{F}_q\ (i \in \mathcal{M})\cr
 &k^\tau\_i, \sigma^\tau\_i \gets \bot\ (i \in \mathcal{H})\cr
 &s\_{ij} \gets \bot\cr
-&(X, K^\tau, R^\tau) \gets \text{Leak}^\tau()\cr
+&(X, \text{XK}^\tau, K^\tau, R^\tau) \gets \text{Leak}^\tau()\cr
 \cr
 &\underline{
   \text{Presign}^\tau_k():
@@ -650,10 +716,15 @@ $$
   \text{K}^\tau():
 }\cr
   &\enspace
-    (X, K, R) \gets \text{Leak}^\tau()
+    \texttt{return } K^\tau
   \cr
+\cr
+\cr
+&\underline{
+  \text{XK}^\tau():
+}\cr
   &\enspace
-    \texttt{return } K
+    \texttt{return } \text{XK}^\tau
   \cr
 \cr
 &\underline{
@@ -732,4 +803,16 @@ F[\text{Messages}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
+The strategy is the same as other simulators in this section, where
+we use the fact that only the sum has to verify
+correctly, in order to give junk values up until the last moment.
+
 $\blacksquare$
+
+# The security of using presignatures
+
+Here, we've limited ourselves to showing that our protocol
+implements "ECDSA with presignatures",
+as far as the security of "ECDSA with presignatures"
+as a threshold signature scheme,
+see [Groth & Shoup 2021](https://eprint.iacr.org/2021/1330).

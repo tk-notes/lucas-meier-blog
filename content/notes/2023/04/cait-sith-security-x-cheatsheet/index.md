@@ -1080,10 +1080,6 @@ $$
 $$
 
 $$
-
-$$
-
-$$
 \boxed{
 \begin{matrix}
 \colorbox{FBCFE8}{\large

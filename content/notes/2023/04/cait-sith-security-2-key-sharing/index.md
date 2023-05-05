@@ -10,6 +10,161 @@ note-tags:
 katex: true
 ---
 
+So, there'a few steps to defining key sharing,
+since we want to reuse some of these intermediate protocols.
+
+Basically, first we define a way to convert additive shares to threshold
+shares,
+then a way to do key sharing,
+but with each of the steps accessible,
+then we define a way to do key generation, with each step accessible,
+and then then we can collapse all of the steps by performing them in sequence.
+
+The reason we need this "accessible steps" thing is because other protocols
+will call them interleaved with other protocols, so we need to be able
+to analyze this aspect.
+
+# Conversion
+
+As mentioned above, the goal here is to define a protocol for transforming
+additive shares into threshold shares.
+
+
+**Definition: (Conversion)**
+
+We define the following protocol for conversion.
+
+$$
+\boxed{
+\begin{matrix}
+\colorbox{FBCFE8}{\large
+  $\mathscr{P}[\text{Convert}]$
+}\cr
+\cr
+\boxed{
+\small{
+\begin{aligned}
+&\colorbox{FBCFE8}{\large
+  $P_i$
+}\cr
+\cr
+&Z\_{j i}, f_i \gets \bot\cr
+\cr
+&\underline{
+  (1)\text{SetMask}_i():
+}\cr
+  &\enspace
+    f_i \xleftarrow{\\$} \\{ f_i \in \mathbb{F}_q[X]\_{\leq t - 1} \mid f_i(0) = 0 \\\}
+  \cr
+  &\enspace
+    F_i \gets f_i \cdot G
+  \cr
+  &\enspace
+    \text{SetCommit}_i(F_i)
+  \cr
+  &\enspace
+    \text{Commit}_i()
+  \cr
+\cr
+&\underline{
+  \text{WaitMask}_i():
+}\cr
+  &\enspace
+    \text{WaitCommit}_i()
+  \cr
+\cr
+&\underline{
+  (1)\text{Share}_i(z_i):
+}\cr
+  &\enspace
+    \text{Open}_i()
+  \cr
+  &\enspace
+    Z_i \gets z_i \cdot G
+  \cr
+  &\enspace
+    \pi_i \gets \text{Prove}_i^\varphi(Z_i; z_i)
+  \cr
+  &\enspace
+    \Rsh_i(\star, (Z_i, \pi_i), 0)
+  \cr
+  &\enspace
+    \Rsh_i(\star, [z_i + f_i(j) \mid j \in [n]], 1)
+  \cr
+\cr
+&\underline{
+  \text{WaitShare}_i():
+}\cr
+  &\enspace
+    F\_\bullet \gets \text{WaitOpen}_i()
+  \cr
+  &\enspace
+    (Z\_{\bullet i}, \pi\_{\bullet i}) \gets \Lsh_i(\star, 0)
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ \neg \text{Verify}^\varphi(\pi\_{ji}, Z_j)
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 0)
+  \cr
+  &\enspace
+    x\_{\bullet i} \gets \Lsh_i(\star, 1)
+  \cr
+  &\enspace
+    x_i \gets \sum_j x\_{ji},\ Z \gets \sum_j Z_j, \enspace F \gets Z + \sum_j F_j
+  \cr
+  &\enspace
+    \texttt{if } \exists j.\ (\text{deg}(F_j) \neq t - 1 \lor F_j(0) \neq 0) \lor x_i \cdot G \neq F(i):
+  \cr
+  &\enspace\enspace
+    \texttt{stop}(\star, 1)
+  \cr
+  &\enspace
+    \texttt{return } (x_i, Z)
+  \cr
+\cr
+&\underline{
+  \text{Z}_i(j):
+}\cr
+  &\enspace
+    \texttt{return } Z\_{ji}
+  \cr
+\end{aligned}
+}
+}
+\quad
+\begin{matrix}
+F[\text{ZK}(\varphi)]\cr
+\otimes\cr
+F[\text{SyncComm}]\cr
+\circledcirc \cr
+F[\text{Stop}]
+\end{matrix}\cr
+\cr
+\text{Leakage} := \\{\texttt{stop}\\}
+\end{matrix}
+}
+\lhd \mathscr{P}[\text{Commit}]
+$$
+
+$\square$
+
+The basic idea behind this protocol is that you first commit
+to a polynomial you'll use for the threshold sharing,
+without committing to the value you want to share.
+Then, in a later step, you'll contribute your additive share of the secret
+value,
+and send threshold shares using this polynomial.
+
+Next, we get to the ideal functionality this protocol implements.
+The basic idea is that parties get $z + f(j)$,
+where $z$ is the secret, and $f$ is a random polynomial.
+One slight catch is that $f$ isn't quite random, but rather
+a random polynomial $f^h$, plus a polynomial $f^m$ to which the adversary
+must commit in advance, via $f^m \cdot G$.
+
+**Definition (Ideal Conversion):**
+
 $$
 \boxed{
 \begin{matrix}
@@ -174,10 +329,26 @@ $$
 
 $\square$
 
+For slight technical reasons, this functionality can't be reduced
+to one where the polynomial is simply chosen randomly,
+although it's functionally equivalent.
+This is because the adversary has to effectively commit to their contribution
+to the random polynomial in advance, before having seen any other information,
+which thus prevents this contribution from meaningfully affecting the randomness.
+
+In fact, if you have a stronger model of how the group here functions,
+like the AGM or something, then in fact this would reduce to the standard
+functionality, because you would be able to extract out the discrete
+logarithm of the cheating polynomial early.
+However, to make the analysis more concrete, we instead deal with this
+annoyance of functionality directly.
+
 **Lemma:**
 
+For a negligible $\epsilon$, and up to $t - 1$ malicious corruptions,
+we have:
 $$
-\mathscr{P}[\text{Convert}] \leadsto \mathscr{P}[\text{IdealConvert}]
+\mathscr{P}[\text{Convert}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealConvert}]
 $$
 
 **Proof:**
@@ -241,7 +412,9 @@ F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \otimes F[\text{Commit}] \otime
 \end{matrix}
 $$
 
-Next, inline messages
+Next, inline messages to get rid of synchronous communication.
+Our goal for now is to simplify the communication patterns, merging
+what's going on into a functionality.
 
 $$
 \begin{matrix}
@@ -455,8 +628,9 @@ F[\text{ZK}(\varphi)] \otimes F[\text{SyncComm}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
-By stopping inside $\Gamma_M$, we deliver earlier.
-Any proof not coming from prove is false, with neglible probability.
+By stopping inside $\Gamma_M$, we can merge the last two messages
+more easily.
+Any proof not coming from the prove function is false, except with neglible probability.
 
 $$
 \begin{matrix}
@@ -873,7 +1047,8 @@ F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 $$
 
 This is just a simulation of a protocol $\mathscr{P}_1$ where we need
-to open along with a proof and shares.
+to open along with a proof and shares,
+simplifying communication substantially.
 
 Let's unroll again.
 
@@ -923,7 +1098,7 @@ F^1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 $$
 
 Next, except with negligible probability, we can extract
-a $z_i$ value.
+a $z_i$ value because of the ZK proof.
 
 $$
 \begin{matrix}
@@ -993,7 +1168,8 @@ F^1 \otimes F[\text{ZK}(\varphi)] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
-Now, we can get rid of the ZK proofs entirely.
+Now, we can get rid of the ZK proofs entirely,
+by adding verification to the functionality itself.
 
 $$
 \begin{matrix}
@@ -1158,6 +1334,7 @@ $}\cr
 $$
 
 At this point, we're simulating a protocol $\mathscr{P}^2$,
+which uses this functionality instead of having ZK proofs,
 and so we can reset and unroll again.
 
 $$
@@ -1203,7 +1380,7 @@ F^2 \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
-Now, this simulates the desired protocol:
+From this point, we can jump directly to our desired protocol.
 
 $$
 \begin{matrix}
@@ -1397,8 +1574,24 @@ F[\text{Convert}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
+The main trick used in the simulator here is that all of the shares
+of the honest parties, save one, can be completely random.
+All we need to do is ensure
+that the *sum* of the honest parties shares corresponds to the
+honest part generated by the ideal functionality.
+
 $\blacksquare$
 
+# Sharing
+
+Next we look at key sharing, which is like conversion,
+except that we know our share from the very start of the protocol,
+allowing us to commit to it, and thus provide stronger guarantees.
+
+We also look at a "split" version, where each phase of the protocol
+has its own function.
+
+**Definition: (Key Sharing)**
 $$
 \boxed{
 \begin{matrix}
@@ -1498,6 +1691,14 @@ F[\text{Stop}]
 \lhd \mathscr{P}[\text{Commit}]
 $$
 
+$\square$
+
+This protocol is basically the same as conversion, just with an earlier
+secret value.
+
+Thus, the ideal protocol it implements is going to look quite similar:
+
+**Definition: (Ideal Key Sharing)**
 $$
 \boxed{
 \begin{matrix}
@@ -1669,10 +1870,14 @@ F[\text{Stop}]
 }
 $$
 
-**Lemma**
+**Lemma:**
+
+For some negligible $\epsilon$ and up to $t - 1$ malicious corruptions, we have:
+
 $$
-\mathscr{P}[\text{SplitShare}] \leadsto \mathscr{P}[\text{IdealSplitShare}]
+\mathscr{P}[\text{SplitShare}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealSplitShare}]
 $$
+
 **Proof:**
 
 $\mathscr{P}[\text{SplitShare}] \leadsto \mathscr{P}^0 \lhd (\mathscr{P}[\text{Commit}] \otimes \mathscr{P}[\text{Convert}])$, as demonstrated by the following:
@@ -2010,7 +2215,18 @@ F[\text{SplitShare}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
+This is quite similar to the previous simulator we had,
+where we try and aggregate all of the malicious contributions
+into a single one.
+
 $\blacksquare$
+
+# Key Generation
+
+Finally, we apply these ideas to key generation.
+The basic idea is to do key sharing, but with a random additive share.
+
+**Definition (Key Generation):**
 
 $$
 \boxed{
@@ -2064,6 +2280,19 @@ $$
 }
 \lhd \mathscr{P}[\text{SplitShare}]
 $$
+
+$\square$
+
+The main interest in doing this is that we get a slightly
+more succinct ideal functionality out of it.
+
+The idea here is that we have a random polynomial
+$f^h$, which includes the secret value,
+and the adversary can also add a tweak polynomial $f^m$,
+This tweak also doesn't bias the distribution, because it has to be committed
+to in advance, via $f^m \cdot G$.
+
+**Definition (Ideal Key Generation):**
 
 $$
 \boxed{
@@ -2217,15 +2446,16 @@ F[\text{Stop}]
 }
 $$
 
-**Lemma**
+**Lemma:**
 
+For some negligible $\epsilon$, and up to $t - 1$ corrupt parties, we have:
 $$
-\mathscr{P}[\text{SplitGen}] \lhd \mathcal{P}[\text{SplitShare}] \leadsto \mathscr{P}[\text{IdealSplitGen}]
+\mathscr{P}[\text{SplitGen}] \lhd \mathcal{P}[\text{SplitShare}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealSplitGen}]
 $$
 
 **Proof**
 
-First, appeal swap $\mathcal{P}[\text{SplitShare}]$ with $\mathcal{P}[\text{IdealSplitShare}]$, and then appeal to a direct simulation:
+First, we can jump to a protocol where $\mathcal{P}[\text{SplitShare}]$ has been replaced with $\mathcal{P}[\text{IdealSplitShare}]$, and then appeal to a direct simulation:
 
 $$
 \begin{matrix}
@@ -2383,8 +2613,19 @@ F[\text{SplitGen}] \circledcirc F[\text{Stop}]
 \end{matrix}
 $$
 
+The core thing the simulator needs to accomplish is to 
+fold the $Z$ value into the $F^m$ value,
+which now needs to hold both the contribution to the secret value,
+and to the secret sharing.
+
+We also need to simulate an honest polynomial without the secret $0$
+value.
 
 $\blacksquare$
+
+As a final note, the actual key sharing protocol one might
+use in practice directly doesn't expose each individual functionality,
+instead calling them in sequence:
 
 $$
 \boxed{
@@ -2422,3 +2663,6 @@ $$
 }
 \lhd \mathscr{P}[\text{SplitShare}]
 $$
+
+This protocol should match the one implemented in the specification,
+although with less modularity, naturally.

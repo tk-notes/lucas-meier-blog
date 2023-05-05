@@ -13,8 +13,15 @@ katex: true
 One sub-component used a couple of times is a combined broadcast commitment
 functionality, implemented via echo broadcast.
 
+In a nutshell, the idea behind echo broadcast is to ensure that a party
+sends the same message to all others.
+We accomplish this by sending a hash of all the messages we've received
+to everyone else, thus enabling us to realize if a different message
+was sent in the first round.
+
 **Definition (Echo Broadcast Protocol):**
-The broadcast protocol $\mathscr{P}[\text{EchoBroadcast}]$ is defined by the following;
+The broadcast protocol $\mathscr{P}[\text{EchoBroadcast}]$ is defined
+as follows:
 
 $$
 \boxed{
@@ -83,7 +90,26 @@ $$
 
 $\square$
 
+We model this hash function as a random oracle here.
+
+The functionality that this implements is basically what you'd
+expect.
+The parties have to set their broadcast value, and then the functionality
+forces them to send it to all others.
+However, there is a sort of catch, in that adversaries
+can set a "trap" value, which will cause an abort later if the wrong
+broadcast value is set after the trap.
+This reflects the fact that adversaries can send their confirmation
+message *early*, thus potentially causing an abort later.
+
+In practice this won't matter for our purpose of using broadcasts
+for commitments, because the commitment values will be random,
+and thus not trappable.
+
 **Definition (Ideal Broadcast Protocol):**
+
+The protocol capturing the ideal behavior of broadcast
+is defined as follows:
 
 $$
 \boxed{
@@ -207,11 +233,21 @@ $$
 
 $\square$
 
-**Lemma**
-$\mathscr{P}[\text{EchoBroadcast}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealBroadcast}]$,
-for a negligible $\epsilon$, and any combination of malicious parties.
+Another little detail is that the ideal functionality reflects
+the fact that the original broadcast had two rounds, via the synchronization
+mechanism.
 
-**Proof**
+**Lemma:**
+
+For a negligible $\epsilon$, and any combination of malicious parties:
+$$
+\mathscr{P}[\text{EchoBroadcast}] \overset{\epsilon}{\leadsto} \mathscr{P}[\text{IdealBroadcast}]
+$$
+
+**Proof:**
+
+As per usual, we unroll $\text{Inst}(\mathscr{P}[\text{EchoBroadcast}])$,
+to get:
 
 $$
 \begin{matrix}
@@ -250,7 +286,14 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
-Next, send both hash and vector.
+having split the game into an honest part, and a malicious part,
+long with the ideal functionalities.
+The malicious part will slowly become our simulator.
+
+Our next step will be to modify the honest part to send both
+the hash of their messages, and an entire vector confirmation.
+The malicious part will ignore this new information,
+giving us an identical game.
 
 $$
 \begin{matrix}
@@ -335,7 +378,11 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
-Next, have honest parties omit hash.
+Now, we can have the honest parties omit their hash completely,
+only sending the vector.
+This requires moving some of the hashing logic into the malicious part,
+and the verification check at the end,
+but otherwise gives us an identical game.
 
 $$
 \begin{matrix}
@@ -433,7 +480,9 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
-Now, except with negligible probability, we can use preimages instead.
+Because we're using a random oracle.
+Nowe, we can extract preimages by snopping on the hash queries
+made by the adversary, and send those instead.
 
 $$
 \begin{matrix}
@@ -560,7 +609,10 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 $$
 
 Now, except with negligible probability, a hash with no pre-image
-will fail, so remove sending hashes.
+will cause the final verification check made by honest parties
+to fail, so we can instead cause an abort when the adversary
+tries to send such a hash,
+allowing us to always extract a pre-image, or to abort:
 
 $$
 \begin{matrix}
@@ -670,7 +722,14 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
-Now, unroll again.
+At this point, we've actually written a simulator
+for a protocol $\mathscr{P}^0$, which is like our initial
+protocol, except that the parties send their entire vector,
+rather than their hash.
+This shows that $\mathscr{P}[\text{EchoBroadcast}] \leadsto \mathscr{P}^0$.
+
+We can unroll $\text{Inst}(\mathscr{P}^0)$ to get:
+
 $$
 \begin{matrix}
 \boxed{
@@ -730,7 +789,10 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
-Except with negligible probability, the hashes won't collide.
+Except with negligible probability, the hashes won't collide,
+so we can replace the hash based check with an actual check
+of equality.
+
 $$
 \begin{matrix}
 \boxed{
@@ -770,7 +832,10 @@ F[\text{SyncComm}] \otimes F[\text{Hash}]
 \end{matrix}
 $$
 
-Now, get rid of communication.
+Now, we employ a classic trick, and are trying to get
+rid of $F[\text{SyncComm}]$.
+Our strategy to do this will be to inline all of the variables
+in a common mutable functionality:
 
 $$
 \begin{matrix}
@@ -892,7 +957,7 @@ F[\text{Stop}]
 \end{matrix}
 $$
 
-Next, we can split the check into an honest check, and a malicious check.
+Next, we can split the verification check into an honest check, and a malicious check.
 $$
 \begin{matrix}
 \boxed{
@@ -963,8 +1028,11 @@ F[\text{Stop}]
 \end{matrix}
 $$
 
-The honest check only fails because of equivocation, and we can
-detect that in $\Gamma_M$.
+The only reason the honest check will fail is if the adversary
+sends to different messages to honest parties,
+causing their confirmations to differ.
+We can
+detect that in $\Gamma_M$ instead, replacing the honest check.
 
 $$
 \begin{matrix}
@@ -1408,6 +1476,15 @@ F[\text{Stop}]
 \end{matrix}
 $$
 
+As suggested by the introduction of this broadcast functionality,
+we now have a new protocol $\mathscr{P}^1$,
+and have shown that $\mathscr{P}^0 \leadsto \mathscr{P}^1$
+by our game hopping.
+We're not quite done yet, because the trapping here is a bit too strong,
+in that the adversary can trap even after a broadcast value has been
+set.
+We can simulate this freedom away.
+
 Next, unroll again.
 
 $$
@@ -1451,7 +1528,8 @@ F[\text{Broadcast}]' \otimes F[\text{Sync}(1)] \otimes F[\text{Stop}]
 \end{matrix}
 $$
 
-Then, amend things so that trap only runs before values have been broadcast.
+Traps that happen after a broadcast can be simulated by triggering an abort
+ourselves in the simulator.
 
 $$
 \begin{matrix}
@@ -1504,9 +1582,22 @@ F[\text{Broadcast}] \otimes F[\text{Sync}(1)] \otimes F[\text{Stop}]
 \end{matrix}
 $$
 
-concluding our proof.
+This is a simulator for $\mathscr{P}[\text{IdealBroadcast}]$,
+which concludes our proof, via the logic:
+$$
+\mathscr{P}[\text{EchoBroadcast}] \leadsto \mathscr{P}^0 \leadsto \mathscr{P}^1
+\leadsto \mathscr{P}[\text{IdealBroadcast}]
+$$
 
 $\blacksquare$
+
+# Commitments
+
+Our main application of broadcast will be to define a commitment protocol.
+The basic idea is that you commit to a value by hashing it,
+along with a random salt,
+and then broadcast that commitment.
+Later, you can open the value by sending it along with the salt.
 
 **Definition (Commitment Protocol):**
 
@@ -1597,9 +1688,18 @@ F[\text{Hash}]\cr
 \text{Leakage} := \\{\text{Hash}, \texttt{stop}\\}
 \end{matrix}
 }
+\lhd \mathscr{P}[\text{EchoBroadcast}]
 $$
 
 $\square$
+
+The ideal functionality this is supposed
+to implement is relatively straightforward.
+You set a commit value,
+and can wait for others to commit as well.
+Finally, you can open, which doesn't allow you to actually
+change the value you've committed to, it just makes it now visible to others.
+We also have the usual abort points remaining in the protocol.
 
 **Definition (Ideal Commitment):**
 $$
@@ -1727,19 +1827,29 @@ F[\text{Stop}]
 }
 $$
 
-**Lemma**
+$\square$
+
+**Lemma:**
+
+For some negligible $\epsilon$, and any combination of malicious parties,
+we have:
+
 $$
 \begin{matrix}
-\mathscr{P}[\text{Commit}] \lhd \mathscr{P}[\text{IdealBroadcast}]
+\mathscr{P}[\text{Commit}
 \overset{\epsilon}{\leadsto}
 \mathscr{P}[\text{IdealCommit}]
 \end{matrix}
 $$
-for some negligible $\epsilon$.
 
 **Proof:**
 
-First, unroll to get:
+First, we have $\mathscr{P}[\text{Commit}] \leadsto \mathscr{P}^0$,
+where $\mathscr{P}^0$ replaces $\mathscr{P}[\text{EchoBroadcast}]$
+with $\mathscr{P}[\text{IdealBroadcast}]$,
+and we start from there.
+
+We unroll $\text{Inst}(\mathscr{P}^0)$ to get:
 
 $$
 \begin{matrix}
@@ -1931,8 +2041,8 @@ F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otime
 \end{matrix}
 $$
 
-From this we see that we're in fact simulating a protocol
-which is like $\mathscr{P}[\text{EchoBroadcast}]$,
+From this we see that we're in fact simulating a protocol $\mathscr{P}^1$,
+which is like $\mathscr{P}[\text{IdealBroadcast}]$,
 except that trapping is not possible.
 Let's unroll that protocol, to get:
 
@@ -2220,7 +2330,7 @@ F[\text{Broadcast}'] \otimes F[\text{Sync}(1)] \otimes F[\text{SyncComm}] \otime
 $$
 
 Next, instead of checking for bad openings inside honest parties,
-when can instead have malicious parties directly cause
+we can instead have malicious parties directly cause
 a stop once they send a bad value.
 
 $$
@@ -2297,7 +2407,8 @@ $$
 
 (red parts deleted).
 
-Next, it's indifferentiable to check direct equality.
+Now, because random oracles are collision resistant, we get the same
+result to check full equality rather than hash equality.
 
 $$
 \begin{matrix}
@@ -2534,7 +2645,7 @@ F[\text{IdealCommit}] \otimes F[\text{Sync}(1)]
 \end{matrix}
 $$
 
-This is fact a simulator over $\mathscr{P}[IdealCommit]$,
+This is fact a simulator over $\mathscr{P}[\text{IdealCommit}]$,
 concluding our proof.
 
 $\blacksquare$
