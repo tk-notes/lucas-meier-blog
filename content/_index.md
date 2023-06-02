@@ -3,8 +3,10 @@ title: About
 katex: true
 ---
 
-I'm Lúcás: currently a final year MSc student in Computer Science
+I'm Lúcás: currently wrapping up my MSc thesis
 at [EPFL](https://www.epfl.ch/en/).
+
+BTW, I've also started looking at what I want to do after I finish school this summer, so if you have interesting opportunities for an applied cryptographer, feel free to send get in touch: [hello@cronokirby.com](mailto:hello@cronokirby.com).
 
 This is my personal website, where I write blog posts regularly, and keep a tab on
 all the projects I've worked on.
