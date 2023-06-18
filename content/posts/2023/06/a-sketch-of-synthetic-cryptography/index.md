@@ -242,6 +242,57 @@ about these low level details.
 
 # Properties and Rewrites
 
+One crucial aspect of the calculus we're developing is that if
+a process is equal to another in isolation,
+then it will also allow us to substitute that process
+for the other in an arbitrary context:
+{{<img "02/001.png">}}
+For the rules we've seen so far, we can apply them without
+really caring about how many times we do so,
+and assuming them to be "true".
+
+In cryptography, often times we have rules that we want to play
+around with, but that we don't assume to be absolutely true.
+Rather, we care about what rules can be deduced from other rules.
+For example, if some problem (e.g. RSA) is hard,
+then we can build secure public key encryption.
+
+In these deductions, we also care how many times we use a given
+assumption.
+This allows us to work backwards, and figure
+out what parameters we need to use in the assumptions
+to get enough security in the deductions.
+
+So, to do so, we define the notion of a "property",
+which is just a named rule.
+
+As an example, consider the following property,
+$\Pi[\text{AB}]$:
+{{<img "02/002.png">}}
+
+We also have deductions, which are of the form:
+$$
+\Pi_1 \times \Pi_2 \times \ldots \multimap \Pi
+$$
+The rule is that each assumed property on the left can only be used a single time in the deduction.
+As a shorthand, we write $\Pi^n := \Pi \times \ldots \times \Pi$, $n$ times.
+
+As an example deduction,
+consider $\Pi[\text{Example}]$, defined via:
+{{<img "02/003.png">}}
+
+The following deduction holds:
+$$
+\Pi[\text{AB}]^2 \multimap \Pi[\text{Example}]
+$$
+As demonstrated by the following proof:
+{{<img "02/004.png">}}
+We use $\epsilon_1$ to denote which assumption we use, and
+we do indeed use it (at most) twice.
+(Another convention we use is that green is used to highlight
+changes we've made, which has no impact on the actual semantics
+of a diagram).
+
 # Booleans
 
 # Randomness
