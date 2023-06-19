@@ -364,7 +364,98 @@ elements for equality will always return true:
 
 # Randomness
 
+What differentiates cryptography from other fields is ultimately that of
+randomness.
+In this section we define some basic properties
+of randomness, which will be the foundation for the rest of the
+schemes we see in this post.
+
+Some types are said to be *sampleable*, when there exists
+a process of the form:
+{{<img "03/001.png">}}
+This process should be understood as being a way of sampling a uniform
+value of this type.
+
+Furthermore, some types have some addition operation, $+$,
+which as one might expect with randomness:
+{{<img "03/002.png">}}
+In other words, a random value added to any value is the same
+as a fresh random value.
+
 ## Guessing
+
+For some types, it's difficult to guess a value sampled at random,
+without first seeing that value.
+
+### Barriers
+
+In order to formalize "without first seeing", we introduce the notion of barriers:
+{{<img "03/003.png">}}
+A barrier is simply a process, denoted by this bar, which
+waits for *all* of its inputs before returning them on its outputs.
+
+Here are some properties of barriers:
+
+{{<img "03/004.png">}}
+
+Intuitively, these capture the fact that a barrier can't be "crossed",
+unlike a standard wire, but that a barrier only cares about the "dependencies"
+of its wires.
+
+### Back to Guessing
+
+Now, having defined barriers, let's go back to the task we had before,
+which is that of defining what it means to have values
+which are hard to "guess" if sampled at random.
+We call such types *large*,
+as defined by the following property:
+
+**Property:** For a type $X$, $\Pi[\text{Guess}(X)]$ is defined via:
+{{<img "03/005.png">}}
+
+$\square$
+
+In other words, for large types, this property will hold.
+We usually consider it as an explicit assumption though,
+allowing us to keep track of how many times the assumption
+is used, and thus choosing
+a concrete size for the type for it to be large enough
+in the context of a given system.
+
+The barrier here is crucial, otherwise one could show this property
+to never hold, by copying the random value
+and using it as the guess.
+The barrier prevents this, by forcing the guess to be chosen
+before the random value is seen.
+
+### Implied Equalities
+
+We've shown a basic guessing property for a simple equality,
+but what can we say about guessing properties
+for more complicated equalities?
+
+First, for $=_0$, we can set up the property $\Pi[\text{MultiGuess}(N)]$,
+saying that guessing is hard, even with multiple guesses:
+{{<img "03/006.png">}}
+
+As one might expect, if guessing with one try is hard,
+so is it with multiple tries.
+
+**Claim:**
+$$
+\Pi[\text{Guess}]^N \multimap \Pi[\text{MultiGuess}(N)]
+$$
+**Proof:**
+
+We proceed by induction.
+
+First, we prove that $\Pi[\text{Guess}] \multimap \Pi[\text{MultiGuess}(1)]$:
+{{<img "03/007.png">}}
+
+Next, we prove that $\Pi[\text{Guess}] \otimes \Pi[\text{Guess}]^N \multimap \Pi[\text{MultiGuess}(1 + N)]$:
+{{<img "03/008.png">}}
+
+$\blacksquare$
 
 ## Random Functions
 
