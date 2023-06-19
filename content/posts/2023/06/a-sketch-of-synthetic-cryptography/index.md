@@ -295,7 +295,76 @@ of a diagram).
 
 # Booleans
 
+Now, we move from a very abstract context, and towards actual
+concrete types that exist in cryptography.
+
+The first such type we look at is that of *booleans*, or
+the set $\\{0, 1\\}$, also written $\texttt{01}$ for convenience.
+
+We define booleans via their effect on a selector function "$?$":
+{{<img "02/005.png">}}
+This function takes a condition, in its first input,
+which it uses to select one of two inputs.
+It takes the top one when the condition is true, and the bottom
+one when the condition is false.
+
+
+## Gates
+
+The selector functions are sufficient to define logic gates.
+
+For example, here's negation ($\neg$):
+{{<img "02/006.png">}}
+
+And, here's logical and ($\land$):
+{{<img "02/007.png">}}
+
+Naturally, we can then define all other logical operators
+by combining these two operations.
+
+We also define natural multivariate versions of these gates,
+taking more than one input, by chaining them together.
+E.g. the and of several variables is $((x_1 \land x_2) \land x_3) \land \ldots$.
+
+## Equalities
+
+Booleans can be produced by different processes,
+but usually a boolean is produced as the result of some kind of comparison.
+One very important kind of comparison we'll be needing is that of *equality*.
+
+Some types are able to be compared for equality, in which case
+the operator "$=$" is defined:
+{{<img "02/008.png">}}
+
+Many times, we'll want to compare multiple things
+against a single thing, which we define via the operator "$=_0$":
+{{<img "02/009.png">}}
+
+This is also our first instance of defining a construction by induction.
+We define the general case for $N$ inputs by looking
+at the case with $0$ an inputs, and then at the case where
+we have one additional input.
+
+Finally, the last kind of equality we have will check
+if any among a list of values is equal to another, via "$=_\exists$":
+{{<img "02/010.png">}}
+Another way of looking at it is that this operation checks
+if there exists a collision between the variables.
+The inductive definition says that a single variable
+has no collisions,
+and that checking a collision for $1 + N$ variables
+amounts to checking if any of the $N$ are equal to the first one,
+or collide amongst themselves.
+
+### Equality of Copied Values
+
+Another natural property of equality is that comparing duplicated
+elements for equality will always return true:
+{{<img "02/011.png">}}
+
 # Randomness
+
+## Guessing
 
 ## Random Functions
 
