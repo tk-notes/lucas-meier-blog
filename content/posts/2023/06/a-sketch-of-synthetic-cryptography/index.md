@@ -638,6 +638,54 @@ which is not good.
 
 ## Deterministic Schemes aren't IND-CPA Secure
 
+We can generalize the issue at hand, and show that any deterministic
+encryption scheme will fail to be secure against multiple
+encryption queries.
+
+A deterministic process satisfies the following property:
+{{<img "04/011.png">}}
+Note that for a randomized process, like $, this won't
+be the case.
+Generating a random value and then copying it
+is not the same as generating two random values.
+
+In the case of encryption, a deterministic scheme (relative to a fixed key)
+will then satisfy this property like so:
+{{<img "04/012.png">}}
+
+Now, let's say that we have two messages $m, m'$ such that they result
+in different ciphertexts (for xor, $m \neq m'$ suffices):
+{{<img "04/013.png">}}
+
+We can then use that to show that the two processes
+in $\Pi[\text{IND-CPA}(2)]$ are different.
+This property claims the following equality:
+{{<img "04/014.png">}}
+
+Now, consider the following "strategy" wrapped around the
+black box shape of this property:
+{{<img "04/015.png">}}
+In other words, the first pair consists of identical messages,
+and the last pair are two messages which will produce
+two different ciphertexts.
+
+If we have the left side of the property,
+this becomes:
+{{<img "04/016.png">}}
+Crucially, we used the fact that encryption was deterministic,
+in order to move it "behind the copy",
+thus realizing that the output will be equal.
+In other words, deterministic encryption will produce
+identical ciphertexts on identical inputs.
+
+On the right side of the property,
+we use the second pair, which by assumption
+will produce inequal ciphertexts, giving us:
+{{<img "04/017.png">}}
+
+Now, since $0$ and $1$ are not equal as processes,
+this property cannot hold, at least for deterministic encryption schemes.
+
 # Achieiving Multiple Encryptions
 
 ## Pseudo-Random Functions
