@@ -457,11 +457,192 @@ Next, we prove that $\Pi[\text{Guess}] \otimes \Pi[\text{Guess}]^N \multimap \Pi
 
 $\blacksquare$
 
+This property will be useful in many contexts where we want
+to use a random value more than once.
+
 ## Random Functions
 
-# Pseudo-Randomness
+Next, we develop a little gadget we'll be using a few times throughout this
+post: random functions.
+Random functions are useful to define the random oracle model of security,
+and to define pseudo-random functions, which we'll use for encryption.
+
+Mathematically, a random function $f : X \to Y$
+is like sampling a value from that set of functions randomly.
+The outputs of $f$ will be random, subject to the condition
+that $x = x' \implies f(x) = f(x')$.
+
+This perspective is a bit cumbersome in that it doesn't give us an easy
+algorithmic recipe to construct such a random function.
+We need a succinct way to do that.
+A useful perspective here is that we can look at making a random
+function a lazy mapping.
+Each time we produce an output, we check if the input has been
+seen before,
+in which case we use a previous output,
+otherwise we generate a fresh random output.
+
+This leads us to the following definition of a random function
+over $N$ inputs, $\rho$:
+{{<img "03/009.png">}}
+In other words, the first output will always be random,
+and the subsequent outcomes will use previous outputs
+if they match.
+
+### Random Functions on Random Inputs
+
+The outputs of a random function are basically random,
+except if the inputs have collisions.
+If the inputs are random, then collisions will be unlikely,
+as the following property,$\Pi[\rho\text{Rand}(N)]$, claims:
+{{<img "03/010.png">}}
+
+This claim can be proven for large types.
+
+**Claim:**
+$\bigotimes_{i = N,\ldots,1}\Pi[\text{MultiGuess}(i)] \multimap \Pi[\rho\text{Rand}(N)]$
+
+**Proof:**
+
+By induction.
+
+$\Pi[\text{MultiGuess}(1)] \multimap \Pi[\rho\text{Rand}(1)]$:
+{{<img "03/012.png">}}
+
+$\Pi[\text{MultiGuess}(1 + N)] \otimes \Pi[\rho\text{Rand}(N)] \multimap \Pi[\rho\text{Rand}(1 + N)]$:
+{{<img "03/013.png">}}
+
+$\blacksquare$
+
+If we combine this with what we know about $\Pi[\text{MultiGuess}(N)]$,
+we get that $\Pi[\text{Guess}]^{N^2} \multimap \Pi[\rho\text{Rand}(N)]$.
+
+This is a very useful property, as it shows that applying
+a random function to random inputs produces completely
+independent random outputs as well.
 
 # Encryption
+
+Next, we turn our eyes towards symmetric-key encryption.
+In this kind of encryption, both the sender and the receiver
+share a random value: the key.
+Using the key, there's an algorithm to encrypt a message,
+producing a ciphertext.
+Given a ciphertext, one can decrypt it using the key to recover
+the message.
+For security, one shouldn't be able to learn any information
+about the message just by looking at the ciphertext.
+
+More formally, an encryption scheme is a randomized function:
+$$
+E : K \otimes M \xrightarrow{\\$} \to C
+$$
+for a type of keys $K$, of messages $M$, and ciphertexts $C$,
+along with a deterministic function:
+$$
+D : K \otimes C \to M
+$$
+
+We require the following correctness property of an encryption scheme:
+{{<img "04/002.png">}}
+In other words, if we use the same key to encrypt and decrypt
+many messages, we get the same messages out that we put in:
+we can recover messages through decryption.
+
+## Indistinguishability
+
+Informally, the security of encryption says that "no information"
+can be extract from a ciphertext.
+Formally, we model this via the property $\Pi[\text{IND-CPA}(N)]$:
+{{<img "04/003.png">}}
+This says that one can't tell the difference between decryptiong
+one set of messages (on the top), or another set of messages
+(on the bottom).
+This means that no information about the messages leaks through the ciphertexts.
+
+
+Often we refer to the property $\Pi[\text{IND-CPA}(1)]$
+as $\Pi[\text{IND}]$.
+Achieving the latter is much easier than achieving
+the former for arbitrary $N$,
+as we'll see later.
+
+### Left or Right vs Real or Random
+
+Another variant of security for encryption involves
+comparing the encryption of a chosen set of messages,
+and that of a random set of messages, as described by the property
+$\Pi[\text{\\$IND-CPA}(N)]$:
+{{<img "04/004.png">}}
+
+This turns out to be equivalent.
+
+The first direction is trivial:
+**Claim:**
+$$
+\Pi[\text{IND-CPA}(N)] \multimap \Pi[\text{\\$IND-CPA}(N)]
+$$
+**Proof:**
+{{<img "04/005.png">}}
+$\blacksquare$
+
+The second direction is a bit less trivial,
+in that we need to use the assumption twice.
+
+**Claim:**
+$$
+\Pi[\text{\\$IND-CPA}(N)]^2 \multimap \Pi[\text{IND-CPA}(N)]
+$$
+**Proof:**
+{{<img "04/006.png">}}
+$\blacksquare$
+
+Because of this, we'll often use one of these properties as is more
+convenient, since the difference between them doesn't really matter.
+
+## One-Time Pad
+
+Now, we construct an example of a scheme that satisfies
+the $\Pi[\text{IND}]$ property.
+
+To do so, we introduce the notion of a "binary" type.
+This is a large type $X$, along with an operation
+$\oplus : X \otimes X \to X$,
+and an element $0 : X$, satisfying the following properties:
+{{<img "04/007.png">}}
+
+An example of this would be some set of binary strings $\\{0, 1\\}^\lambda$,
+with the usual xor operation.
+The rules above just say that $\oplus$ is an associative and commutative
+operator, with the extra property
+that any element $\oplus$ itself is the identity.
+Also, we have a property related to randomness,
+which says that xoring a random value with any other value results
+in a random value.
+
+This property is precisely what we'll use to make an encryption scheme.
+The idea is that our keys, messages, and ciphertexts
+will all be of type $X$, and we encrypt a message by xoring it with a key.
+
+We can check that this satisfies the correctness property for encryption:
+{{<img "04/008.png">}}
+Furthermore, this is secure against a single query:
+{{<img "04/009.png">}}
+
+Against multiple queries, we do run into a problem though.
+Intuitively, with multiple ciphertexts, we can calculate
+the xor of two messages:
+{{<img "04/010.png">}}
+This obviously leaks information about the underlying messages,
+which is not good.
+
+## Deterministic Schemes aren't IND-CPA Secure
+
+# Achieiving Multiple Encryptions
+
+## Pseudo-Random Functions
+
+## IND-CPA Encryption from PRFs
 
 # Public-Key Encryption
 
@@ -480,8 +661,6 @@ $\blacksquare$
 ## Random-Oracle Model
 
 ## Proving Security
-
-# How To Formalize This
 
 # Conclusion
 
