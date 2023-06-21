@@ -688,9 +688,112 @@ this property cannot hold, at least for deterministic encryption schemes.
 
 # Achieiving Multiple Encryptions
 
+Now, we move our attention to actually fixing this issue,
+and achieving security against multiple encryption queries.
+The approach we'll use here is actually a bit clever.
+If you were to take a scheme that's secure against one encryption query,
+then that would imply that it would be secure against many queries,
+as long as you could use a new key each time (we'll prove this later).
+Now, we could try generating a fresh key each time,
+the issue is that the decryption algorithm only has access
+to the original key, and the ciphertext,
+and thus would not have access to this fresh key,
+breaking the correctness of our scheme.
+
+We can fix this by somehow being able to "hide" the fresh key
+inside of the ciphertext, such that the information the decryption
+scheme has will be enough to recover it.
+
 ## Pseudo-Random Functions
 
+This is where pseudo-random functions, or PRFs, come in.
+The idea is that a PRF is a deterministic algorithm taking
+in a secret key, but which behaves identically to a random function,
+if you don't know the key.
+This allows us to solve our conundrum:
+we can place a unique value, called a nonce, inside each ciphertext
+(for example, by generating it at random),
+which will then make the output of the PRF effectively random,
+thus providing a fresh key to use for encryption.
+
+### A Formal Definition
+
+More formally, a PRF from $X$ to $Y$ is a deterministic function $F : K \otimes X \to Y$, over a type of key $K$.
+
+The security property of a PRF is quite simple, namely that
+it behaves like a random function if the key is selected
+at random and not revealed, as described by $\Pi[\text{PRF}(N)]$:
+{{<img "05/001.png">}}
+(Note that, crucially, we're using the same key for all queries,
+using a different key for each query would make this trivial).
+
 ## IND-CPA Encryption from PRFs
+
+Next, we follow the roadmap we sketched above to construct
+an IND-CPA secure encryption scheme from an IND secure scheme.
+
+First, we consider the property $\Pi[\text{Multi-IND}(N)]$:
+{{<img "05/002.png">}}
+
+This property follows in a natural way from the single key case:
+
+**Claim:**
+$$
+\Pi[\text{IND}]^N \multimap \Pi[\text{Multi-IND}(N)]
+$$
+**Proof:**
+
+By induction.
+$$
+\Pi[\text{IND}] \multimap \Pi[\text{Multi-IND}(1)]
+$$
+trivially, since both properties are the same.
+
+$$
+\Pi[\text{IND}] \otimes \Pi[\text{IND}]^N \multimap \Pi[\text{Multi-IND}(1 + N)]
+$$
+{{<img "05/003.png">}}
+$\blacksquare$
+
+(This is a specific case of a general theorem saying that
+$(A = B)^n \multimap A^n = B^n$.)
+
+Now, given an encryption scheme
+$$
+E : K_0 \otimes M \to C
+$$,
+and a PRF
+$$
+F : K_1 \otimes X \to K_0
+$$
+, we construct an encryption scheme
+$$
+E' : K_1 \otimes M \to (X \otimes C)
+$$.
+
+The idea is that $X$ will be the type of our "nonce", which will be generated
+at random and appended to the ciphertext:
+{{<img "05/004.png">}}
+We also use the PRF to generate a fresh key from this nonce.
+
+We can see that this encryption scheme is correct,
+using the fact that $F$ is deterministic:
+{{<img "05/005.png">}}
+
+All that's left is to prove that this scheme is secure.
+
+**Claim:**:
+
+$$
+\Pi[\text{PRF}(N)]^2 \otimes \Pi[\rho\text{RAND}(N)]^2 \otimes \Pi[\text{Multi-IND}(N)] \multimap \Pi[\text{IND-CPA}(N)]
+$$
+**Proof:**
+
+{{<img "05/006.png">}}
+Then work backwards, applying $\epsilon_1$ then $\epsilon_0$
+to reach the goal.
+
+$\blacksquare$
 
 # Public-Key Encryption
 
