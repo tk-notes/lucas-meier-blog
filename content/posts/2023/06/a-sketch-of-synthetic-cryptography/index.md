@@ -797,9 +797,124 @@ $\blacksquare$
 
 # Public-Key Encryption
 
-## KEMs
+Next, we move from symmetric encryption to public key encryption.
+
+In symmetric encryption, encryption and decryption use the same key,
+which must be kept secret.
+
+In public key encryption, encryption and decryption use different keys.
+Encryption only requires a public key, which, as the name suggests,
+can be public, whereas
+decryption requires a secret key (and sometimes also the public key),
+which must be kept secret.
+
+This allows anyone to encrypt messages to a recipient,
+but only for that recipient to decrypt messages sent to them.
+
+More formally, a public key encryption scheme consists of:
+
+- Types for public keys $\text{PK}$, private keys $\text{SK}$,
+messages $M$, and ciphertexts $C$.
+- A key generation algorithm $K : \emptyset \xrightarrow{\\$} (\text{SK}, \text{PK})$
+- An encryption algorithm $E : \text{PK} \otimes M \xrightarrow{\\$} C$.
+- An encryption algorithm $D : \text{SK} \otimes C \to M$.
+
+The following correctness property must be satisfied:
+(This is analogous to the case of symmetric encryption.)
+{{<img "06/001.png">}}
+
+The security property is similar to that of symmetric key encryption,
+except that the public key is also leaked:
+{{<img "06/002.png">}}
+
+Now, in this setup, we allow multiple queries.
+But, it turns out that it's equivalent to allow just one query,
+as we can show by induction:
+{{<img "06/003.png">}}
+
+Thus, we only consider the single query variant of this property,
+which we define as $\Pi[\text{PK-IND}]$.
 
 ## KEM-DEM paradigm
+
+A common way of constructing public key encryption schemes
+for large messages is to first use a public key encryption
+scheme to send a key, and then to use that key to encrypt
+a large message with a symmetric encryption scheme.
+
+There are usually two reasons to do this:
+- Setups for public key encryption usually can't handle large messages.
+- Even if they can, public key operations are much slower than symmetric ones.
+
+If you only need to transmit a key to another party, rather than
+being able to encrypt arbitrary messages to a public key,
+then you can use a slightly weaker primitive, called a *key encapsulation
+mechanism*, or KEM.
+
+### KEMs
+
+Formally, a KEM consists of:
+- Types $\text{PK}$ (public keys), $\text{SK}$ (private keys), $\text{C}$
+(ciphertexts / encapsulations), $\text{K}$ (output keys).
+- A key generation algorithm $K : \emptyset \xrightarrow{\\$} (\text{SK}, \text{PK})$
+- An encapsulation algorithm $E : \text{PK} \xrightarrow{\\$} C \otimes K$.
+- A decapsulation algorithm $D : \text{SK} \otimes C \to K$.
+
+The idea is that the encapsulation algorithm will generate a new key,
+along with an encapsulation that hides it.
+Then, the secret key allows one to recover the key inside an encapsulation.
+For correctness, we require that the key we get when encapsulating
+and decapsulating match, or, in other words, that swapping
+them doesn't matter:
+{{<img "06/004.png">}}
+
+For security, we have a similar notion as that of public key encryption.
+Instead of a "left vs right" notion, we instead use one of "real vs random".
+Using a random key instead of the one produced in encapsulation
+yields an equivalent process.
+This is formally defined in the property $\Pi[\text{KEM-IND}]$:
+{{<img "06/005.png">}}
+
+#### Public-Key Encryption is a KEM
+
+One obvious way to make a KEM is to generate a random key,
+and then encrypt it with a public key encryption scheme:
+{{<img "06/006.png">}}
+
+We can easily check that this satisfies the correctness property,
+assuming the underlying public key encryption scheme does:
+{{<img "06/007.png">}}
+
+Furthermore, security is also simple to check:
+{{<img "06/008.png">}}
+
+### KEM + Encryption = Public Key Encryption
+
+The next thing we show is that one can combine a
+KEM and a symmetric encryption scheme,
+in order to get a public key encryption scheme.
+We write $E_p$ and $D_p$ for the kem, and $E_s$ and $D_s$ for the symmetric
+encryption scheme, and then define the following PKE scheme:
+{{<img "06/009.png">}}
+We support the same messages as the symmetric encryption scheme,
+and our ciphertexts are a combination of an encapsulated key,
+and a symmetric ciphertext.
+
+We can check that this scheme is correct, assuming
+the underlying KEM and symmetric encryption scheme are:
+{{<img "06/010.png">}}
+
+Next, we prove that this scheme also inherits the security
+of the underlying primitives it's made up of:
+
+**Claim:**
+$$
+\Pi[\text{KEM-IND}]^2 \otimes \Pi[\text{IND}] \multimap \Pi[\text{PK-IND}]
+$$
+**Proof:**
+{{<img "06/011.png">}}
+
+$\blacksquare$
 
 # KEMs from Group Assumptions
 
