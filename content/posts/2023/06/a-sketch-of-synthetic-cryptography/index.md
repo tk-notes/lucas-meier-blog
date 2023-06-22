@@ -48,7 +48,7 @@ to other resources, such as {{<ref-link "PZ23">}}.
 
 Our starting point will be a "process":
 
-{{<img "01/001.png">}}
+{{<img "01/001.png" "50%">}}
 
 In other frameworks, one might call this a cryptographic game,
 or a package.
@@ -95,14 +95,14 @@ processes together, and manipulating diagrams of connected processes.
 
 The type $A \otimes B$ denotes the type of "both $A$ and $B$".
 Because of this, we can treat two wires as one, like this:
-{{<img "01/002.png">}}
+{{<img "01/002.png" "50%">}}
 This just a notational convenience,
 the meaning of the process is otherwise the same.
 
 Sometimes processes will consume the wires split, and other times,
 some processes will be written with the wires joined.
 To convert between the two, we use the following bits of notation:
-{{<img "01/004.png">}}
+{{<img "01/004.png" "50%">}}
 The first takes multiple wires, and combines them into one
 wire with $\otimes$.
 The latter does the opposite, taking one wire with some types connected
@@ -117,7 +117,7 @@ $n$ times.
 
 The first way to connect two processes is via their wires:
 
-{{<img "01/003.png">}}
+{{<img "01/003.png" "60%">}}
 
 In terms of the underlying math,
 given processes $A : X \to Y$, and $B : Y \to Z$, we can define
@@ -140,7 +140,7 @@ diagram system which reflect equivalences in the underlying processes.
 ### Side-by-Side
 
 The other way to compose protocols is via *tensoring*, or, side-by-side:
-{{<img "01/006.png">}}
+{{<img "01/006.png" "40%">}}
 In terms of the math, given
 $A : X_1 \to Y_1$ and $B : X_2 \to Y_2$, we write:
 $$
@@ -163,7 +163,7 @@ as the notation suggests:
 
 Composition and tensoring also play very nicely with eachother.
 If you have processes $A, B, C, D$, boxed up like this:
-{{<img "01/008.png">}}
+{{<img "01/008.png" "80%">}}
 Then there are two ways of looking at this diagram:
 {{<img "01/009.png">}}
 In the first way, you tensor first, then compose,
@@ -178,7 +178,7 @@ any differences in terms of the diagram.
 Next, we introduce little gadgets we can use.
 The first of these gadgets is "$1$", a process
 which simply returns its input:
-{{<img "01/010.png">}}
+{{<img "01/010.png" "30%">}}
 In math, we have $1_X : X \to X$ (for any type $X$).
 
 The defining property is that $1$ composed with any other process,
@@ -194,31 +194,31 @@ us to "slide" processes along wires:
 
 Next, we introduce another gadget, which is a process which
 swaps its inputs:
-{{<img "01/013.png">}}
+{{<img "01/013.png" "30%">}}
 Once again, the outputs here will be ready as soon as the corresponding
 input is, without needing to wait for the other,
 just as in an electrical circuit, or something like that.
 
 One key property of swapping is that doing it twice is the same
 as not swapping:
-{{<img "01/014.png">}}
+{{<img "01/014.png" "70%">}}
 (As a consequence, swapping an even number of times does nothing.)
 
 ### Backwards and Forwards
 
 Next, we also consider processes which may also have inputs
 on the right, and outputs on the left:
-{{<img "01/015.png">}}
+{{<img "01/015.png" "50%">}}
 Thus, on certain wires, information flows "backwards".
 To make this clear, we make sure to write the direction on those arrows.
 
 There are two fundamental gadgets which reverse the flow of arrows:
-{{<img "01/016.png">}}
+{{<img "01/016.png" "50%">}}
 Intuitively, these just take the information on one wire and
 put it on another, flowing in the other direction.
 
 As one might expect, these gadgets satisfy a natural law:
-{{<img "01/017.png">}}
+{{<img "01/017.png" "60%">}}
 In other words, changing the direction of flow twice does nothing.
 
 ### Copying and Deleting
@@ -226,7 +226,7 @@ In other words, changing the direction of flow twice does nothing.
 The final gadgets we'll look at our processes which copy
 and discard information:
 
-{{<img "01/018.png">}}
+{{<img "01/018.png" "60%">}}
 
 We can think of the first process as copying its input,
 and outputting it on two wires,
@@ -237,12 +237,12 @@ These satisfy a few properties.
 
 First, when we copy twice to get three outputs,
 the order we do this in does not matter:
-{{<img "01/019.png">}}
+{{<img "01/019.png" "80%">}}
 Second, when we copy, swapping the two outputs does nothing:
-{{<img "01/020.png">}}
+{{<img "01/020.png" "80%">}}
 Finally, if we copy and discard either output,
 the end result is the same as just returning the input:
-{{<img "01/021.png">}}
+{{<img "01/021.png" "90%">}}
 
 ### Summary
 
@@ -269,7 +269,7 @@ One crucial aspect of the calculus we're developing is that if
 a process is equal to another in isolation,
 then it will also allow us to substitute that process
 for the other in an arbitrary context:
-{{<img "02/001.png">}}
+{{<img "02/001.png" "80%">}}
 For the rules we've seen so far, we can apply them without
 really caring about how many times we do so,
 and assuming them to be "true".
@@ -325,7 +325,7 @@ The first such type we look at is that of *booleans*, or
 the set $\\{0, 1\\}$, also written $\texttt{01}$ for convenience.
 
 We define booleans via their effect on a selector function "$?$":
-{{<img "02/005.png">}}
+{{<img "02/005.png" "80%">}}
 This function takes a condition, in its first input,
 which it uses to select one of two inputs.
 It takes the top one when the condition is true, and the bottom
@@ -337,10 +337,10 @@ one when the condition is false.
 The selector functions are sufficient to define logic gates.
 
 For example, here's negation ($\neg$):
-{{<img "02/006.png">}}
+{{<img "02/006.png" "80%">}}
 
 And, here's logical and ($\land$):
-{{<img "02/007.png">}}
+{{<img "02/007.png" "80%">}}
 
 Naturally, we can then define all other logical operators
 by combining these two operations.
@@ -357,7 +357,7 @@ One very important kind of comparison we'll be needing is that of *equality*.
 
 Some types are able to be compared for equality, in which case
 the operator "$=$" is defined:
-{{<img "02/008.png">}}
+{{<img "02/008.png" "50%">}}
 
 Many times, we'll want to compare multiple things
 against a single thing, which we define via the operator "$=_0$":
@@ -395,13 +395,13 @@ schemes we see in this post.
 
 Some types are said to be *sampleable*, when there exists
 a process of the form:
-{{<img "03/001.png">}}
+{{<img "03/001.png" "30%">}}
 This process should be understood as being a way of sampling a uniform
 value of this type.
 
 Furthermore, some types have some addition operation, $+$,
 which as one might expect with randomness:
-{{<img "03/002.png">}}
+{{<img "03/002.png" "70%">}}
 In other words, a random value added to any value is the same
 as a fresh random value.
 
@@ -413,7 +413,7 @@ without first seeing that value.
 ### Barriers
 
 In order to formalize "without first seeing", we introduce the notion of barriers:
-{{<img "03/003.png">}}
+{{<img "03/003.png" "20%">}}
 A barrier is simply a process, denoted by this bar, which
 waits for *all* of its inputs before returning them on its outputs.
 
@@ -666,7 +666,7 @@ encryption scheme will fail to be secure against multiple
 encryption queries.
 
 A deterministic process satisfies the following property:
-{{<img "04/011.png">}}
+{{<img "04/011.png" "70%">}}
 Note that for a randomized process, like $, this won't
 be the case.
 Generating a random value and then copying it
@@ -674,20 +674,20 @@ is not the same as generating two random values.
 
 In the case of encryption, a deterministic scheme (relative to a fixed key)
 will then satisfy this property like so:
-{{<img "04/012.png">}}
+{{<img "04/012.png" "70%">}}
 
 Now, let's say that we have two messages $m, m'$ such that they result
 in different ciphertexts (for xor, $m \neq m'$ suffices):
-{{<img "04/013.png">}}
+{{<img "04/013.png" "70%">}}
 
 We can then use that to show that the two processes
 in $\Pi[\text{IND-CPA}(2)]$ are different.
 This property claims the following equality:
-{{<img "04/014.png">}}
+{{<img "04/014.png" "70%">}}
 
 Now, consider the following "strategy" wrapped around the
 black box shape of this property:
-{{<img "04/015.png">}}
+{{<img "04/015.png" "70%">}}
 In other words, the first pair consists of identical messages,
 and the last pair are two messages which will produce
 two different ciphertexts.
@@ -704,7 +704,7 @@ identical ciphertexts on identical inputs.
 On the right side of the property,
 we use the second pair, which by assumption
 will produce inequal ciphertexts, giving us:
-{{<img "04/017.png">}}
+{{<img "04/017.png" "80%">}}
 
 Now, since $0$ and $1$ are not equal as processes,
 this property cannot hold, at least for deterministic encryption schemes.
@@ -796,7 +796,7 @@ $$.
 
 The idea is that $X$ will be the type of our "nonce", which will be generated
 at random and appended to the ciphertext:
-{{<img "05/004.png">}}
+{{<img "05/004.png" "80%">}}
 We also use the PRF to generate a fresh key from this nonce.
 
 We can see that this encryption scheme is correct,
@@ -896,13 +896,13 @@ Instead of a "left vs right" notion, we instead use one of "real vs random".
 Using a random key instead of the one produced in encapsulation
 yields an equivalent process.
 This is formally defined in the property $\Pi[\text{KEM-IND}]$:
-{{<img "06/005.png">}}
+{{<img "06/005.png" "70%">}}
 
 #### Public-Key Encryption is a KEM
 
 One obvious way to make a KEM is to generate a random key,
 and then encrypt it with a public key encryption scheme:
-{{<img "06/006.png">}}
+{{<img "06/006.png" "70%">}}
 
 We can easily check that this satisfies the correctness property,
 assuming the underlying public key encryption scheme does:
@@ -1054,7 +1054,7 @@ access to $H$, we will modify our games to also allow queries
 to $H$.
 
 Diagramatically, a process using a hash function $H$ will be modeled as:
-{{<img "07/006.png">}}
+{{<img "07/006.png" "50%">}}
 This allows composing such processes together while having them use
 "the same" hash function.
 
