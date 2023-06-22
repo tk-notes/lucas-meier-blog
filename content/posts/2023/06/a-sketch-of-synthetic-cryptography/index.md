@@ -9,7 +9,30 @@ tags:
   - "Foundations"
 ---
 
-This is.
+This is a brief post sketching out a synthetic style of cryptography.
+In this style, one doesn't appeal to any kind of complexity theory,
+probability, or even adversary.
+Instead, one has rules for considering two "games" to be equal,
+and applies these at a very granular level.
+Of course, one can interpret these rules in a concrete model.
+All of the examples in this post should work in the standard
+asymptotic model.
+In fact, I've tried to structure things so that concrete bounds are easily
+derivable, if you care about that kind of thing.
+
+This post is a very brief tour of the important topics one might
+cover in a course on cryptography.
+Namely, we see:
+- dealing with randomness and guessing in this framework,
+- symmetric encryption security,
+- pseudo-random functions,
+- properties of random functions,
+- public key encryption,
+- the KEM-DEM paradigm for public key encryption,
+- constructing a CPA secure KEM from groups, in the random oracle model.
+
+Hopefully this tasting platter gives you a good idea
+of what proofs in this style can look like.
 
 <!--more-->
 
@@ -916,19 +939,163 @@ $$
 
 $\blacksquare$
 
+With that, we now have a somewhat simplifies recipe to construct
+public key encryption: just construct a KEM,
+and then use any IND-secure encryption scheme,
+such as a one-time pad.
+
 # KEMs from Group Assumptions
+
+In this section, we construct the underlying KEM
+used in ElGamal encryption.
+The underlying cryptographic assumption we use
+is related to the hardness of the discrete logarithm
+in a finite group, such as the group of points on an Elliptic Curve.
+This is a very common and practical scheme.
 
 ## Groups
 
+Before we get to hardness assumptions, we need to define
+the basic group structure we'll be working with in this section:
+i.e. the "cryptographic group".
+
+A cryptographic group consists of:
+- a type of scalars $\mathbb{F}$,
+- a type of group elements $\mathbb{G}$,
+- a distinguished point $G \in \mathbb{G}$,
+- operators $+, \cdot : \mathbb{F}^2 \to \mathbb{F}$,
+- an operator $+ : \mathbb{G}^2 \to \mathbb{G}$,
+- an operator $* : \mathbb{F} \otimes \mathbb{G} \to \mathbb{G}$.
+
+Furthermore, these need to satisfy the following properties:
+{{<img "07/001.png">}}
+For the algebraically inclined, these all stem from
+assuming that $\mathbb{F}$ is a field, and $\mathbb{G}$
+is an $\mathbb{F}$-vector space.
+
+
+## DLog Assumption
+
+Where things get interesting, from a cryptographic point of view,
+is when we start adding hardness assumptions on top of
+these basic operations.
+
+A fundamental hardness assumption is that it's difficult
+to compute discrete logarithms in the group.
+In other words, given a group element,
+it's difficult to figure out the scalar element required
+to reach that element from the generator, via $*$.
+
+Formally, the property $\Pi[\text{DLOG}]$ holds:
+{{<img "07/002.png">}}
+This tries to capture the intuition above,
+showing that even with multiple guesses, the result will still always
+be 0.
+
 ## CDH Assumption
+
+We'll be needing a stronger assumption, namely
+that of the "Computational Diffie Hellman" problem, or "CDH".
+This says that given $A = a * G, B = b * G$, it's difficult
+to compute $C = a \cdot b * G$.
+
+More formally, the assumption is characterized by the following property,
+$\Pi[\text{CDH}]$:
+{{<img "07/003.png">}}
+
+As to why this assumption is useful, the beauty of the synthetic
+approach is that you can just sort of observe how it gets used,
+and thus see why it's useful.
+In other words, it's useful cause you can use it.
 
 ## ElGamal KEM
 
+Next, we construct a KEM whose security will be linked to this assumption.
+
+The secret key will be a scalar in $\mathbb{F}$,
+the public key a value in $\mathbb{G}$,
+and the encapsulated key a value in $\mathbb{G}$.
+We also assume a hash function $H : \mathbb{G} \to K$,
+mapping group elements into symmetric keys.
+We'll see how we model the security of this function later,
+for now, when looking at correctness,
+we just need to know that it's a deterministic function.
+
+The crux of this scheme will come from the fact that:
+$$
+ab * G = a * (b * G) = b * (a * G)
+$$
+
+We'll have $a * G$ as our public key, and $b * G$ as our encapsulation,
+with $H(ab * G)$ as the secret.
+This allows the holder of $a$ to calculate the secret from the encapsulated
+value.
+
+In more detail, let's define the algorithms for our KEM:
+{{<img "07/004.png">}}
+
+At this point, we can go ahead and check the correctness of this construction:
+{{<img "07/005.png">}}
+(After this point, we can swap after the copy,
+and then repeat the argument backwards).
+We only used the fact that $H$ was deterministic here,
+but for security, we'll need to assume more about it.
+
 ## Random-Oracle Model
+
+What we'll be doing is modelling $H$ as a random function.
+Just replacing $H$ with $\rho$ isn't a great model though,
+since it's possible to call $H$ in other contexts,
+and get the same results as one does inside of this KEM,
+because $H$ is just a deterministic algorithm.
+
+In order to model the ability of "other parts" to also have
+access to $H$, we will modify our games to also allow queries
+to $H$.
+
+Diagramatically, a process using a hash function $H$ will be modeled as:
+{{<img "07/006.png">}}
+This allows composing such processes together while having them use
+"the same" hash function.
+
+This is called the "random oracle model" of security for processes
+using hash functions.
 
 ## Proving Security
 
+With this in hand, we can prove the security of our group-based
+KEM in this model.
+
+**Claim:**
+In the random oracle model, it holds that:
+$$
+\Pi[\text{CDH}]^2 \multimap \Pi[\text{KEM-IND}]
+$$
+**Proof:**
+{{<img "07/007.png">}}
+Then apply the same arguments in reverse, with those
+two outputs swapped.
+
+$\blacksquare$
+
 # Conclusion
+
+Hopefully this post gave you a taste of some of the kinds of arguments
+this graphical syntax enables.
+I've also restrained myself from trying to give a precise semantics
+for the string diagrams in this post,
+mainly because I haven't yet figured out those semantics,
+but also because I think the "synthetic" style,
+where you avoid a concrete semantics, working in a free category,
+is the best one for most work.
+
+As the post went on, I tried to put more and more weight
+on the graphical reasoning, as opposed to words, trying to show
+a bit of the extremes you can get if you really embrace it.
+Hopefully I didn't lose you there.
+
+I expect there to be more posts in this style as I flesh
+out the details, and talk about various minutiae in the formalization.
 
 # References
 
