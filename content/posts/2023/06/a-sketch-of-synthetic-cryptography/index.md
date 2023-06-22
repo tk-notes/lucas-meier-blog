@@ -1,8 +1,8 @@
 ---
 title: "A Sketch of Synthetic Cryptography"
-date: 2023-06-17T21:31:27+01:00
+date: 2023-06-22T03:02:35+02:00
 katex: true
-draft: true
+draft: false
 tags:
   - "Category Theory"
   - "Cryptography"
