@@ -12,6 +12,9 @@ tags:
 This is a brief post sketching out a synthetic style of cryptography.
 In this style, one doesn't appeal to any kind of complexity theory,
 probability, or even adversary.
+
+<!--more-->
+
 Instead, one has rules for considering two "games" to be equal,
 and applies these at a very granular level.
 Of course, one can interpret these rules in a concrete model.
@@ -34,7 +37,6 @@ Namely, we see:
 Hopefully this tasting platter gives you a good idea
 of what proofs in this style can look like.
 
-<!--more-->
 
 # String Diagrams
 
