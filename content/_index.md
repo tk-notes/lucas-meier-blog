@@ -3,10 +3,7 @@ title: About
 katex: true
 ---
 
-I'm Lúcás: currently wrapping up my MSc thesis
-at [EPFL](https://www.epfl.ch/en/).
-This is my personal website, where I write blog posts regularly, and keep a tab on
-all the projects I've worked on.
+I'm Lúcás, currently a cryptographer at Penumbra Labs, working on [Penumbra](https://penumbra.zone/).
 
 My main interest is cryptography.
 I've done both applied work as well as more theoretical research.
