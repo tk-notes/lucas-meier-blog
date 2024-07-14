@@ -337,7 +337,7 @@ the proofs and objects of the subject.
 
 [Anki](https://apps.ankiweb.net/) is probably the most popular SRS, and has
 LaTeX support, as well as images, which are key for mathematics. On the other hand,
-I personally prefer [Mochi Cards](https://apps.ankiweb.net/), since I find the interface
+I personally prefer [Mochi Cards](https://mochi.cards/), since I find the interface
 much cleaner, and the latex entry much more seamless:
 
 {{<img "4.png">}}
